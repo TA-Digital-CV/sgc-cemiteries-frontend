@@ -103,8 +103,7 @@ export default function BlockEditPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href={`/cemeteries/${cemeteryId}`}>
-            <IGRPButton variant="ghost" size="sm">
-              <IGRPIcon iconName="ArrowLeft" className="h-4 w-4 mr-2" />
+            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
               Voltar
             </IGRPButton>
           </Link>

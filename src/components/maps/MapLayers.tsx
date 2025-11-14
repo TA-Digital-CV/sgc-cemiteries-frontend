@@ -253,7 +253,7 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
         {/* Lista de camadas */}
         <div className="space-y-2">
           {filteredLayers.map((layer) => {
-            const iconName = layerTypeIcons[layer.type] || "layers";
+            const iconName = layerTypeIcons[layer.type] || "Layers";
             const label = layerTypeLabels[layer.type] || layer.type;
 
             return (
@@ -266,13 +266,9 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
                         size="sm"
                         onClick={() => handleToggleLayer(layer.id)}
                         className={`h-8 w-8 p-0 ${layer.visible ? "text-blue-600" : "text-gray-400"}`}
-                      >
-                        {layer.visible ? (
-                          <IGRPIcon iconName="Eye" className="h-4 w-4" />
-                        ) : (
-                          <IGRPIcon iconName="EyeOff" className="h-4 w-4" />
-                        )}
-                      </IGRPButton>
+                        showIcon
+                        iconName={layer.visible ? "Eye" : "EyeOff"}
+                      />
 
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-blue-100 rounded-lg">

@@ -10,6 +10,7 @@ import {
   IGRPSelect,
   IGRPDataTable,
   IGRPDataTableHeaderSortToggle,
+  IGRPIcon,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -48,7 +49,7 @@ export default function PlotsPage() {
     markPlotAsOccupied,
     markPlotAsAvailable,
     isLoading,
-  } = usePlot() as any;
+  } = usePlot();
 
   const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>("");
   const [selectedBlockId, setSelectedBlockId] = useState<string>("");
@@ -65,6 +66,7 @@ export default function PlotsPage() {
     dimensions: { width: 0, length: 0, unit: "meters" },
     notes: "",
   });
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     void fetchCemeteries();
@@ -117,6 +119,7 @@ export default function PlotsPage() {
   const handleCreate = async () => {
     const validation = validateForm();
     if (validation) {
+      setErrorMsg(validation);
       return;
     }
     const payload: PlotFormData = {
@@ -136,6 +139,7 @@ export default function PlotsPage() {
         dimensions: { width: 0, length: 0, unit: "meters" },
         notes: "",
       });
+      setErrorMsg(null);
     }
   };
 
@@ -143,12 +147,14 @@ export default function PlotsPage() {
     if (!editing) return;
     const validation = validateForm();
     if (validation) {
+      setErrorMsg(validation);
       return;
     }
     const payload: PlotFormData = { ...form } as PlotFormData;
     const res = await updatePlot(editing.id, payload);
     if (res?.success) {
       setEditing(null);
+      setErrorMsg(null);
     }
   };
 
@@ -169,30 +175,16 @@ export default function PlotsPage() {
   };
 
   const doReserve = async (p: Plot) => {
-    const until = new Date();
-    until.setMonth(until.getMonth() + 3);
-    const res = await reservePlot(p.id, {
-      reservedBy: "system",
-      reservedUntil: until,
-      notes: "",
-    });
-    if (res) {
-    }
+    setErrorMsg("Error: Missing required reservation data");
   };
   const doCancelReservation = async (p: Plot) => {
-    const res = await cancelPlotReservation(p.id, "User cancel");
-    if (res) {
-    }
+    setErrorMsg("Error: Missing cancellation reason");
   };
   const doOccupy = async (p: Plot) => {
-    const res = await markPlotAsOccupied(p.id, { occupantName: "John Doe" });
-    if (res) {
-    }
+    setErrorMsg("Error: Missing occupant information");
   };
   const doAvailable = async (p: Plot) => {
-    const res = await markPlotAsAvailable(p.id, "Freed");
-    if (res) {
-    }
+    setErrorMsg("Error: Missing availability reason");
   };
 
   return (
@@ -218,6 +210,12 @@ export default function PlotsPage() {
           <IGRPCardTitle>Filtros</IGRPCardTitle>
         </IGRPCardHeader>
         <IGRPCardContent>
+          {errorMsg && (
+            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg mb-4">
+              <IGRPIcon iconName="AlertTriangle" className="h-4 w-4" />
+              <span className="text-sm">{errorMsg}</span>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <IGRPLabel>Cemitério</IGRPLabel>
@@ -302,7 +300,7 @@ export default function PlotsPage() {
                 ]}
                 placeholder="Tipo"
                 onValueChange={(v) =>
-                  setForm((f) => ({ ...f, plotType: v as any }))
+                  setForm((f) => ({ ...f, plotType: v as Plot["plotType"] }))
                 }
               />
             </div>
@@ -360,7 +358,7 @@ export default function PlotsPage() {
                           length: 0,
                           unit: "meters",
                         }),
-                        unit: v as any,
+                        unit: v as "meters" | "feet",
                       },
                     }))
                   }

@@ -522,11 +522,11 @@ export function ReportTemplates({
                           <p className="font-medium text-sm">{report.type}</p>
                           <p className="text-xs text-gray-500">
                             {new Date(report.createdAt).toLocaleDateString(
-                              "pt-BR",
+                              "pt-CV",
                             )}{" "}
                             às{" "}
                             {new Date(report.createdAt).toLocaleTimeString(
-                              "pt-BR",
+                              "pt-CV",
                             )}
                           </p>
                         </div>

@@ -259,7 +259,7 @@ export default function BlocksPage() {
                 ),
                 accessorKey: "totalPlots",
                 cell: ({ row }) =>
-                  new Intl.NumberFormat("pt-BR").format(
+                  new Intl.NumberFormat("pt-CV").format(
                     Number(row.getValue("totalPlots") ?? 0),
                   ),
               },

@@ -29,8 +29,6 @@ export default function QRCodesReportsPage() {
    */
   const handleRefresh = async (): Promise<void> => {
     setLoading(true);
-    // Simular carregamento de dados
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     setLoading(false);
   };
 
@@ -51,10 +49,12 @@ export default function QRCodesReportsPage() {
             variant="outline"
             onClick={handleRefresh}
             disabled={loading}
+            showIcon
+            iconName={"RefreshCw"}
           >
             {loading ? "Atualizando..." : "Atualizar"}
           </IGRPButton>
-          <IGRPButton>Novo QR Code</IGRPButton>
+          <IGRPButton showIcon iconName={"Plus"}>Novo QR Code</IGRPButton>
         </div>
       </div>
 
@@ -90,12 +90,8 @@ export default function QRCodesReportsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  Exportar
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  Compartilhar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Download"}>Exportar</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Share2"}>Compartilhar</IGRPButton>
               </div>
             </div>
 
@@ -113,12 +109,8 @@ export default function QRCodesReportsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  Exportar
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  Compartilhar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Download"}>Exportar</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Share2"}>Compartilhar</IGRPButton>
               </div>
             </div>
 
@@ -136,12 +128,8 @@ export default function QRCodesReportsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  Baixar Todos
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  Imprimir
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Download"}>Baixar Todos</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Printer"}>Imprimir</IGRPButton>
               </div>
             </div>
 
@@ -159,12 +147,8 @@ export default function QRCodesReportsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  Filtros
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  Buscar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Filter"}>Filtros</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Search"}>Buscar</IGRPButton>
               </div>
             </div>
 
@@ -182,12 +166,8 @@ export default function QRCodesReportsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  Novo Template
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  Duplicar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Plus"}>Novo Template</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName={"Copy"}>Duplicar</IGRPButton>
               </div>
             </div>
 

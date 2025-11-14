@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { USE_REAL_BACKEND } from "../../../config";
+import { plots } from "../../../mock-data";
 
 /**
  * GET /api/v1/plots/{id}
@@ -13,24 +15,34 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const base = process.env.IGRP_APP_MANAGER_API || "";
-  if (!base) {
-    return new Response(
-      "Error: Service unavailable - missing IGRP_APP_MANAGER_API",
-      { status: 500 },
+  if (USE_REAL_BACKEND) {
+    const base = process.env.IGRP_APP_MANAGER_API || "";
+    if (!base) {
+      return new Response(
+        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
+        { status: 500 },
+      );
+    }
+    const res = await fetch(`${base}/plots/${id}`, {
+      method: "GET",
+      headers: { accept: request.headers.get("accept") ?? "application/json" },
+    });
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: {
+        "content-type": res.headers.get("content-type") ?? "application/json",
+      },
+    });
+  }
+  const item = plots.find((p: any) => p.id === id);
+  if (!item) {
+    return Response.json(
+      { error: "NOT_FOUND", message: "Sepultura não encontrada" },
+      { status: 404 },
     );
   }
-  const res = await fetch(`${base}/plots/${id}`, {
-    method: "GET",
-    headers: { accept: request.headers.get("accept") ?? "application/json" },
-  });
-  const text = await res.text();
-  return new Response(text, {
-    status: res.status,
-    headers: {
-      "content-type": res.headers.get("content-type") ?? "application/json",
-    },
-  });
+  return Response.json(item);
 }
 
 /**
@@ -46,28 +58,46 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const base = process.env.IGRP_APP_MANAGER_API || "";
-  if (!base) {
-    return new Response(
-      "Error: Service unavailable - missing IGRP_APP_MANAGER_API",
-      { status: 500 },
+  if (USE_REAL_BACKEND) {
+    const base = process.env.IGRP_APP_MANAGER_API || "";
+    if (!base) {
+      return new Response(
+        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
+        { status: 500 },
+      );
+    }
+    const body = await request.text();
+    const res = await fetch(`${base}/plots/${id}`, {
+      method: "PUT",
+      headers: {
+        "content-type":
+          request.headers.get("content-type") ?? "application/json",
+      },
+      body,
+    });
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: {
+        "content-type": res.headers.get("content-type") ?? "application/json",
+      },
+    });
+  }
+  const idx = plots.findIndex((p: any) => p.id === id);
+  if (idx === -1) {
+    return Response.json(
+      { error: "NOT_FOUND", message: "Sepultura não encontrada" },
+      { status: 404 },
     );
   }
-  const body = await request.text();
-  const res = await fetch(`${base}/plots/${id}`, {
-    method: "PUT",
-    headers: {
-      "content-type": request.headers.get("content-type") ?? "application/json",
-    },
-    body,
-  });
-  const text = await res.text();
-  return new Response(text, {
-    status: res.status,
-    headers: {
-      "content-type": res.headers.get("content-type") ?? "application/json",
-    },
-  });
+  const payload = await request.json().catch(() => ({}));
+  const updated = {
+    ...plots[idx],
+    ...payload,
+    lastModifiedDate: new Date().toISOString(),
+  };
+  plots[idx] = updated as (typeof plots)[number];
+  return Response.json(updated);
 }
 
 /**
@@ -83,19 +113,40 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const base = process.env.IGRP_APP_MANAGER_API || "";
-  if (!base) {
-    return new Response(
-      "Error: Service unavailable - missing IGRP_APP_MANAGER_API",
-      { status: 500 },
+  if (USE_REAL_BACKEND) {
+    const base = process.env.IGRP_APP_MANAGER_API || "";
+    if (!base) {
+      return new Response(
+        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
+        { status: 500 },
+      );
+    }
+    const res = await fetch(`${base}/plots/${id}`, { method: "DELETE" });
+    const text = await res.text();
+    return new Response(text, {
+      status: res.status,
+      headers: {
+        "content-type": res.headers.get("content-type") ?? "application/json",
+      },
+    });
+  }
+  const idx = plots.findIndex((p: any) => p.id === id);
+  if (idx === -1) {
+    return Response.json(
+      { error: "NOT_FOUND", message: "Sepultura não encontrada" },
+      { status: 404 },
     );
   }
-  const res = await fetch(`${base}/plots/${id}`, { method: "DELETE" });
-  const text = await res.text();
-  return new Response(text, {
-    status: res.status,
-    headers: {
-      "content-type": res.headers.get("content-type") ?? "application/json",
-    },
-  });
+  const status = plots[idx].occupationStatus;
+  if (status !== "AVAILABLE") {
+    return Response.json(
+      {
+        error: "CANNOT_DELETE",
+        message: "Apenas sepulturas disponíveis podem ser removidas",
+      },
+      { status: 400 },
+    );
+  }
+  plots.splice(idx, 1);
+  return Response.json({ deleted: true });
 }

@@ -15,7 +15,66 @@ import {
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useState } from "react";
 import { useMap } from "@/hooks/useMap";
-import type { LayerType, MapViewport } from "@/types/Map";
+import type { LayerType, MapViewport, LayerStyle } from "@/types/Map";
+
+// Available map layers used for UI toggling only (not full MapLayer objects)
+const AVAILABLE_LAYERS: Array<{
+  id: string;
+  name: string;
+  type: LayerType;
+  visible: boolean;
+  style: LayerStyle;
+}> = [
+  {
+    id: "plots",
+    name: "Sepulturas",
+    type: "MARKER" as LayerType,
+    visible: true,
+    style: { strokeColor: "#3b82f6", icon: "grave" },
+  },
+  {
+    id: "blocks",
+    name: "Blocos",
+    type: "POLYGON" as LayerType,
+    visible: true,
+    style: { strokeColor: "#6b7280", fillColor: "#f3f4f6" },
+  },
+  {
+    id: "sections",
+    name: "Seções",
+    type: "POLYGON" as LayerType,
+    visible: false,
+    style: { strokeColor: "#10b981", fillColor: "#d1fae5" },
+  },
+  {
+    id: "lots",
+    name: "Lotes",
+    type: "POLYGON" as LayerType,
+    visible: false,
+    style: { strokeColor: "#f59e0b", fillColor: "#fef3c7" },
+  },
+  {
+    id: "roads",
+    name: "Vias",
+    type: "POLYLINE" as LayerType,
+    visible: true,
+    style: { strokeColor: "#8b5cf6" },
+  },
+  {
+    id: "vegetation",
+    name: "Vegetação",
+    type: "POLYGON" as LayerType,
+    visible: false,
+    style: { strokeColor: "#22c55e", fillColor: "#dcfce7" },
+  },
+  {
+    id: "buildings",
+    name: "Edificações",
+    type: "POLYGON" as LayerType,
+    visible: false,
+    style: { strokeColor: "#ef4444", fillColor: "#fee2e2" },
+  },
+];
 
 interface MapViewerProps {
   cemeteryId?: string;
@@ -146,58 +205,7 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
     await printMap();
   };
 
-  // Available map layers used for UI toggling only (not full MapLayer objects)
-  const availableLayers = [
-    {
-      id: "plots",
-      name: "Sepulturas",
-      type: "MARKER" as LayerType,
-      visible: true,
-      style: { strokeColor: "#3b82f6", icon: "grave" },
-    },
-    {
-      id: "blocks",
-      name: "Blocos",
-      type: "POLYGON" as LayerType,
-      visible: true,
-      style: { strokeColor: "#6b7280", fillColor: "#f3f4f6" },
-    },
-    {
-      id: "sections",
-      name: "Seções",
-      type: "POLYGON" as LayerType,
-      visible: false,
-      style: { strokeColor: "#10b981", fillColor: "#d1fae5" },
-    },
-    {
-      id: "lots",
-      name: "Lotes",
-      type: "POLYGON" as LayerType,
-      visible: false,
-      style: { strokeColor: "#f59e0b", fillColor: "#fef3c7" },
-    },
-    {
-      id: "roads",
-      name: "Vias",
-      type: "POLYLINE" as LayerType,
-      visible: true,
-      style: { strokeColor: "#8b5cf6" },
-    },
-    {
-      id: "vegetation",
-      name: "Vegetação",
-      type: "POLYGON" as LayerType,
-      visible: false,
-      style: { strokeColor: "#22c55e", fillColor: "#dcfce7" },
-    },
-    {
-      id: "buildings",
-      name: "Edificações",
-      type: "POLYGON" as LayerType,
-      visible: false,
-      style: { strokeColor: "#ef4444", fillColor: "#fee2e2" },
-    },
-  ];
+  const availableLayers = AVAILABLE_LAYERS;
 
   return (
     <IGRPCard className={className}>
@@ -217,8 +225,9 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
               variant="outline"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
+              showIcon
+              iconName="Filter"
             >
-              <IGRPIcon iconName="Filter" className="h-4 w-4 mr-2" />
               Filtros
             </IGRPButton>
             <IGRPButton
@@ -226,23 +235,27 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
               size="sm"
               onClick={loadMapData}
               disabled={loading}
+              showIcon
+              iconName="RefreshCw"
             >
-              <IGRPIcon
-                iconName="RefreshCw"
-                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-              />
               Atualizar
             </IGRPButton>
             <IGRPButton
               variant="outline"
               size="sm"
               onClick={() => handleExport("pdf")}
+              showIcon
+              iconName="Download"
             >
-              <IGRPIcon iconName="Download" className="h-4 w-4 mr-2" />
               Exportar
             </IGRPButton>
-            <IGRPButton variant="outline" size="sm" onClick={handlePrint}>
-              <IGRPIcon iconName="Printer" className="h-4 w-4 mr-2" />
+            <IGRPButton
+              variant="outline"
+              size="sm"
+              onClick={handlePrint}
+              showIcon
+              iconName="Printer"
+            >
               Imprimir
             </IGRPButton>
           </div>
@@ -271,8 +284,9 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
           <IGRPButton
             onClick={handleSearch}
             disabled={!searchQuery.trim() || loading}
+            showIcon
+            iconName="Search"
           >
-            <IGRPIcon iconName="Search" className="h-4 w-4 mr-2" />
             Buscar
           </IGRPButton>
         </div>
@@ -309,8 +323,9 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
                         cemeteryId || "",
                       )
                     }
+                    showIcon
+                    iconName="Navigation"
                   >
-                    <IGRPIcon iconName="Navigation" className="h-3 w-3 mr-1" />
                     Centralizar
                   </IGRPButton>
                 </div>
@@ -383,15 +398,9 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
         {/* Controles do mapa */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <IGRPButton variant="outline" size="sm" onClick={handleZoomIn}>
-              <IGRPIcon iconName="ZoomIn" className="h-4 w-4" />
-            </IGRPButton>
-            <IGRPButton variant="outline" size="sm" onClick={handleZoomOut}>
-              <IGRPIcon iconName="ZoomOut" className="h-4 w-4" />
-            </IGRPButton>
-            <IGRPButton variant="outline" size="sm" onClick={handleCenterMap}>
-              <IGRPIcon iconName="Maximize2" className="h-4 w-4" />
-            </IGRPButton>
+            <IGRPButton variant="outline" size="sm" onClick={handleZoomIn} showIcon iconName="ZoomIn"></IGRPButton>
+            <IGRPButton variant="outline" size="sm" onClick={handleZoomOut} showIcon iconName="ZoomOut"></IGRPButton>
+            <IGRPButton variant="outline" size="sm" onClick={handleCenterMap} showIcon iconName="Maximize2"></IGRPButton>
           </div>
           <div className="text-sm text-gray-600">
             Zoom: {mapViewport.zoom} • Centro:{" "}
@@ -446,8 +455,8 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
                       className="w-3 h-3 rounded-full"
                       style={{
                         backgroundColor:
-                          (layer.style as any).strokeColor ||
-                          (layer.style as any).fillColor ||
+                          layer.style.strokeColor ||
+                          layer.style.fillColor ||
                           "#999999",
                       }}
                     ></div>
@@ -488,9 +497,9 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
                             cemeteryId || "",
                           )
                         }
-                      >
-                        <IGRPIcon iconName="Navigation" className="h-3 w-3" />
-                      </IGRPButton>
+                        showIcon
+                        iconName="Navigation"
+                      />
                       <IGRPButton
                         variant="ghost"
                         size="sm"

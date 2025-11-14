@@ -38,8 +38,6 @@ export default function MapsPage() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    // Simular carregamento de dados
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     setLoading(false);
   };
 
@@ -60,17 +58,12 @@ export default function MapsPage() {
             variant="outline"
             onClick={handleRefresh}
             disabled={loading}
+            showIcon
+            iconName="Settings"
           >
-            <IGRPIcon
-              iconName="Settings"
-              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-            />
             Atualizar
           </IGRPButton>
-          <IGRPButton>
-            <IGRPIcon iconName="Plus" className="h-4 w-4 mr-2" />
-            Novo Mapa
-          </IGRPButton>
+          <IGRPButton showIcon iconName="Plus">Novo Mapa</IGRPButton>
         </div>
       </div>
 
@@ -111,22 +104,10 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="ZoomIn" className="h-4 w-4 mr-2" />
-                  Zoom In
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="ZoomOut" className="h-4 w-4 mr-2" />
-                  Zoom Out
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Home" className="h-4 w-4 mr-2" />
-                  Centralizar
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Share2" className="h-4 w-4 mr-2" />
-                  Compartilhar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="ZoomIn">Zoom In</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="ZoomOut">Zoom Out</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Home">Centralizar</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Share2">Compartilhar</IGRPButton>
               </div>
             </div>
 
@@ -144,14 +125,8 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
-                  Mostrar Todas
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Settings" className="h-4 w-4 mr-2" />
-                  Configurar
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Eye">Mostrar Todas</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Settings">Configurar</IGRPButton>
               </div>
             </div>
 
@@ -169,14 +144,8 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Navigation" className="h-4 w-4 mr-2" />
-                  GPS
-                </IGRPButton>
-                <IGRPButton variant="outline" size="sm">
-                  <IGRPIcon iconName="Filter" className="h-4 w-4 mr-2" />
-                  Filtros
-                </IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Navigation">GPS</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Filter">Filtros</IGRPButton>
               </div>
             </div>
 
@@ -204,10 +173,7 @@ export default function MapsPage() {
                         placeholder="Selecione o cemitério"
                       />
                     </div>
-                    <IGRPButton className="w-full">
-                      <IGRPIcon iconName="Search" className="h-4 w-4 mr-2" />
-                      Buscar
-                    </IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Search">Buscar</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -216,53 +182,12 @@ export default function MapsPage() {
                 <IGRPCardHeader>
                   <IGRPCardTitle>Resultados da Busca</IGRPCardTitle>
                   <IGRPCardDescription>
-                    Resultados encontrados
+                    Sem dados disponíveis
                   </IGRPCardDescription>
                 </IGRPCardHeader>
                 <IGRPCardContent>
-                  <div className="space-y-3">
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <IGRPIcon
-                          iconName="MapPin"
-                          className="h-4 w-4 text-blue-500"
-                        />
-                        <div>
-                          <p className="font-medium text-sm">Sepultura A-001</p>
-                          <p className="text-xs text-gray-500">
-                            Cemitério Central
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <IGRPIcon
-                          iconName="MapPin"
-                          className="h-4 w-4 text-green-500"
-                        />
-                        <div>
-                          <p className="font-medium text-sm">Área Verde</p>
-                          <p className="text-xs text-gray-500">
-                            Cemitério Jardim
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <IGRPIcon
-                          iconName="MapPin"
-                          className="h-4 w-4 text-purple-500"
-                        />
-                        <div>
-                          <p className="font-medium text-sm">Quadra B</p>
-                          <p className="text-xs text-gray-500">
-                            Cemitério São Pedro
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="text-sm text-muted-foreground">
+                    No data available
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -304,10 +229,7 @@ export default function MapsPage() {
                       </IGRPLabel>
                       <IGRPDatePicker id="filterDate" />
                     </div>
-                    <IGRPButton variant="outline" className="w-full">
-                      <IGRPIcon iconName="Filter" className="h-4 w-4 mr-2" />
-                      Aplicar Filtros
-                    </IGRPButton>
+                    <IGRPButton variant="outline" className="w-full" showIcon iconName="Filter">Aplicar Filtros</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -372,10 +294,7 @@ export default function MapsPage() {
                         placeholder="Média"
                       />
                     </div>
-                    <IGRPButton className="w-full">
-                      <IGRPIcon iconName="Download" className="h-4 w-4 mr-2" />
-                      Exportar Mapa
-                    </IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Download">Exportar Mapa</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -422,10 +341,7 @@ export default function MapsPage() {
                       </IGRPLabel>
                       <IGRPDatePicker id="reportDate" />
                     </div>
-                    <IGRPButton className="w-full">
-                      <IGRPIcon iconName="BarChart3" className="h-4 w-4 mr-2" />
-                      Gerar Relatório
-                    </IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="BarChart3">Gerar Relatório</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -481,10 +397,7 @@ export default function MapsPage() {
                       />
                       <IGRPLabel htmlFor="printScale">Incluir escala</IGRPLabel>
                     </div>
-                    <IGRPButton className="w-full">
-                      <IGRPIcon iconName="Printer" className="h-4 w-4 mr-2" />
-                      Imprimir
-                    </IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Printer">Imprimir</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>

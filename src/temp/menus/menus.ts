@@ -1,7 +1,7 @@
 import type { IGRPMenuItemArgs } from "@igrp/framework-next-types";
 
 export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
-  {
+  /*{
     id: 43,
     code: "MEU_MENU_TEST",
     name: "Meu Menu Test",
@@ -76,12 +76,12 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     parentCode: "TEST_PAGINA_EXTERNA",
     applicationCode: "APP_TEST_1",
     roles: [],
-  },
+  },*/
   // --- SGC Essential Routes (Phase 1) ---
   {
     id: 100,
     code: "CEMETERIES",
-    name: "Cemeteries",
+    name: "Cemitérios",
     type: "FOLDER",
     position: 10,
     icon: "MapPin",
@@ -96,7 +96,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 105,
     code: "BLOCKS",
-    name: "Blocks",
+    name: "Blocos",
     type: "MENU_PAGE",
     position: 12,
     icon: "Layers",
@@ -111,7 +111,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 106,
     code: "SECTIONS",
-    name: "Sections",
+    name: "Seções",
     type: "MENU_PAGE",
     position: 13,
     icon: "Grid",
@@ -126,7 +126,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 101,
     code: "CEMETERIES_LIST",
-    name: "List",
+    name: "Listar Cemitérios",
     type: "MENU_PAGE",
     position: 11,
     icon: "List",
@@ -141,7 +141,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 110,
     code: "PLOTS",
-    name: "Plots",
+    name: "Sepulturas",
     type: "FOLDER",
     position: 20,
     icon: "Layers",
@@ -156,7 +156,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 111,
     code: "PLOTS_LIST",
-    name: "List",
+    name: "Listar Sepulturas",
     type: "MENU_PAGE",
     position: 21,
     icon: "Table",
@@ -169,24 +169,9 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     roles: [],
   },
   {
-    id: 112,
-    code: "PLOTS_CREATE",
-    name: "Create",
-    type: "MENU_PAGE",
-    position: 22,
-    icon: "Plus",
-    status: "ACTIVE",
-    target: "_self",
-    url: "plots/create",
-    pageSlug: "plots-create",
-    parentCode: "PLOTS",
-    applicationCode: "APP_TEST_1",
-    roles: [],
-  },
-  {
     id: 120,
     code: "ANALYTICS",
-    name: "Analytics",
+    name: "Análises",
     type: "FOLDER",
     position: 30,
     icon: "ChartSpline",
@@ -201,7 +186,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 121,
     code: "ANALYTICS_OCCUPANCY",
-    name: "Occupancy",
+    name: "Ocupação",
     type: "MENU_PAGE",
     position: 31,
     icon: "Activity",
@@ -216,7 +201,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 130,
     code: "TOOLS",
-    name: "Tools",
+    name: "Ferramentas",
     type: "FOLDER",
     position: 40,
     icon: "Settings2",
@@ -231,7 +216,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 131,
     code: "QR_CODES_GENERATE",
-    name: "QR Generate",
+    name: "Gerar QR Code",
     type: "MENU_PAGE",
     position: 41,
     icon: "QrCode",
@@ -246,7 +231,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 132,
     code: "MAP_VIEW",
-    name: "Map",
+    name: "Visualizar Mapa",
     type: "MENU_PAGE",
     position: 42,
     icon: "Map",
@@ -262,7 +247,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 122,
     code: "ANALYTICS_HOME",
-    name: "Overview",
+    name: "Visão Geral",
     type: "MENU_PAGE",
     position: 30,
     icon: "ChartSpline",
@@ -277,7 +262,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
   {
     id: 133,
     code: "QR_CODES_REPORTS",
-    name: "QR Reports",
+    name: "Relatórios QR Code",
     type: "MENU_PAGE",
     position: 43,
     icon: "FileText",
@@ -286,21 +271,6 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     url: "qr-codes-reports",
     pageSlug: "qr-codes-reports",
     parentCode: "TOOLS",
-    applicationCode: "APP_TEST_1",
-    roles: [],
-  },
-  {
-    id: 102,
-    code: "CEMETERIES_CREATE",
-    name: "Create",
-    type: "MENU_PAGE",
-    position: 12,
-    icon: "Plus",
-    status: "ACTIVE",
-    target: "_self",
-    url: "cemeteries/new",
-    pageSlug: "cemeteries-new",
-    parentCode: "CEMETERIES",
     applicationCode: "APP_TEST_1",
     roles: [],
   },

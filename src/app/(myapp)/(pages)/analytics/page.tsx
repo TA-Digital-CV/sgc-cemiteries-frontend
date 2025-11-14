@@ -31,8 +31,6 @@ export default function AnalyticsPage() {
 
   const handleRefresh = async () => {
     setLoading(true);
-    // Simular carregamento de dados
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     setLoading(false);
   };
 
@@ -53,22 +51,14 @@ export default function AnalyticsPage() {
             variant="outline"
             onClick={handleRefresh}
             disabled={loading}
+            showIcon
+            iconName={"RefreshCw"}
           >
-            <IGRPIcon
-              iconName="RefreshCw"
-              className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-            />
             Atualizar
           </IGRPButton>
-          <IGRPButton>
-            <IGRPIcon iconName="Download" className="h-4 w-4 mr-2" />
-            Exportar Dados
-          </IGRPButton>
+          <IGRPButton showIcon iconName={"Download"}>Exportar Dados</IGRPButton>
           <Link href="/analytics/occupancy">
-            <IGRPButton>
-              <IGRPIcon iconName="BarChart3" className="h-4 w-4 mr-2" />
-              Ocupação
-            </IGRPButton>
+            <IGRPButton showIcon iconName={"BarChart3"}>Ocupação</IGRPButton>
           </Link>
         </div>
       </div>
@@ -101,84 +91,7 @@ export default function AnalyticsPage() {
             {/* Métricas principais */}
             <DashboardMetrics />
 
-            {/* Visão geral rápida */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <IGRPCard>
-                <IGRPCardHeader className="pb-3">
-                  <IGRPCardTitle className="text-sm font-medium">
-                    Total de Cemitérios
-                  </IGRPCardTitle>
-                </IGRPCardHeader>
-                <IGRPCardContent>
-                  <div className="text-2xl font-bold">12</div>
-                  <div className="flex items-center mt-1">
-                    <IGRPIcon
-                      iconName="TrendingUp"
-                      className="h-4 w-4 text-green-500 mr-1"
-                    />
-                    <span className="text-xs text-green-500">+2 este mês</span>
-                  </div>
-                </IGRPCardContent>
-              </IGRPCard>
-
-              <IGRPCard>
-                <IGRPCardHeader className="pb-3">
-                  <IGRPCardTitle className="text-sm font-medium">
-                    Sepulturas Totais
-                  </IGRPCardTitle>
-                </IGRPCardHeader>
-                <IGRPCardContent>
-                  <div className="text-2xl font-bold">1.847</div>
-                  <div className="flex items-center mt-1">
-                    <IGRPIcon
-                      iconName="TrendingUp"
-                      className="h-4 w-4 text-green-500 mr-1"
-                    />
-                    <span className="text-xs text-green-500">+5% este mês</span>
-                  </div>
-                </IGRPCardContent>
-              </IGRPCard>
-
-              <IGRPCard>
-                <IGRPCardHeader className="pb-3">
-                  <IGRPCardTitle className="text-sm font-medium">
-                    Taxa de Ocupação
-                  </IGRPCardTitle>
-                </IGRPCardHeader>
-                <IGRPCardContent>
-                  <div className="text-2xl font-bold">73.2%</div>
-                  <div className="flex items-center mt-1">
-                    <IGRPIcon
-                      iconName="TrendingUp"
-                      className="h-4 w-4 text-orange-500 mr-1"
-                    />
-                    <span className="text-xs text-orange-500">
-                      +1.2% este mês
-                    </span>
-                  </div>
-                </IGRPCardContent>
-              </IGRPCard>
-
-              <IGRPCard>
-                <IGRPCardHeader className="pb-3">
-                  <IGRPCardTitle className="text-sm font-medium">
-                    Receita Mensal
-                  </IGRPCardTitle>
-                </IGRPCardHeader>
-                <IGRPCardContent>
-                  <div className="text-2xl font-bold">R$ 45.230</div>
-                  <div className="flex items-center mt-1">
-                    <IGRPIcon
-                      iconName="TrendingUp"
-                      className="h-4 w-4 text-green-500 mr-1"
-                    />
-                    <span className="text-xs text-green-500">
-                      +12% este mês
-                    </span>
-                  </div>
-                </IGRPCardContent>
-              </IGRPCard>
-            </div>
+            {/* Visão geral rápida removida: sem dados simulados */}
 
             {/* Gráficos rápidos */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -240,10 +153,7 @@ export default function AnalyticsPage() {
                   Gerencie e visualize relatórios detalhados
                 </p>
               </div>
-              <IGRPButton>
-                <IGRPIcon iconName="Plus" className="h-4 w-4 mr-2" />
-                Novo Relatório
-              </IGRPButton>
+              <IGRPButton showIcon iconName={"Plus"}>Novo Relatório</IGRPButton>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -259,10 +169,7 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">PDF</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm">
-                      <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
-                      Visualizar
-                    </IGRPButton>
+                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -279,10 +186,7 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">CSV</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm">
-                      <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
-                      Visualizar
-                    </IGRPButton>
+                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -299,10 +203,7 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">CSV</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm">
-                      <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
-                      Visualizar
-                    </IGRPButton>
+                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -319,10 +220,7 @@ export default function AnalyticsPage() {
                   Análise de projeções futuras e tendências
                 </p>
               </div>
-              <IGRPButton>
-                <IGRPIcon iconName="Calendar" className="h-4 w-4 mr-2" />
-                Atualizar Projeções
-              </IGRPButton>
+              <IGRPButton showIcon iconName={"Calendar"}>Atualizar Projeções</IGRPButton>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

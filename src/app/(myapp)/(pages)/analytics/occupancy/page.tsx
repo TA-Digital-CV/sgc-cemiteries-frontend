@@ -38,8 +38,7 @@ export default function OccupancyAnalyticsPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href="/analytics">
-            <IGRPButton variant="ghost" size="sm">
-              <IGRPIcon iconName="ArrowLeft" className="h-4 w-4 mr-2" />
+            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
               Voltar
             </IGRPButton>
           </Link>
@@ -82,11 +81,9 @@ export default function OccupancyAnalyticsPage() {
                   void fetchPlotStatistics(cemeteryId || undefined)
                 }
                 disabled={isLoading}
+                showIcon
+                iconName="RefreshCw"
               >
-                <IGRPIcon
-                  iconName="RefreshCw"
-                  className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
-                />
                 Atualizar
               </IGRPButton>
             </div>

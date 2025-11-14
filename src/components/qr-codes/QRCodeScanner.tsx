@@ -306,7 +306,7 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
                 <div>
                   <IGRPLabel className="text-gray-600">Horário:</IGRPLabel>
                   <p className="font-medium">
-                    {new Date(scanResult.scannedAt).toLocaleTimeString("pt-BR")}
+                    {new Date(scanResult.scannedAt).toLocaleTimeString("pt-CV")}
                   </p>
                 </div>
               </div>
@@ -373,11 +373,11 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
                           </p>
                           <p className="text-xs text-gray-500">
                             {new Date(scan.scannedAt).toLocaleDateString(
-                              "pt-BR",
+                              "pt-CV",
                             )}{" "}
                             às{" "}
                             {new Date(scan.scannedAt).toLocaleTimeString(
-                              "pt-BR",
+                              "pt-CV",
                             )}
                           </p>
                         </div>

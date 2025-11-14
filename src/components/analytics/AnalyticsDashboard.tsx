@@ -143,7 +143,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     },
     {
       title: "Total de Sepulturas",
-      value: (metrics?.totalPlots ?? 0).toLocaleString("pt-BR"),
+      value: (metrics?.totalPlots ?? 0).toLocaleString("pt-CV"),
       iconName: "MapPin" as const,
       color: "text-green-600",
       bgColor: "bg-green-50",
@@ -151,7 +151,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     },
     {
       title: "Cemitérios Ativos",
-      value: (metrics?.activeCemeteries ?? 0).toLocaleString("pt-BR"),
+      value: (metrics?.activeCemeteries ?? 0).toLocaleString("pt-CV"),
       iconName: "Users" as const,
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
@@ -159,7 +159,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     },
     {
       title: "Capacidade Crítica",
-      value: (metrics?.criticalCapacityCemeteries ?? 0).toLocaleString("pt-BR"),
+      value: (metrics?.criticalCapacityCemeteries ?? 0).toLocaleString("pt-CV"),
       iconName: "Activity" as const,
       color: "text-red-600",
       bgColor: "bg-red-50",
@@ -547,7 +547,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
                       {alert.description}
                     </p>
                     <p className="text-xs text-gray-500 mt-2">
-                      {new Date(alert.triggeredAt).toLocaleDateString("pt-BR")}
+                      {new Date(alert.triggeredAt).toLocaleDateString("pt-CV")}
                     </p>
                   </div>
                 ))}

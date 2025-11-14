@@ -80,7 +80,7 @@ export default function PlotsSearchPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href="/plots">
-            <IGRPButton variant="ghost" size="sm">
+            <IGRPButton variant="ghost" size="sm" showIcon iconName={"ArrowLeft"}>
               Voltar
             </IGRPButton>
           </Link>

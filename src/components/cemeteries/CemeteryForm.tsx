@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import type { ActionResult } from "@/types/Common";
 import type { Cemetery, CemeteryFormData } from "@/types/cemetery";
+import { z } from "zod";
 
 interface CemeteryFormProps {
   cemetery?: Cemetery;
@@ -57,29 +58,57 @@ export function CemeteryForm({
     },
   }));
 
-  const validate = (): string | null => {
-    if (!formData.municipalityId.trim()) return "Municipality ID is required";
-    if (!formData.name.trim()) return "Name is required";
-    if (!formData.address.trim()) return "Address is required";
-    if (!Number.isFinite(formData.geoPoint.latitude))
-      return "Latitude must be a number";
-    if (!Number.isFinite(formData.geoPoint.longitude))
-      return "Longitude must be a number";
-    if (formData.geoPoint.latitude < -90 || formData.geoPoint.latitude > 90)
-      return "Latitude must be between -90 and 90";
-    if (formData.geoPoint.longitude < -180 || formData.geoPoint.longitude > 180)
-      return "Longitude must be between -180 and 180";
-    if (!Number.isFinite(formData.totalArea) || formData.totalArea <= 0)
-      return "Total area must be greater than 0";
-    if (!Number.isFinite(formData.maxCapacity) || formData.maxCapacity <= 0)
-      return "Max capacity must be greater than 0";
-    return null;
-  };
+  const CemeteryFormSchema = z.object({
+    municipalityId: z.string().min(1, "Municipality ID is required"),
+    name: z.string().min(1, "Name is required"),
+    address: z.string().min(1, "Address is required"),
+    geoPoint: z.object({
+      latitude: z
+        .number({ invalid_type_error: "Latitude must be a number" })
+        .min(-90, "Latitude must be between -90 and 90")
+        .max(90, "Latitude must be between -90 and 90"),
+      longitude: z
+        .number({ invalid_type_error: "Longitude must be a number" })
+        .min(-180, "Longitude must be between -180 and 180")
+        .max(180, "Longitude must be between -180 and 180"),
+    }),
+    totalArea: z
+      .number({ invalid_type_error: "Total area must be a number" })
+      .gt(0, "Total area must be greater than 0"),
+    maxCapacity: z
+      .number({ invalid_type_error: "Max capacity must be a number" })
+      .gt(0, "Max capacity must be greater than 0"),
+    metadata: z
+      .object({
+        contact: z
+          .object({
+            phone: z.string().optional(),
+            email: z.string().email().optional(),
+            responsible: z.string().optional(),
+          })
+          .partial(),
+      })
+      .partial()
+      .optional(),
+  });
 
   const handleSubmit = async () => {
-    const validationError = validate();
-    if (validationError) {
-      setSubmitError(validationError);
+    const cleaned: CemeteryFormData = {
+      ...formData,
+      metadata:
+        formData.metadata &&
+        formData.metadata.contact &&
+        (formData.metadata.contact.phone ||
+          formData.metadata.contact.email ||
+          formData.metadata.contact.responsible)
+          ? formData.metadata
+          : undefined,
+    };
+
+    const parsed = CemeteryFormSchema.safeParse(cleaned);
+    if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0];
+      setSubmitError(firstIssue?.message || "Validation error");
       return;
     }
 
@@ -88,19 +117,7 @@ export function CemeteryForm({
     setSubmitSuccess(false);
 
     try {
-      const cleaned: CemeteryFormData = {
-        ...formData,
-        metadata:
-          formData.metadata &&
-          formData.metadata.contact &&
-          (formData.metadata.contact.phone ||
-            formData.metadata.contact.email ||
-            formData.metadata.contact.responsible)
-            ? formData.metadata
-            : undefined,
-      };
-
-      const result = await onSubmit(cleaned);
+      const result = await onSubmit(parsed.data);
       if (result.success) {
         setSubmitSuccess(true);
         setTimeout(() => {

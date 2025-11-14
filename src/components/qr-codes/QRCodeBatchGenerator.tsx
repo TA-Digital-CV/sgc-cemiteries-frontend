@@ -12,6 +12,7 @@ import {
   IGRPInputText,
   IGRPLabel,
   IGRPSelect,
+  IGRPCheckbox,
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useState } from "react";
 import type {
@@ -164,8 +165,9 @@ export function QRCodeBatchGenerator({
               variant="outline"
               size="sm"
               onClick={() => setShowHistory(!showHistory)}
+              showIcon
+              iconName="Eye"
             >
-              <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
               Histórico
             </IGRPButton>
             <IGRPButton
@@ -173,11 +175,9 @@ export function QRCodeBatchGenerator({
               size="sm"
               onClick={loadQRCodeHistory}
               disabled={loading}
+              showIcon
+              iconName="RefreshCw"
             >
-              <IGRPIcon
-                iconName="RefreshCw"
-                className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
-              />
               Atualizar
             </IGRPButton>
           </div>
@@ -207,25 +207,36 @@ export function QRCodeBatchGenerator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <IGRPLabel htmlFor="batchType">Tipo de QR Code</IGRPLabel>
-                <IGRPSelect
-                  value={batchOptions.type}
-                  onValueChange={(value) =>
-                    setBatchOptions((prev) => ({
-                      ...prev,
-                      type: value as UIBatchOptions["type"],
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="plot">Sepultura</option>
-                  <option value="cemetery">Cemitério</option>
-                  <option value="grave">Túmulo</option>
-                  <option value="niche">Nicho</option>
-                  <option value="mausoleum">Mausoléu</option>
-                  <option value="area">Área</option>
-                  <option value="section">Seção</option>
-                  <option value="block">Quadra</option>
-                </IGRPSelect>
+                {(() => {
+                  const typeOptions = [
+                    { value: "plot", label: "Sepultura" },
+                    { value: "cemetery", label: "Cemitério" },
+                    { value: "grave", label: "Túmulo" },
+                    { value: "niche", label: "Nicho" },
+                    { value: "mausoleum", label: "Mausoléu" },
+                    { value: "area", label: "Área" },
+                    { value: "section", label: "Seção" },
+                    { value: "block", label: "Quadra" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={batchOptions.type}
+                      onValueChange={(value) =>
+                        setBatchOptions((prev) => ({
+                          ...prev,
+                          type: value as UIBatchOptions["type"],
+                        }))
+                      }
+                      options={
+                        typeOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
 
               <div>
@@ -248,39 +259,61 @@ export function QRCodeBatchGenerator({
 
               <div>
                 <IGRPLabel htmlFor="batchFormat">Formato</IGRPLabel>
-                <IGRPSelect
-                  value={batchOptions.format}
-                  onValueChange={(value) =>
-                    setBatchOptions((prev) => ({
-                      ...prev,
-                      format: value as QRCodeFormat,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="PNG">PNG</option>
-                  <option value="SVG">SVG</option>
-                  <option value="PDF">PDF</option>
-                </IGRPSelect>
+                {(() => {
+                  const formatOptions = [
+                    { value: "PNG", label: "PNG" },
+                    { value: "SVG", label: "SVG" },
+                    { value: "PDF", label: "PDF" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={batchOptions.format}
+                      onValueChange={(value) =>
+                        setBatchOptions((prev) => ({
+                          ...prev,
+                          format: value as QRCodeFormat,
+                        }))
+                      }
+                      options={
+                        formatOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
 
               <div>
                 <IGRPLabel htmlFor="batchSize">Tamanho</IGRPLabel>
-                <IGRPSelect
-                  value={batchOptions.size}
-                  onValueChange={(value) =>
-                    setBatchOptions((prev) => ({
-                      ...prev,
-                      size: value as QRCodeSize,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="SMALL">Pequeno</option>
-                  <option value="MEDIUM">Médio</option>
-                  <option value="LARGE">Grande</option>
-                  <option value="EXTRA_LARGE">Extra Grande</option>
-                </IGRPSelect>
+                {(() => {
+                  const sizeOptions = [
+                    { value: "SMALL", label: "Pequeno" },
+                    { value: "MEDIUM", label: "Médio" },
+                    { value: "LARGE", label: "Grande" },
+                    { value: "EXTRA_LARGE", label: "Extra Grande" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={batchOptions.size}
+                      onValueChange={(value) =>
+                        setBatchOptions((prev) => ({
+                          ...prev,
+                          size: value as QRCodeSize,
+                        }))
+                      }
+                      options={
+                        sizeOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
 
               <div>
@@ -317,35 +350,41 @@ export function QRCodeBatchGenerator({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <IGRPLabel className="flex items-center">
-                <input
-                  type="checkbox"
+              <div className="flex items-center">
+                <IGRPCheckbox
+                  id="includeBorder"
+                  name="includeBorder"
                   checked={batchOptions.includeBorder}
-                  onChange={(e) =>
+                  onCheckedChange={(checked: boolean) =>
                     setBatchOptions((prev) => ({
                       ...prev,
-                      includeBorder: e.target.checked,
+                      includeBorder: Boolean(checked),
                     }))
                   }
                   className="mr-2"
                 />
-                Incluir Borda
-              </IGRPLabel>
+                <IGRPLabel htmlFor="includeBorder" className="mb-0">
+                  Incluir Borda
+                </IGRPLabel>
+              </div>
 
-              <IGRPLabel className="flex items-center">
-                <input
-                  type="checkbox"
+              <div className="flex items-center">
+                <IGRPCheckbox
+                  id="includeLogo"
+                  name="includeLogo"
                   checked={batchOptions.includeLogo}
-                  onChange={(e) =>
+                  onCheckedChange={(checked: boolean) =>
                     setBatchOptions((prev) => ({
                       ...prev,
-                      includeLogo: e.target.checked,
+                      includeLogo: Boolean(checked),
                     }))
                   }
                   className="mr-2"
                 />
-                Incluir Logo
-              </IGRPLabel>
+                <IGRPLabel htmlFor="includeLogo" className="mb-0">
+                  Incluir Logo
+                </IGRPLabel>
+              </div>
             </div>
 
             <div className="flex gap-2">
@@ -353,28 +392,18 @@ export function QRCodeBatchGenerator({
                 onClick={handleGenerateBatch}
                 disabled={loading}
                 className="flex-1"
+                showIcon={!loading}
+                iconName={!loading ? "QrCode" : undefined as unknown as string}
               >
-                {loading ? (
-                  <>
-                    <IGRPIcon
-                      iconName="RefreshCw"
-                      className="animate-spin h-4 w-4 mr-2"
-                    />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <IGRPIcon iconName="QrCode" className="h-4 w-4 mr-2" />
-                    Gerar Lote
-                  </>
-                )}
+                {loading ? "Gerando..." : "Gerar Lote"}
               </IGRPButton>
               <IGRPButton
                 variant="outline"
                 onClick={handleDownloadBatch}
                 disabled={loading || qrCodes.length === 0}
+                showIcon
+                iconName="Download"
               >
-                <IGRPIcon iconName="Download" className="h-4 w-4 mr-2" />
                 Baixar Lote
               </IGRPButton>
             </div>
@@ -441,27 +470,27 @@ export function QRCodeBatchGenerator({
                               onClick={() => handleCopyQRCode(qrCode.id)}
                               className="h-6 w-6 p-0"
                               title="Copiar"
-                            >
-                              <IGRPIcon iconName="Copy" className="h-3 w-3" />
-                            </IGRPButton>
+                              showIcon
+                              iconName="Copy"
+                            />
                             <IGRPButton
                               variant="ghost"
                               size="sm"
                               onClick={() => handleShareQRCode(qrCode.id)}
                               className="h-6 w-6 p-0"
                               title="Compartilhar"
-                            >
-                              <IGRPIcon iconName="Share2" className="h-3 w-3" />
-                            </IGRPButton>
+                              showIcon
+                              iconName="Share2"
+                            />
                             <IGRPButton
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteQRCode(qrCode.id)}
                               className="h-6 w-6 p-0 text-red-600"
                               title="Excluir"
-                            >
-                              <IGRPIcon iconName="Trash2" className="h-3 w-3" />
-                            </IGRPButton>
+                              showIcon
+                              iconName="Trash2"
+                            />
                           </div>
                         </div>
                       </IGRPCardHeader>
@@ -485,7 +514,7 @@ export function QRCodeBatchGenerator({
                           <div className="flex justify-between text-xs text-gray-500">
                             <span>
                               {new Date(qrCode.generatedAt).toLocaleDateString(
-                                "pt-BR",
+                                "pt-CV",
                               )}
                             </span>
                             <span className="flex items-center">

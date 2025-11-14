@@ -202,18 +202,20 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
               variant="outline"
               size="sm"
               onClick={() => setShowSchedule(!showSchedule)}
+              showIcon
+              iconName="Calendar"
             >
-              <IGRPIcon iconName="Calendar" className="h-4 w-4 mr-2" />
               Agendar
             </IGRPButton>
             <IGRPButton
               variant="outline"
               size="sm"
               onClick={() =>
-                setError("Error: Service unavailable - Try again later")
+                setError("Error: Service unavailable - Try again Later")
               }
+              showIcon
+              iconName="Eye"
             >
-              <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
               Histórico
             </IGRPButton>
           </div>
@@ -395,21 +397,10 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
             onClick={handleGenerateReport}
             disabled={loading}
             className="w-full"
+            showIcon={!loading}
+            iconName={!loading ? "FileText" : undefined as unknown as string}
           >
-            {loading ? (
-              <>
-                <IGRPIcon
-                  iconName="RefreshCw"
-                  className="animate-spin h-4 w-4 mr-2"
-                />
-                Gerando Relatório...
-              </>
-            ) : (
-              <>
-                <IGRPIcon iconName="FileText" className="h-4 w-4 mr-2" />
-                Gerar Relatório
-              </>
-            )}
+            {loading ? "Gerando Relatório..." : "Gerar Relatório"}
           </IGRPButton>
         </div>
 
@@ -420,24 +411,35 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
 
             <div>
               <IGRPLabel htmlFor="frequency">Frequência</IGRPLabel>
-              <IGRPSelect
-                value={scheduleConfig.frequency}
-                onValueChange={(value) =>
-                  setScheduleConfig((prev) => ({
-                    ...prev,
-                    frequency: value as ScheduleFrequency,
-                  }))
-                }
-                options={[]}
-              >
-                <option value="DAILY">Diário</option>
-                <option value="WEEKLY">Semanal</option>
-                <option value="BIWEEKLY">Quinzenal</option>
-                <option value="MONTHLY">Mensal</option>
-                <option value="QUARTERLY">Trimestral</option>
-                <option value="YEARLY">Anual</option>
-                <option value="CUSTOM">Personalizado</option>
-              </IGRPSelect>
+              {(() => {
+                const frequencyOptions = [
+                  { value: "DAILY", label: "Diário" },
+                  { value: "WEEKLY", label: "Semanal" },
+                  { value: "BIWEEKLY", label: "Quinzenal" },
+                  { value: "MONTHLY", label: "Mensal" },
+                  { value: "QUARTERLY", label: "Trimestral" },
+                  { value: "YEARLY", label: "Anual" },
+                  { value: "CUSTOM", label: "Personalizado" },
+                ] as const;
+                return (
+                  <IGRPSelect
+                    value={scheduleConfig.frequency}
+                    onValueChange={(value) =>
+                      setScheduleConfig((prev) => ({
+                        ...prev,
+                        frequency: value as ScheduleFrequency,
+                      }))
+                    }
+                    options={
+                      frequencyOptions as unknown as {
+                        value: string;
+                        label: string;
+                      }[]
+                    }
+                    placeholder="Selecione"
+                  />
+                );
+              })()}
             </div>
 
             <div>
@@ -527,11 +529,11 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
                         <p className="text-sm text-gray-600">
                           Gerado em{" "}
                           {new Date(report.createdAt).toLocaleDateString(
-                            "pt-BR",
+                            "pt-CV",
                           )}{" "}
                           às{" "}
                           {new Date(report.createdAt).toLocaleTimeString(
-                            "pt-BR",
+                            "pt-CV",
                           )}
                         </p>
                         {report.fileSize && (
@@ -546,11 +548,9 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
                         size="sm"
                         onClick={() => handleDownloadReport(report.id)}
                         disabled={report.status !== "COMPLETED"}
+                        showIcon
+                        iconName="Download"
                       >
-                        <IGRPIcon
-                          iconName="Download"
-                          className="h-4 w-4 mr-2"
-                        />
                         Baixar
                       </IGRPButton>
                     </div>

@@ -35,6 +35,31 @@ export interface UsePlotReturn {
     cemeteryId: string,
     filters?: PlotFilters,
   ) => Promise<void>;
+  reservePlot: (
+    id: string,
+    reservationInfo: {
+      reservedBy: string;
+      reservedUntil: Date;
+      notes?: string;
+    },
+  ) => Promise<ActionResult<Plot>>;
+  cancelPlotReservation: (
+    id: string,
+    reason?: string,
+  ) => Promise<ActionResult<Plot>>;
+  markPlotAsOccupied: (
+    id: string,
+    occupantInfo: {
+      occupantName: string;
+      deathDate?: Date;
+      burialDate?: Date;
+      notes?: string;
+    },
+  ) => Promise<ActionResult<Plot>>;
+  markPlotAsAvailable: (
+    id: string,
+    reason?: string,
+  ) => Promise<ActionResult<Plot>>;
   clearSelection: () => void;
   clearError: () => void;
 }
@@ -197,6 +222,125 @@ export function usePlot(): UsePlotReturn {
     [handleError, selectedPlot],
   );
 
+  // Reservar sepultura
+  const reservePlot = useCallback(
+    async (
+      id: string,
+      reservationInfo: {
+        reservedBy: string;
+        reservedUntil: Date;
+        notes?: string;
+      },
+    ): Promise<ActionResult<Plot>> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const updated = await plotService.reservePlot(id, reservationInfo);
+        setPlots((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        if (selectedPlot?.id === id) setSelectedPlot(updated);
+        return { success: true, data: updated };
+      } catch (error) {
+        handleError(error, "reservePlot");
+        return {
+          success: false,
+          errors: [
+            error instanceof Error
+              ? error.message
+              : "Erro ao reservar sepultura",
+          ],
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleError, selectedPlot],
+  );
+
+  // Cancelar reserva
+  const cancelPlotReservation = useCallback(
+    async (id: string, reason?: string): Promise<ActionResult<Plot>> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const updated = await plotService.cancelPlotReservation(id, reason);
+        setPlots((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        if (selectedPlot?.id === id) setSelectedPlot(updated);
+        return { success: true, data: updated };
+      } catch (error) {
+        handleError(error, "cancelPlotReservation");
+        return {
+          success: false,
+          errors: [
+            error instanceof Error ? error.message : "Erro ao cancelar reserva",
+          ],
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleError, selectedPlot],
+  );
+
+  // Marcar como ocupada
+  const markPlotAsOccupied = useCallback(
+    async (
+      id: string,
+      occupantInfo: {
+        occupantName: string;
+        deathDate?: Date;
+        burialDate?: Date;
+        notes?: string;
+      },
+    ): Promise<ActionResult<Plot>> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const updated = await plotService.markPlotAsOccupied(id, occupantInfo);
+        setPlots((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        if (selectedPlot?.id === id) setSelectedPlot(updated);
+        return { success: true, data: updated };
+      } catch (error) {
+        handleError(error, "markPlotAsOccupied");
+        return {
+          success: false,
+          errors: [
+            error instanceof Error ? error.message : "Erro ao ocupar sepultura",
+          ],
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleError, selectedPlot],
+  );
+
+  // Marcar como disponível
+  const markPlotAsAvailable = useCallback(
+    async (id: string, reason?: string): Promise<ActionResult<Plot>> => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const updated = await plotService.markPlotAsAvailable(id, reason);
+        setPlots((prev) => prev.map((p) => (p.id === id ? updated : p)));
+        if (selectedPlot?.id === id) setSelectedPlot(updated);
+        return { success: true, data: updated };
+      } catch (error) {
+        handleError(error, "markPlotAsAvailable");
+        return {
+          success: false,
+          errors: [
+            error instanceof Error
+              ? error.message
+              : "Erro ao disponibilizar sepultura",
+          ],
+        };
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [handleError, selectedPlot],
+  );
+
   // Buscar sepulturas com parâmetros de busca
   const searchPlots = useCallback(
     async (params: PlotSearchParams) => {
@@ -286,6 +430,10 @@ export function usePlot(): UsePlotReturn {
     searchPlots,
     fetchPlotStatistics,
     fetchPlotAvailability,
+    reservePlot,
+    cancelPlotReservation,
+    markPlotAsOccupied,
+    markPlotAsAvailable,
     clearSelection,
     clearError,
   };

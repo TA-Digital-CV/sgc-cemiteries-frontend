@@ -9,6 +9,7 @@ import {
   IGRPCardHeader,
   IGRPCardTitle,
   IGRPIcon,
+  IGRPStatsCard,
 } from "@igrp/igrp-framework-react-design-system";
 import { useCemetery } from "@/hooks/useCemetery";
 import { usePlot } from "@/hooks/usePlot";
@@ -19,8 +20,8 @@ interface DashboardMetricsProps {
 }
 
 /**
- * DashboardMetrics renders key metric cards at the top of the dashboard.
- * Uses stable keys for items to prevent index-based key issues.
+ * DashboardMetrics
+ * Renders statistics cards using IGRPStatsCard with data from cemeteries and plots.
  */
 export function DashboardMetrics({ className }: DashboardMetricsProps) {
   const { cemeteries, isLoading: cemeteriesLoading } = useCemetery();
@@ -30,19 +31,85 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <IGRPCard key={`skeleton-${i}`} className="animate-pulse">
-            <IGRPCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 bg-gray-200 rounded w-24"></div>
-              <div className="h-4 w-4 bg-gray-200 rounded"></div>
-            </IGRPCardHeader>
-            <IGRPCardContent>
-              <div className="h-8 bg-gray-200 rounded w-16 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-20"></div>
-            </IGRPCardContent>
-          </IGRPCard>
-        ))}
+      <div
+        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${className || ""}`}
+      >
+        <IGRPStatsCard
+          name={`loading-total-cemeteries`}
+          cardBorderPosition={`top`}
+          cardBorder={`rounded-xl`}
+          cardVariant={`info`}
+          iconBackground={`square`}
+          title={`Total de Cemitérios`}
+          titleSize={`sm`}
+          valueSize={`2xl`}
+          showIcon={true}
+          iconName={`MapPin`}
+          iconSize={`md`}
+          iconVariant={`info`}
+          iconPlacement={`end`}
+          itemPlacement={`start`}
+          showIconBackground={true}
+          className={`col-span-1 animate-pulse`}
+          value={`...`}
+        ></IGRPStatsCard>
+        <IGRPStatsCard
+          name={`loading-total-plots`}
+          cardBorderPosition={`top`}
+          cardBorder={`rounded-xl`}
+          cardVariant={`success`}
+          iconBackground={`square`}
+          title={`Total de Sepulturas`}
+          titleSize={`sm`}
+          valueSize={`2xl`}
+          showIcon={true}
+          iconName={`Users`}
+          iconSize={`md`}
+          iconVariant={`success`}
+          iconPlacement={`end`}
+          itemPlacement={`start`}
+          showIconBackground={true}
+          className={`col-span-1 animate-pulse`}
+          value={`...`}
+        ></IGRPStatsCard>
+        <IGRPStatsCard
+          name={`loading-occupancy-rate`}
+          cardBorderPosition={`top`}
+          cardBorder={`rounded-xl`}
+          cardVariant={`warning`}
+          iconBackground={`square`}
+          title={`Taxa de Ocupação`}
+          titleSize={`sm`}
+          valueSize={`2xl`}
+          showIcon={true}
+          iconName={`TrendingUp`}
+          iconSize={`md`}
+          iconVariant={`warning`}
+          iconPlacement={`end`}
+          itemPlacement={`start`}
+          showIconBackground={true}
+          className={`col-span-1 animate-pulse`}
+          value={`...`}
+        ></IGRPStatsCard>
+        <IGRPStatsCard
+          name={`loading-available-plots`}
+          cardBorderPosition={`top`}
+          cardBorder={`rounded-xl`}
+          cardVariant={`primary`}
+          iconBackground={`square`}
+          title={`Sepulturas Disponíveis`}
+          titleSize={`sm`}
+          valueSize={`2xl`}
+          showIcon={true}
+          iconName={`CheckCircle`}
+          iconSize={`md`}
+          iconVariant={`primary`}
+          iconPlacement={`end`}
+          itemPlacement={`start`}
+          showIconBackground={true}
+          className={`col-span-1 animate-pulse`}
+          value={`...`}
+        ></IGRPStatsCard>
       </div>
     );
   }
@@ -53,80 +120,92 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
   const availablePlots = plotStatistics?.availablePlots || 0;
   const occupancyRate = totalPlots > 0 ? (occupiedPlots / totalPlots) * 100 : 0;
 
-  const metrics = [
-    {
-      title: "Total de Cemitérios",
-      value: totalCemeteries.toString(),
-      description: "Ativos no sistema",
-      iconName: "MapPin",
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-    },
-    {
-      title: "Total de Sepulturas",
-      value: totalPlots.toLocaleString("pt-BR"),
-      description: "Cadastradas",
-      iconName: "Users",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    {
-      title: "Taxa de Ocupação",
-      value: `${occupancyRate.toFixed(1)}%`,
-      description: "Média geral",
-      iconName: "TrendingUp",
-      color:
-        occupancyRate > 80
-          ? "text-red-600"
-          : occupancyRate > 60
-            ? "text-yellow-600"
-            : "text-green-600",
-      bgColor:
-        occupancyRate > 80
-          ? "bg-red-100"
-          : occupancyRate > 60
-            ? "bg-yellow-100"
-            : "bg-green-100",
-    },
-    {
-      title: "Sepulturas Disponíveis",
-      value: availablePlots.toLocaleString("pt-BR"),
-      description: "Para novos cadastros",
-      iconName: "CheckCircle",
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-100",
-    },
-  ];
+  const occupancyVariant =
+    occupancyRate > 80 ? "warning" : occupancyRate > 60 ? "primary" : "success";
 
   return (
     <div
-      className={`grid gap-4 md:grid-cols-2 lg:grid-cols-4 ${className || ""}`}
+      className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ${className || ""}`}
     >
-      {metrics.map((metric) => {
-        return (
-          <IGRPCard key={metric.title}>
-            <IGRPCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <IGRPCardTitle className="text-sm font-medium">
-                {metric.title}
-              </IGRPCardTitle>
-              <div className={`p-2 rounded-full ${metric.bgColor}`}>
-                <IGRPIcon
-                  iconName={metric.iconName}
-                  className={`h-4 w-4 ${metric.color}`}
-                />
-              </div>
-            </IGRPCardHeader>
-            <IGRPCardContent>
-              <div className={`text-2xl font-bold ${metric.color}`}>
-                {metric.value}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {metric.description}
-              </p>
-            </IGRPCardContent>
-          </IGRPCard>
-        );
-      })}
+      <IGRPStatsCard
+        name={`stat-total-cemeteries`}
+        cardBorderPosition={`top`}
+        cardBorder={`rounded-xl`}
+        cardVariant={`info`}
+        iconBackground={`square`}
+        title={`Total de Cemitérios`}
+        titleSize={`sm`}
+        valueSize={`2xl`}
+        showIcon={true}
+        iconName={`MapPin`}
+        iconSize={`md`}
+        iconVariant={`info`}
+        iconPlacement={`end`}
+        itemPlacement={`start`}
+        showIconBackground={true}
+        className={`col-span-1`}
+        value={totalCemeteries.toString()}
+      ></IGRPStatsCard>
+
+      <IGRPStatsCard
+        name={`stat-total-plots`}
+        cardBorderPosition={`top`}
+        cardBorder={`rounded-xl`}
+        cardVariant={`success`}
+        iconBackground={`square`}
+        title={`Total de Sepulturas`}
+        titleSize={`sm`}
+        valueSize={`2xl`}
+        showIcon={true}
+        iconName={`Users`}
+        iconSize={`md`}
+        iconVariant={`success`}
+        iconPlacement={`end`}
+        itemPlacement={`start`}
+        showIconBackground={true}
+        className={`col-span-1`}
+        value={totalPlots.toLocaleString("pt-CV")}
+      ></IGRPStatsCard>
+
+      <IGRPStatsCard
+        name={`stat-occupancy-rate`}
+        cardBorderPosition={`top`}
+        cardBorder={`rounded-xl`}
+        cardVariant={occupancyVariant}
+        iconBackground={`square`}
+        title={`Taxa de Ocupação`}
+        titleSize={`sm`}
+        valueSize={`2xl`}
+        showIcon={true}
+        iconName={`TrendingUp`}
+        iconSize={`md`}
+        iconVariant={occupancyVariant}
+        iconPlacement={`end`}
+        itemPlacement={`start`}
+        showIconBackground={true}
+        className={`col-span-1`}
+        value={`${occupancyRate.toFixed(1)}%`}
+      ></IGRPStatsCard>
+
+      <IGRPStatsCard
+        name={`stat-available-plots`}
+        cardBorderPosition={`top`}
+        cardBorder={`rounded-xl`}
+        cardVariant={`primary`}
+        iconBackground={`square`}
+        title={`Sepulturas Disponíveis`}
+        titleSize={`sm`}
+        valueSize={`2xl`}
+        showIcon={true}
+        iconName={`CheckCircle`}
+        iconSize={`md`}
+        iconVariant={`primary`}
+        iconPlacement={`end`}
+        itemPlacement={`start`}
+        showIconBackground={true}
+        className={`col-span-1`}
+        value={availablePlots.toLocaleString("pt-CV")}
+      ></IGRPStatsCard>
     </div>
   );
 }
@@ -238,43 +317,15 @@ export function RecentActivity({ className }: RecentActivityProps) {
   const { cemeteries, selectedCemetery } = useCemetery();
   const { plots } = usePlot();
 
-  // Simular atividades recentes (em produção, isso viria da API)
-  const recentActivities = [
-    {
-      id: "1",
-      type: "occupation",
-      description: "Nova ocupação registrada - Quadra A, Lote 15",
-      cemetery: "Cemitério Municipal",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
-      status: "success",
-    },
-    {
-      id: "2",
-      type: "reservation",
-      description: "Reserva realizada - Quadra B, Lote 23",
-      cemetery: "Cemitério da Paz",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 horas atrás
-      status: "warning",
-    },
-    {
-      id: "3",
-      type: "maintenance",
-      description: "Manutenção concluída - Quadra C, Lotes 1-10",
-      cemetery: "Cemitério São João",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 horas atrás
-      status: "info",
-    },
-    {
-      id: "4",
-      type: "creation",
-      description: "Novas sepulturas cadastradas - Quadra D",
-      cemetery: "Cemitério Municipal",
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 horas atrás
-      status: "success",
-    },
-  ];
-
-  // Removed deprecated icon mapping that relied on non-IGRP icon components.
+  // No mock data: show a clear message if no real activity is available
+  const recentActivities: Array<{
+    id: string;
+    type: string;
+    description: string;
+    cemetery: string;
+    timestamp: Date;
+    status: string;
+  }> = [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -318,38 +369,42 @@ export function RecentActivity({ className }: RecentActivityProps) {
         </div>
       </IGRPCardHeader>
       <IGRPCardContent>
-        <div className="space-y-4">
-          {recentActivities.map((activity) => (
-            <div key={activity.id} className="flex items-start space-x-3">
-              <div
-                className={`p-2 rounded-full ${getStatusColor(activity.status)}`}
-              >
-                <IGRPIcon
-                  iconName={
-                    activity.type === "occupation"
-                      ? "Users"
-                      : activity.type === "reservation"
-                        ? "Clock"
-                        : activity.type === "maintenance"
-                          ? "Activity"
-                          : activity.type === "creation"
-                            ? "CheckCircle"
-                            : "BarChart3"
-                  }
-                  className="h-4 w-4"
-                />
+        {recentActivities.length > 0 ? (
+          <div className="space-y-4">
+            {recentActivities.map((activity) => (
+              <div key={activity.id} className="flex items-start space-x-3">
+                <div
+                  className={`p-2 rounded-full ${getStatusColor(activity.status)}`}
+                >
+                  <IGRPIcon
+                    iconName={
+                      activity.type === "occupation"
+                        ? "Users"
+                        : activity.type === "reservation"
+                          ? "Clock"
+                          : activity.type === "maintenance"
+                            ? "Activity"
+                            : activity.type === "creation"
+                              ? "CheckCircle"
+                              : "BarChart3"
+                    }
+                    className="h-4 w-4"
+                  />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium leading-none">
+                    {activity.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {activity.cemetery} • {formatTimeAgo(activity.timestamp)}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium leading-none">
-                  {activity.description}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {activity.cemetery} • {formatTimeAgo(activity.timestamp)}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground">No data available</div>
+        )}
       </IGRPCardContent>
     </IGRPCard>
   );

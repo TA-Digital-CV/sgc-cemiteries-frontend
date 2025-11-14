@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  cn,
   IGRPBadge,
   IGRPButton,
   IGRPCard,
@@ -123,44 +124,7 @@ export function CemeteryList({
     }
   };
 
-  /**
-   * Maps CemeteryStatus values to visual badges.
-   * Accepts API values: "ACTIVE", "INACTIVE", "MAINTENANCE".
-   */
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return (
-          <IGRPBadge color="success" variant="soft" size="sm">
-            Ativo
-          </IGRPBadge>
-        );
-      case "INACTIVE":
-        return (
-          <IGRPBadge color="secondary" variant="soft" size="sm">
-            Inativo
-          </IGRPBadge>
-        );
-      case "MAINTENANCE":
-        return (
-          <IGRPBadge color="warning" variant="soft" size="sm">
-            Manutenção
-          </IGRPBadge>
-        );
-      case "full":
-        return (
-          <IGRPBadge color="warning" variant="soft" size="sm">
-            Lotado
-          </IGRPBadge>
-        );
-      default:
-        return (
-          <IGRPBadge color="info" variant="outline" size="sm">
-            {status}
-          </IGRPBadge>
-        );
-    }
-  };
+  // Status badge mapping consolidated: use getStatusBadgeProps with IGRPDataTableCellBadge
 
   const getOccupancyBadge = (rate: number) => {
     if (rate >= 90)
@@ -198,12 +162,12 @@ export function CemeteryList({
             </p>
             <p className="text-sm text-muted-foreground mt-1">{error}</p>
             <IGRPButton
-              variant="outline"
-              size="sm"
+              variant={"outline"}
+              size={"sm"}
               onClick={() => fetchCemeteries(filters)}
-              className="mt-4"
+              iconName={"Refresh"}
+              className={"mt-4"}
             >
-              <IGRPIcon iconName="RefreshCw" className="h-4 w-4 mr-2" />
               Tentar novamente
             </IGRPButton>
           </div>
@@ -218,17 +182,24 @@ export function CemeteryList({
         <div className="flex items-center justify-between">
           <div>
             <IGRPCardTitle>Lista de Cemitérios</IGRPCardTitle>
-            <IGRPCardDescription>
-              Gerencie todos os cemitérios cadastrados no sistema
-            </IGRPCardDescription>
           </div>
           <div className="flex items-center space-x-2">
-            <IGRPButton variant="outline" size="sm">
-              <IGRPIcon iconName="Download" className="h-4 w-4 mr-2" />
+            <IGRPButton 
+              variant={"outline"}
+              size={"sm"}
+              showIcon={true}
+              iconName={"Download"}
+              className={cn()}
+            >
               Exportar
             </IGRPButton>
-            <IGRPButton size="sm">
-              <IGRPIcon iconName="Plus" className="h-4 w-4 mr-2" />
+            <IGRPButton 
+              variant={"default"}
+              size={"sm"}
+              showIcon={true}
+              iconName={"Plus"}
+              className={cn()}
+            >
               Novo Cemitério
             </IGRPButton>
           </div>
@@ -249,8 +220,13 @@ export function CemeteryList({
               className="pl-10"
             />
           </div>
-          <IGRPButton variant="outline" size="sm">
-            <IGRPIcon iconName="Filter" className="h-4 w-4 mr-2" />
+          <IGRPButton 
+            variant={"outline"}
+            size={"sm"}
+            showIcon={true}
+            iconName={"Filter2"}
+            className={cn()}
+          >
             Filtros
           </IGRPButton>
         </div>
@@ -315,7 +291,7 @@ export function CemeteryList({
                 accessorKey: "maxCapacity",
                 cell: ({ row }) => {
                   const value = Number(row.getValue("maxCapacity") ?? 0);
-                  return new Intl.NumberFormat("pt-BR").format(value);
+                  return new Intl.NumberFormat("pt-CV").format(value);
                 },
               },
               {

@@ -32,6 +32,7 @@ export function QRCodeGenerator({
   plotId,
   className,
 }: QRCodeGeneratorProps) {
+  const ERROR_UNAVAILABLE = "Error: Service unavailable - Try again later";
   const [qrCodes] = useState<QRCodeData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +49,7 @@ export function QRCodeGenerator({
   ): Promise<void> => {
     setLoading(true);
     try {
-      setError("Error: Service unavailable - Try again later");
+      setError(ERROR_UNAVAILABLE);
     } finally {
       setLoading(false);
     }
@@ -65,7 +66,7 @@ export function QRCodeGenerator({
   ): Promise<void> => {
     setLoading(true);
     try {
-      setError("Error: Service unavailable - Try again later");
+      setError(ERROR_UNAVAILABLE);
     } finally {
       setLoading(false);
     }
@@ -76,7 +77,7 @@ export function QRCodeGenerator({
    * Emits explicit error message when service is unavailable.
    */
   const downloadQRCode = async (_qrCodeId: string): Promise<void> => {
-    setError("Error: Service unavailable - Try again later");
+    setError(ERROR_UNAVAILABLE);
   };
 
   /**
@@ -84,7 +85,7 @@ export function QRCodeGenerator({
    * Emits explicit error message when service is unavailable.
    */
   const shareQRCode = async (_qrCodeId: string): Promise<void> => {
-    setError("Error: Service unavailable - Try again later");
+    setError(ERROR_UNAVAILABLE);
   };
 
   /**
@@ -92,7 +93,7 @@ export function QRCodeGenerator({
    * Emits explicit error message when service is unavailable.
    */
   const copyQRCodeData = async (_qrCodeId: string): Promise<void> => {
-    setError("Error: Service unavailable - Try again later");
+    setError(ERROR_UNAVAILABLE);
   };
 
   /**
@@ -100,7 +101,7 @@ export function QRCodeGenerator({
    * Emits explicit error message when service is unavailable.
    */
   const validateQRCode = async (_qrCodeId: string): Promise<void> => {
-    setError("Error: Service unavailable - Try again later");
+    setError(ERROR_UNAVAILABLE);
   };
 
   const [formData, setFormData] = useState({
@@ -270,38 +271,60 @@ export function QRCodeGenerator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <IGRPLabel htmlFor="size">Tamanho</IGRPLabel>
-                <IGRPSelect
-                  value={formData.size}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      size: value as QRCodeSize,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="SMALL">Pequeno</option>
-                  <option value="MEDIUM">Médio</option>
-                  <option value="LARGE">Grande</option>
-                  <option value="EXTRA_LARGE">Extra Grande</option>
-                </IGRPSelect>
+                {(() => {
+                  const sizeOptions = [
+                    { value: "SMALL", label: "Pequeno" },
+                    { value: "MEDIUM", label: "Médio" },
+                    { value: "LARGE", label: "Grande" },
+                    { value: "EXTRA_LARGE", label: "Extra Grande" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={formData.size}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          size: value as QRCodeSize,
+                        }))
+                      }
+                      options={
+                        sizeOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
               <div>
                 <IGRPLabel htmlFor="format">Formato</IGRPLabel>
-                <IGRPSelect
-                  value={formData.format}
-                  onValueChange={(value) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      format: value as QRCodeFormat,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="PNG">PNG</option>
-                  <option value="SVG">SVG</option>
-                  <option value="PDF">PDF</option>
-                </IGRPSelect>
+                {(() => {
+                  const formatOptions = [
+                    { value: "PNG", label: "PNG" },
+                    { value: "SVG", label: "SVG" },
+                    { value: "PDF", label: "PDF" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={formData.format}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          format: value as QRCodeFormat,
+                        }))
+                      }
+                      options={
+                        formatOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
             </div>
 
@@ -380,38 +403,60 @@ export function QRCodeGenerator({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <IGRPLabel htmlFor="batchSize">Tamanho</IGRPLabel>
-                <IGRPSelect
-                  value={batchConfig.size}
-                  onValueChange={(value) =>
-                    setBatchConfig((prev) => ({
-                      ...prev,
-                      size: value as QRCodeSize,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="SMALL">Pequeno</option>
-                  <option value="MEDIUM">Médio</option>
-                  <option value="LARGE">Grande</option>
-                  <option value="EXTRA_LARGE">Extra Grande</option>
-                </IGRPSelect>
+                {(() => {
+                  const sizeOptions = [
+                    { value: "SMALL", label: "Pequeno" },
+                    { value: "MEDIUM", label: "Médio" },
+                    { value: "LARGE", label: "Grande" },
+                    { value: "EXTRA_LARGE", label: "Extra Grande" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={batchConfig.size}
+                      onValueChange={(value) =>
+                        setBatchConfig((prev) => ({
+                          ...prev,
+                          size: value as QRCodeSize,
+                        }))
+                      }
+                      options={
+                        sizeOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
               <div>
                 <IGRPLabel htmlFor="batchFormat">Formato</IGRPLabel>
-                <IGRPSelect
-                  value={batchConfig.format}
-                  onValueChange={(value) =>
-                    setBatchConfig((prev) => ({
-                      ...prev,
-                      format: value as QRCodeFormat,
-                    }))
-                  }
-                  options={[]}
-                >
-                  <option value="PNG">PNG</option>
-                  <option value="SVG">SVG</option>
-                  <option value="PDF">PDF</option>
-                </IGRPSelect>
+                {(() => {
+                  const formatOptions = [
+                    { value: "PNG", label: "PNG" },
+                    { value: "SVG", label: "SVG" },
+                    { value: "PDF", label: "PDF" },
+                  ] as const;
+                  return (
+                    <IGRPSelect
+                      value={batchConfig.format}
+                      onValueChange={(value) =>
+                        setBatchConfig((prev) => ({
+                          ...prev,
+                          format: value as QRCodeFormat,
+                        }))
+                      }
+                      options={
+                        formatOptions as unknown as {
+                          value: string;
+                          label: string;
+                        }[]
+                      }
+                      placeholder="Selecione"
+                    />
+                  );
+                })()}
               </div>
             </div>
 
@@ -478,7 +523,7 @@ export function QRCodeGenerator({
                       <p>
                         <strong>Criado:</strong>{" "}
                         {new Date(qrCode.generatedAt).toLocaleDateString(
-                          "pt-BR",
+                          "pt-CV",
                         )}
                       </p>
                     </div>

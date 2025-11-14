@@ -106,8 +106,7 @@ export default function CemeteryDetailPage() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Link href="/cemeteries">
-            <IGRPButton variant="outline" size="sm">
-              <IGRPIcon iconName="ArrowLeft" className="h-4 w-4 mr-2" />
+            <IGRPButton variant="outline" size="sm" showIcon iconName="ArrowLeft">
               Voltar
             </IGRPButton>
           </Link>
@@ -158,20 +157,17 @@ export default function CemeteryDetailPage() {
 
         <div className="flex gap-2">
           <Link href={`/cemeteries/${cemeteryId}/edit`}>
-            <IGRPButton type="button" variant="outline">
-              <IGRPIcon iconName="Edit" className="h-4 w-4 mr-2" />
+            <IGRPButton type="button" variant="outline" showIcon iconName="Edit">
               Editar
             </IGRPButton>
           </Link>
           <Link href={`/analytics?cemetery=${cemeteryId}`}>
-            <IGRPButton type="button" variant="outline">
-              <IGRPIcon iconName="BarChart3" className="h-4 w-4 mr-2" />
+            <IGRPButton type="button" variant="outline" showIcon iconName="BarChart3">
               Analytics
             </IGRPButton>
           </Link>
           <Link href={`/maps?cemetery=${cemeteryId}`}>
-            <IGRPButton type="button" variant="outline">
-              <IGRPIcon iconName="Map" className="h-4 w-4 mr-2" />
+            <IGRPButton type="button" variant="outline" showIcon iconName="Map">
               Mapa
             </IGRPButton>
           </Link>
@@ -179,8 +175,9 @@ export default function CemeteryDetailPage() {
             type="button"
             variant="outline"
             onClick={() => setShowDeleteConfirm(true)}
+            showIcon
+            iconName="Trash2"
           >
-            <IGRPIcon iconName="Trash2" className="h-4 w-4 mr-2" />
             Excluir
           </IGRPButton>
         </div>
@@ -209,13 +206,13 @@ export default function CemeteryDetailPage() {
               <p className="text-sm text-muted-foreground">
                 Criado:{" "}
                 {new Date(selectedCemetery.createdDate).toLocaleDateString(
-                  "pt-BR",
+                  "pt-CV",
                 )}
               </p>
               <p className="text-sm text-muted-foreground">
                 Atualizado:{" "}
                 {new Date(selectedCemetery.lastModifiedDate).toLocaleDateString(
-                  "pt-BR",
+                  "pt-CV",
                 )}
               </p>
             </div>
@@ -225,7 +222,7 @@ export default function CemeteryDetailPage() {
                 Capacidade Máxima
               </IGRPLabel>
               <p className="text-base">
-                {selectedCemetery.maxCapacity.toLocaleString("pt-BR")}{" "}
+                {selectedCemetery.maxCapacity.toLocaleString("pt-CV")}{" "}
                 sepulturas
               </p>
             </div>
@@ -235,7 +232,7 @@ export default function CemeteryDetailPage() {
                 Ocupação Atual
               </IGRPLabel>
               <p className="text-base">
-                {selectedCemetery.currentOccupancy.toLocaleString("pt-BR")}{" "}
+                {selectedCemetery.currentOccupancy.toLocaleString("pt-CV")}{" "}
                 sepulturas
               </p>
             </div>
@@ -356,8 +353,7 @@ export default function CemeteryDetailPage() {
               >
                 Cancelar
               </IGRPButton>
-              <IGRPButton variant="outline" onClick={handleDelete}>
-                <IGRPIcon iconName="Trash2" className="h-4 w-4 mr-2" />
+              <IGRPButton variant="outline" onClick={handleDelete} showIcon iconName="Trash2">
                 Excluir
               </IGRPButton>
             </IGRPCardContent>
