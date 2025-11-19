@@ -19,9 +19,11 @@ import {
   IGRPDataTableRowAction,
   IGRPIcon,
   IGRPInputText,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCemetery } from "@/hooks/useCemetery";
+import { CemeteryService } from "@/services/cemeteryService";
 import type { Cemetery, CemeteryFilters } from "@/types/cemetery";
 
 interface CemeteryListProps {
@@ -45,6 +47,16 @@ export function CemeteryList({
     useCemetery();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<CemeteryFilters>({});
+  const [countsById, setCountsById] = useState<
+    Record<string, { blocks: number; sections: number; plots: number }>
+  >({});
+  const { igrpToast } = useIGRPToast();
+  const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
+    .split(",")
+    .map((p) => p.trim().toUpperCase());
+  const canWriteStructure = perms.includes("CEMETERY_WRITE");
+  const canWritePlots = perms.includes("PLOTS_WRITE");
+  const cemeteryService = useMemo(() => new CemeteryService(), []);
   /**
    * Maps CemeteryStatus to label and style classes for DataTable badges.
    */
@@ -75,6 +87,40 @@ export function CemeteryList({
   useEffect(() => {
     fetchCemeteries(filters);
   }, [filters, fetchCemeteries]);
+
+  // Toast notification on error changes
+  useEffect(() => {
+    if (error) {
+      igrpToast({
+        title: "Erro",
+        description: String(error),
+        type: "error",
+      });
+    }
+  }, [error, igrpToast]);
+
+  useEffect(() => {
+    const loadCounts = async () => {
+      const ids = cemeteries.map((c) => c.id);
+      for (const id of ids) {
+        if (!countsById[id]) {
+          try {
+            const s = await cemeteryService.getCemeteryStructureSummary(id);
+            setCountsById((prev) => ({
+              ...prev,
+              [id]: {
+                blocks: s.totalBlocks,
+                sections: s.totalSections,
+                plots: s.totalPlots,
+              },
+            }));
+          } catch {}
+        }
+      }
+    };
+    if (cemeteries.length) void loadCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cemeteries]);
 
   // Filtrar cemitérios por termo de busca
   /**
@@ -117,12 +163,26 @@ export function CemeteryList({
         await deleteCemetery(cemetery.id);
         // Recarregar lista após exclusão
         fetchCemeteries(filters);
+        igrpToast({
+          title: "Sucesso",
+          description: "Cemitério excluído com sucesso",
+          type: "success",
+        });
       } catch (error) {
         console.error("Erro ao excluir cemitério:", error);
-        alert("Erro ao excluir cemitério. Por favor, tente novamente.");
+        igrpToast({
+          title: "Erro",
+          description: "Erro ao excluir cemitério. Por favor, tente novamente.",
+          type: "error",
+        });
       }
     }
   };
+
+  const hasBlocks = (cemeteryId: string) =>
+    Boolean(countsById[cemeteryId]?.blocks);
+  const hasSections = (cemeteryId: string) =>
+    Boolean(countsById[cemeteryId]?.sections);
 
   // Status badge mapping consolidated: use getStatusBadgeProps with IGRPDataTableCellBadge
 
@@ -178,58 +238,33 @@ export function CemeteryList({
 
   return (
     <IGRPCard className={className}>
-      <IGRPCardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <IGRPCardTitle>Lista de Cemitérios</IGRPCardTitle>
-          </div>
-          <div className="flex items-center space-x-2">
-            <IGRPButton 
-              variant={"outline"}
-              size={"sm"}
-              showIcon={true}
-              iconName={"Download"}
-              className={cn()}
-            >
-              Exportar
-            </IGRPButton>
-            <IGRPButton 
-              variant={"default"}
-              size={"sm"}
-              showIcon={true}
-              iconName={"Plus"}
-              className={cn()}
-            >
-              Novo Cemitério
-            </IGRPButton>
-          </div>
-        </div>
-      </IGRPCardHeader>
       <IGRPCardContent>
-        {/* Barra de busca e filtros */}
-        <div className="flex items-center space-x-4 mb-6">
-          <div className="relative flex-1">
-            <IGRPIcon
-              iconName="Search"
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"
-            />
-            <IGRPInputText
-              placeholder="Buscar cemitério por nome, cidade ou estado..."
-              value={searchTerm}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <IGRPButton 
-            variant={"outline"}
-            size={"sm"}
-            showIcon={true}
-            iconName={"Filter2"}
-            className={cn()}
-          >
-            Filtros
-          </IGRPButton>
-        </div>
+        <IGRPCard>
+          <IGRPCardContent>
+            {/* Barra de busca e filtros */}
+            <div className="flex space-x-4 mb-6">
+              <div className="relative flex-1">
+                <IGRPInputText
+                  placeholder="Buscar cemitério por nome, cidade ou estado..."
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10"
+                  iconName={"Search"}
+                  showIcon={true}
+                />
+              </div>
+              <IGRPButton
+                variant={"outline"}
+                size={"sm"}
+                showIcon={true}
+                iconName={"Funnel"}
+                className={cn()}
+              >
+                Filtros
+              </IGRPButton>
+            </div>
+          </IGRPCardContent>
+        </IGRPCard>
 
         {/* Tabela de cemitérios - IGRPDataTable */}
         {isLoading && (
@@ -280,6 +315,48 @@ export function CemeteryList({
                 ),
                 accessorKey: "address",
                 cell: ({ row }) => row.getValue("address") as string,
+              },
+              {
+                header: ({ column }) => (
+                  <IGRPDataTableHeaderSortToggle
+                    column={column}
+                    title={`Blocos`}
+                  />
+                ),
+                accessorKey: "blocksCount",
+                cell: ({ row }) => {
+                  const id = (row.original as Cemetery).id;
+                  const v = countsById[id]?.blocks ?? 0;
+                  return new Intl.NumberFormat("pt-CV").format(v);
+                },
+              },
+              {
+                header: ({ column }) => (
+                  <IGRPDataTableHeaderSortToggle
+                    column={column}
+                    title={`Seções`}
+                  />
+                ),
+                accessorKey: "sectionsCount",
+                cell: ({ row }) => {
+                  const id = (row.original as Cemetery).id;
+                  const v = countsById[id]?.sections ?? 0;
+                  return new Intl.NumberFormat("pt-CV").format(v);
+                },
+              },
+              {
+                header: ({ column }) => (
+                  <IGRPDataTableHeaderSortToggle
+                    column={column}
+                    title={`Sepulturas`}
+                  />
+                ),
+                accessorKey: "plotsCount",
+                cell: ({ row }) => {
+                  const id = (row.original as Cemetery).id;
+                  const v = countsById[id]?.plots ?? 0;
+                  return new Intl.NumberFormat("pt-CV").format(v);
+                },
               },
               {
                 header: ({ column }) => (
@@ -339,45 +416,105 @@ export function CemeteryList({
                 enableHiding: false,
                 cell: ({ row }) => {
                   const rowData = row.original as Cemetery;
+                  const items: any[] = [
+                    {
+                      component: IGRPDataTableDropdownMenuAlert,
+                      props: {
+                        modalTitle: `Definir Contexto`,
+                        labelTrigger: `Definir Contexto`,
+                        icon: `MapPin`,
+                        showIcon: true,
+                        showCancel: true,
+                        labelCancel: `Cancelar`,
+                        variantCancel: `default` as const,
+                        showConfirm: true,
+                        labelConfirm: `Confirmar`,
+                        variantConfirm: `secondary` as const,
+                        onClickConfirm: () => {
+                          try {
+                            localStorage.setItem(
+                              "activeCemeteryId",
+                              String(rowData.id),
+                            );
+                            igrpToast({
+                              title: "Contexto definido",
+                              description: `Cemitério ativo: ${rowData.name}`,
+                              type: "success",
+                            });
+                          } catch {}
+                        },
+                        children: (
+                          <>Definir este cemitério como contexto ativo?</>
+                        ),
+                      },
+                    },
+                    {
+                      component: IGRPDataTableDropdownMenuLink,
+                      props: {
+                        labelTrigger: `Editar`,
+                        icon: `SquarePen`,
+                        href: `/cemeteries/${rowData.id}/edit`,
+                        showIcon: true,
+                      },
+                    },
+                  ];
+                  // Navegação de gestão respeitando hierarquia
+                  items.push({
+                    component: IGRPDataTableDropdownMenuLink,
+                    props: {
+                      labelTrigger: `Gerir Blocos`,
+                      icon: `Blocks`,
+                      href: `/blocks?cemeteryId=${rowData.id}`,
+                      showIcon: true,
+                    },
+                  });
+                  items.push({
+                    component: IGRPDataTableDropdownMenuLink,
+                    props: {
+                      labelTrigger: `Gerir Seções`,
+                      icon: `ListTree`,
+                      href: `/sections?cemeteryId=${rowData.id}`,
+                      showIcon: true,
+                    },
+                  });
+                  items.push({
+                    component: IGRPDataTableDropdownMenuLink,
+                    props: {
+                      labelTrigger: `Gerir Sepulturas`,
+                      icon: `Crosshair`,
+                      href: `/blocks?cemeteryId=${rowData.id}`,
+                      showIcon: true,
+                    },
+                  });
+                  items.push({
+                    component: IGRPDataTableDropdownMenuAlert,
+                    props: {
+                      modalTitle: `Excluir`,
+                      labelTrigger: `Excluir`,
+                      icon: `Trash`,
+                      showIcon: true,
+                      showCancel: true,
+                      labelCancel: `Cancel`,
+                      variantCancel: `default` as const,
+                      showConfirm: true,
+                      labelConfirm: `Confirm`,
+                      variantConfirm: `destructive` as const,
+                      onClickConfirm: () => {
+                        void handleDelete(rowData);
+                      },
+                      children: <>Deseja excluir o cemitério?</>,
+                    },
+                  });
                   return (
                     <IGRPDataTableRowAction>
                       <IGRPDataTableButtonLink
-                        labelTrigger={`Editar`}
-                        href={`/cemeteries/${rowData.id}/edit`}
+                        labelTrigger={`Detalhes`}
+                        href={`/cemeteries/${rowData.id}`}
                         variant={`ghost`}
-                        icon={`SquarePen`}
+                        icon={`Eye`}
                       ></IGRPDataTableButtonLink>
                       <IGRPDataTableDropdownMenu
-                        items={[
-                          {
-                            component: IGRPDataTableDropdownMenuLink,
-                            props: {
-                              labelTrigger: `Detalhes`,
-                              icon: `Eye`,
-                              href: `/cemeteries/${rowData.id}`,
-                              showIcon: true,
-                            },
-                          },
-                          {
-                            component: IGRPDataTableDropdownMenuAlert,
-                            props: {
-                              modalTitle: `Excluir`,
-                              labelTrigger: `Excluir`,
-                              icon: `Trash`,
-                              showIcon: true,
-                              showCancel: true,
-                              labelCancel: `Cancel`,
-                              variantCancel: `default` as const,
-                              showConfirm: true,
-                              labelConfirm: `Confirm`,
-                              variantConfirm: `destructive` as const,
-                              onClickConfirm: () => {
-                                void handleDelete(rowData);
-                              },
-                              children: <>Deseja excluir o cemitério?</>,
-                            },
-                          },
-                        ]}
+                        items={items}
                       ></IGRPDataTableDropdownMenu>
                     </IGRPDataTableRowAction>
                   );

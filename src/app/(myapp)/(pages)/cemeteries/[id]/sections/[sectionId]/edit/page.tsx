@@ -6,14 +6,22 @@ import {
   IGRPCardContent,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPForm,
+  type IGRPFormHandle,
+  IGRPIcon,
+  IGRPInputNumber,
   IGRPInputText,
   IGRPLabel,
+  IGRPPageHeader,
   IGRPSelect,
-  IGRPIcon,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
+import { FormActions } from "@/components/forms/FormActions";
+import { SectionFields } from "@/components/forms/SectionFields";
 import { useCemetery } from "@/hooks/useCemetery";
 import type { CemeteryBlock, CemeterySection } from "@/types/cemetery";
 
@@ -34,18 +42,21 @@ export default function SectionEditPage() {
   const [loadedSection, setLoadedSection] = useState<CemeterySection | null>(
     null,
   );
-  const [form, setForm] = useState<{
+  const [initial, setInitial] = useState<{
     name: string;
     code: string;
     plotType: "GROUND" | "MAUSOLEUM" | "NICHE" | "OSSUARY";
     totalPlots: number;
+    blockId: string;
   }>({
     name: "",
     code: "",
     plotType: "GROUND",
     totalPlots: 0,
+    blockId: "",
   });
-  const [error, setError] = useState<string | null>(null);
+  const { igrpToast } = useIGRPToast();
+  const formRef = useRef<IGRPFormHandle<any> | null>(null);
 
   useEffect(() => {
     if (cemeteryId) {
@@ -59,155 +70,127 @@ export default function SectionEditPage() {
       if (section) {
         setLoadedSection(section);
         setActiveBlockId(section.blockId);
-        setForm({
+        setInitial({
           name: section.name,
           code: section.code,
           plotType: section.plotType as any,
           totalPlots: Number(section.totalPlots),
+          blockId: section.blockId,
         });
       }
     };
     void loadSection();
   }, [getSectionById, sectionId]);
 
-  const validate = (): string | null => {
-    if (!cemeteryId || !sectionId || !activeBlockId)
-      return "Invalid route parameters";
-    if (!form.name.trim()) return "Name is required";
-    if (!form.code.trim()) return "Code is required";
-    if (!Number.isFinite(form.totalPlots) || form.totalPlots <= 0)
-      return "Max capacity must be greater than 0";
-    return null;
-  };
+  /**
+   * Validates section edit form using Zod and DS form components.
+   */
+  const formSchema = z.object({
+    blockId: z.string().min(1, "Block is required"),
+    name: z.string().min(1, "Name is required"),
+    code: z.string().min(1, "Code is required"),
+    plotType: z.enum(["GROUND", "MAUSOLEUM", "NICHE", "OSSUARY"]),
+    totalPlots: z
+      .number({ message: "Max capacity must be a number" })
+      .gt(0, "Max capacity must be greater than 0"),
+  });
 
-  const handleSave = async () => {
-    const v = validate();
-    if (v) {
-      setError(v);
+  /**
+   * Handles validated update submission and toast feedback.
+   */
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const ctx = localStorage.getItem("activeCemeteryId") ?? "";
+      if (ctx && ctx !== cemeteryId) {
+        igrpToast({
+          title: "Erro",
+          description: "Contexto de cemitério diferente do selecionado",
+          type: "error",
+        });
+        return;
+      }
+    } catch {}
+    if (!cemeteryId || !sectionId || !data.blockId) {
+      igrpToast({
+        title: "Erro",
+        description: "Invalid route parameters",
+        type: "error",
+      });
       return;
     }
-    setError(null);
     const res = await updateSection(sectionId, {
-      name: form.name.trim(),
-      code: form.code.trim(),
-      plotType: form.plotType,
-      totalPlots: Number(form.totalPlots),
+      name: data.name.trim(),
+      code: data.code.trim(),
+      plotType: data.plotType,
+      totalPlots: Number(data.totalPlots),
     });
     if (res.success) {
+      igrpToast({
+        title: "Sucesso",
+        description: "Sector atualizado com sucesso",
+        type: "success",
+      });
       router.push(`/cemeteries/${cemeteryId}`);
     } else {
-      setError(res.errors?.[0] || "Failed to update section");
+      const err = res.errors?.[0] || "Failed to update section";
+      igrpToast({ title: "Erro", description: err, type: "error" });
     }
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href={`/cemeteries/${cemeteryId}`}>
-            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Editar Setor</h1>
-            <p className="text-muted-foreground">Atualize os dados do setor</p>
-          </div>
+      <IGRPPageHeader
+        name={`pageHeaderSectionEdit`}
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries/${cemeteryId}`}
+        variant={`h3`}
+        title={"Editar Setor"}
+        description={"Atualize os dados do setor"}
+      >
+        <div className="flex items-center gap-2">
+          <IGRPButton
+            variant={`default`}
+            size={`default`}
+            showIcon={true}
+            iconName={`Save`}
+            onClick={() => formRef.current?.submit()}
+          >
+            Salvar
+          </IGRPButton>
         </div>
-      </div>
+      </IGRPPageHeader>
 
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Dados do Setor</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          {error && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
-              <IGRPIcon iconName="AlertTriangle" className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <IGRPLabel>Bloco *</IGRPLabel>
-              <IGRPSelect
-                options={blocks
+      <IGRPForm
+        schema={formSchema}
+        validationMode={"onBlur"}
+        formRef={formRef}
+        onSubmit={onSubmit}
+        defaultValues={initial}
+      >
+        <>
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Dados do Setor</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <SectionFields
+                blockOptions={blocks
                   .filter((b) => b.cemeteryId === cemeteryId)
                   .map((b: CemeteryBlock) => ({ value: b.id, label: b.name }))}
-                placeholder="Selecione"
-                value={activeBlockId}
-                onValueChange={(v) => setActiveBlockId(String(v))}
+                capacityFieldName="totalPlots"
+                capacityLabel="Capacidade Máxima "
               />
-            </div>
-            <div>
-              <IGRPLabel>Nome *</IGRPLabel>
-              <IGRPInputText
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
+              <FormActions
+                onCancel={() => router.push(`/cemeteries/${cemeteryId}`)}
+                onSubmit={() => formRef.current?.submit()}
+                submitLabel="Salvar"
+                disabled={isLoading || !cemeteryId || !sectionId}
               />
-            </div>
-            <div>
-              <IGRPLabel>Código *</IGRPLabel>
-              <IGRPInputText
-                value={form.code}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, code: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <IGRPLabel>Tipo *</IGRPLabel>
-              <IGRPSelect
-                options={[
-                  { value: "GROUND", label: "Solo" },
-                  { value: "MAUSOLEUM", label: "Mausoléu" },
-                  { value: "NICHE", label: "Nicho" },
-                  { value: "OSSUARY", label: "Ossário" },
-                ]}
-                placeholder="Tipo"
-                value={form.plotType}
-                onValueChange={(v) =>
-                  setForm((f) => ({ ...f, plotType: v as any }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <IGRPLabel>Capacidade Máxima *</IGRPLabel>
-              <IGRPInputText
-                type="number"
-                value={String(form.totalPlots)}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, totalPlots: Number(e.target.value) }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 flex gap-2">
-            <IGRPButton
-              variant="outline"
-              onClick={() => router.push(`/cemeteries/${cemeteryId}`)}
-              type="button"
-            >
-              Cancelar
-            </IGRPButton>
-            <IGRPButton
-              onClick={handleSave}
-              disabled={
-                isLoading || !cemeteryId || !sectionId || !activeBlockId
-              }
-            >
-              Salvar
-            </IGRPButton>
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
+        </>
+      </IGRPForm>
     </div>
   );
 }

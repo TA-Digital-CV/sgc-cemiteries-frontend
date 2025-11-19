@@ -1,9 +1,9 @@
 "use client";
 
 import { cn, IGRPButton } from "@igrp/igrp-framework-react-design-system";
+import { useRouter } from "next/navigation";
 import { CemeteryList } from "@/components/cemeteries/CemeteryList";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
-import { useRouter } from "next/navigation";
 /**
  * CemeteriesPage shows overview metrics and the cemetery list.
  * Uses IGRP components for layout and actions and removes lucide-react.
@@ -11,6 +11,10 @@ import { useRouter } from "next/navigation";
 
 export default function CemeteriesPage() {
   const router = useRouter();
+  const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
+    .split(",")
+    .map((p) => p.trim().toUpperCase());
+  const canWriteCemetery = perms.includes("CEMETERY_WRITE");
 
   function goToCemeteries(row?: any): void {
     router.push(`/cemeteries`);
@@ -35,16 +39,18 @@ export default function CemeteriesPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <IGRPButton
-            variant={"default"}
-            size={`default`}
-            showIcon={true}
-            iconName={"Plus"}
-            className={cn()}
-            onClick={() => goToNewCemetery()}
-          >
-            Novo Cemitério
-          </IGRPButton>
+          {canWriteCemetery && (
+            <IGRPButton
+              variant={"default"}
+              size={`default`}
+              showIcon={true}
+              iconName={"Plus"}
+              className={cn()}
+              onClick={() => goToNewCemetery()}
+            >
+              Novo Cemitério
+            </IGRPButton>
+          )}
           <IGRPButton
             variant={"outline"}
             size={`default`}

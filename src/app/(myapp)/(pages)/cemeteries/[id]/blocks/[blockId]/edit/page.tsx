@@ -6,13 +6,17 @@ import {
   IGRPCardContent,
   IGRPCardHeader,
   IGRPCardTitle,
-  IGRPInputText,
-  IGRPLabel,
-  IGRPIcon,
+  IGRPForm,
+  type IGRPFormHandle,
+  IGRPPageHeader,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
+import { BlockFields } from "@/components/forms/BlockFields";
+import { FormActions } from "@/components/forms/FormActions";
 import { useCemetery } from "@/hooks/useCemetery";
 import type { CemeteryBlock } from "@/types/cemetery";
 
@@ -27,12 +31,14 @@ export default function BlockEditPage() {
   const blockId = String(params.blockId ?? "");
 
   const { fetchBlocks, blocks, updateBlock, isLoading } = useCemetery();
+  const { igrpToast } = useIGRPToast();
+  const formRef = useRef<IGRPFormHandle<any> | null>(null);
 
   const currentBlock = useMemo(
     () => blocks.find((b) => b.id === blockId),
     [blocks, blockId],
   );
-  const [form, setForm] = useState<{
+  const [initial, setInitial] = useState<{
     name: string;
     code: string;
     totalPlots: number;
@@ -41,7 +47,6 @@ export default function BlockEditPage() {
     code: "",
     totalPlots: 0,
   });
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (cemeteryId) {
@@ -51,7 +56,7 @@ export default function BlockEditPage() {
 
   useEffect(() => {
     if (currentBlock) {
-      setForm({
+      setInitial({
         name: currentBlock.name,
         code: currentBlock.code,
         totalPlots: Number(currentBlock.totalPlots),
@@ -60,120 +65,128 @@ export default function BlockEditPage() {
   }, [currentBlock]);
 
   const isCodeDuplicate = useMemo(() => {
-    const codeNorm = form.code.trim().toLowerCase();
-    return blocks.some(
-      (b: CemeteryBlock) =>
-        b.cemeteryId === cemeteryId &&
-        b.id !== blockId &&
-        String(b.code).toLowerCase() === codeNorm,
-    );
-  }, [blocks, cemeteryId, blockId, form.code]);
+    return (code: string) => {
+      const codeNorm = String(code).trim().toLowerCase();
+      return blocks.some(
+        (b: CemeteryBlock) =>
+          b.cemeteryId === cemeteryId &&
+          b.id !== blockId &&
+          String(b.code).toLowerCase() === codeNorm,
+      );
+    };
+  }, [blocks, cemeteryId, blockId]);
 
-  const validate = (): string | null => {
-    if (!cemeteryId || !blockId) return "Invalid route parameters";
-    if (!form.name.trim()) return "Name is required";
-    if (!form.code.trim()) return "Code is required";
-    if (isCodeDuplicate) return "Code must be unique in this cemetery";
-    if (!Number.isFinite(form.totalPlots) || form.totalPlots <= 0)
-      return "Max capacity must be greater than 0";
-    return null;
-  };
+  /**
+   * Validates block edit form using Zod and DS form components.
+   */
+  const formSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    code: z.string().min(1, "Code is required"),
+    totalPlots: z
+      .number({ message: "Max capacity must be a number" })
+      .gt(0, "Max capacity must be greater than 0"),
+  });
 
-  const handleSave = async () => {
-    const v = validate();
-    if (v) {
-      setError(v);
+  /**
+   * Handles validated update submission and toast feedback.
+   */
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const ctx = localStorage.getItem("activeCemeteryId") ?? "";
+      if (ctx && ctx !== cemeteryId) {
+        igrpToast({
+          title: "Erro",
+          description: "Contexto de cemitério diferente do selecionado",
+          type: "error",
+        });
+        return;
+      }
+    } catch {}
+    if (!cemeteryId || !blockId) {
+      igrpToast({
+        title: "Erro",
+        description: "Invalid route parameters",
+        type: "error",
+      });
       return;
     }
-    setError(null);
+    if (isCodeDuplicate(data.code)) {
+      igrpToast({
+        title: "Erro",
+        description: "Code must be unique in this cemetery",
+        type: "error",
+      });
+      return;
+    }
     const res = await updateBlock(blockId, {
-      name: form.name.trim(),
-      code: form.code.trim(),
-      totalPlots: Number(form.totalPlots),
+      name: data.name.trim(),
+      code: data.code.trim(),
+      totalPlots: Number(data.totalPlots),
     });
     if (res.success) {
+      igrpToast({
+        title: "Sucesso",
+        description: "Bloco atualizado com sucesso",
+        type: "success",
+      });
       router.push(`/cemeteries/${cemeteryId}`);
     } else {
-      setError(res.errors?.[0] || "Failed to update block");
+      const err = res.errors?.[0] || "Failed to update block";
+      igrpToast({ title: "Erro", description: err, type: "error" });
     }
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href={`/cemeteries/${cemeteryId}`}>
-            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Editar Bloco</h1>
-            <p className="text-muted-foreground">Atualize os dados do bloco</p>
-          </div>
+      <IGRPPageHeader
+        name={`pageHeaderBlockEdit`}
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries/${cemeteryId}`}
+        variant={`h3`}
+        title={"Editar Bloco"}
+        description={"Atualize os dados do bloco"}
+      >
+        <div className="flex items-center gap-2">
+          <IGRPButton
+            variant={`default`}
+            size={`default`}
+            showIcon={true}
+            iconName={`Save`}
+            onClick={() => formRef.current?.submit()}
+          >
+            Salvar
+          </IGRPButton>
         </div>
-      </div>
+      </IGRPPageHeader>
 
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          {error && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
-              <IGRPIcon iconName="AlertTriangle" className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <IGRPLabel>Nome *</IGRPLabel>
-              <IGRPInputText
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
+      <IGRPForm
+        schema={formSchema}
+        validationMode={"onBlur"}
+        formRef={formRef}
+        onSubmit={onSubmit}
+        defaultValues={initial}
+      >
+        <>
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <BlockFields
+                capacityFieldName="totalPlots"
+                capacityLabel="Capacidade Máxima "
               />
-            </div>
-            <div>
-              <IGRPLabel>Código *</IGRPLabel>
-              <IGRPInputText
-                value={form.code}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, code: e.target.value }))
-                }
+              <FormActions
+                onCancel={() => router.push(`/cemeteries/${cemeteryId}`)}
+                onSubmit={() => formRef.current?.submit()}
+                submitLabel="Salvar"
+                disabled={isLoading || !cemeteryId || !blockId}
               />
-            </div>
-            <div>
-              <IGRPLabel>Capacidade Máxima *</IGRPLabel>
-              <IGRPInputText
-                type="number"
-                value={String(form.totalPlots)}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, totalPlots: Number(e.target.value) }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 flex gap-2">
-            <IGRPButton
-              variant="outline"
-              onClick={() => router.push(`/cemeteries/${cemeteryId}`)}
-              type="button"
-            >
-              Cancelar
-            </IGRPButton>
-            <IGRPButton
-              onClick={handleSave}
-              disabled={isLoading || !cemeteryId || !blockId}
-            >
-              Salvar
-            </IGRPButton>
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
+        </>
+      </IGRPForm>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { USE_REAL_BACKEND, proxyFetch } from "../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../config";
 
 /**
  * POST /api/v1/plots/bulk-qr-generation

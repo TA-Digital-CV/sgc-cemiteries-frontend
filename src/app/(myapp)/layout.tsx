@@ -40,7 +40,19 @@ export default async function IGRPRootLayout({
 
   const isAlreadyOnLogin = currentPath.startsWith(loginPath);
 
-  if (!isPreviewMode && session === null && urlLogin && !isAlreadyOnLogin) {
+  const bypassAuthEnv =
+    String(process.env.BYPASS_AUTH || "false").toLowerCase() === "true";
+  const isProductionEnv =
+    (process.env.NODE_ENV || "development") === "production";
+  const bypassActive = bypassAuthEnv && !isProductionEnv;
+
+  if (
+    !isPreviewMode &&
+    session === null &&
+    urlLogin &&
+    !isAlreadyOnLogin &&
+    !bypassActive
+  ) {
     redirect(urlLogin);
   }
 

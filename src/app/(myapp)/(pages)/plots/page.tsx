@@ -1,18 +1,27 @@
 "use client";
 import {
+  cn,
+  IGRPBadge,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPDataTable,
+  IGRPDataTableButtonLink,
+  IGRPDataTableDropdownMenu,
+  IGRPDataTableDropdownMenuAlert,
+  IGRPDataTableHeaderSortToggle,
+  IGRPDataTableRowAction,
+  IGRPIcon,
   IGRPInputText,
   IGRPLabel,
+  IGRPPageHeader,
   IGRPSelect,
-  IGRPDataTable,
-  IGRPDataTableHeaderSortToggle,
-  IGRPIcon,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCemetery } from "@/hooks/useCemetery";
 import { usePlot } from "@/hooks/usePlot";
@@ -25,10 +34,8 @@ import type { Plot, PlotFormData } from "@/types/Plot";
 
 export default function PlotsPage() {
   /**
-   * PlotsPage renders CRUD UI and reservation/occupation for plots:
-   * - Select cemetery/block/section → list plots with search/filter
-   * - Create plots with required fields
-   * - Reserve/occupy/cancel reservation
+   * Renders plot listing with basic filters and actions.
+   * Advanced search has been removed entirely from this page.
    */
   const {
     cemeteries,
@@ -50,11 +57,17 @@ export default function PlotsPage() {
     markPlotAsAvailable,
     isLoading,
   } = usePlot();
+  const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
+    .split(",")
+    .map((p) => p.trim().toUpperCase());
+  const canWritePlots = perms.includes("PLOTS_WRITE");
 
   const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>("");
   const [selectedBlockId, setSelectedBlockId] = useState<string>("");
   const [selectedSectionId, setSelectedSectionId] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [editing, setEditing] = useState<Plot | null>(null);
   const [form, setForm] = useState<PlotFormData>({
     cemeteryId: "",
@@ -66,17 +79,110 @@ export default function PlotsPage() {
     dimensions: { width: 0, length: 0, unit: "meters" },
     notes: "",
   });
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const { igrpToast } = useIGRPToast();
+  const activeCemeteryName = useMemo(() => {
+    const c = cemeteries.find((x) => x.id === selectedCemeteryId);
+    return c?.name ?? "";
+  }, [cemeteries, selectedCemeteryId]);
+
+  /**
+   * Validates and applies cemetery selection for plots filters, clearing dependent block/section.
+   */
+  const handleCemeteryChange = (id: string) => {
+    const exists = cemeteries.some((c) => String(c.id) === String(id));
+    if (!exists) {
+      igrpToast({
+        title: "Erro",
+        description: "Cemitério inválido",
+        type: "error",
+      });
+      return;
+    }
+    setSelectedCemeteryId(id);
+    setSelectedBlockId("");
+    setSelectedSectionId("");
+  };
+
+  /**
+   * Validates and applies block selection ensuring it belongs to selected cemetery.
+   */
+  const handleBlockChange = (id: string) => {
+    const b = blocks.find((x) => String(x.id) === String(id));
+    if (!b) {
+      igrpToast({
+        title: "Erro",
+        description: "Bloco inválido",
+        type: "error",
+      });
+      return;
+    }
+    if (
+      selectedCemeteryId &&
+      String(b.cemeteryId) !== String(selectedCemeteryId)
+    ) {
+      igrpToast({
+        title: "Erro",
+        description: "O bloco selecionado não pertence ao cemitério",
+        type: "error",
+      });
+      return;
+    }
+    setSelectedBlockId(id);
+    setSelectedSectionId("");
+  };
+
+  /**
+   * Validates and applies section selection ensuring it belongs to selected block.
+   */
+  const handleSectionChange = (id: string) => {
+    const s = sections.find((x) => String(x.id) === String(id));
+    if (!s) {
+      igrpToast({
+        title: "Erro",
+        description: "Seção inválida",
+        type: "error",
+      });
+      return;
+    }
+    if (selectedBlockId && String(s.blockId) !== String(selectedBlockId)) {
+      igrpToast({
+        title: "Erro",
+        description: "A seção selecionada não pertence ao bloco",
+        type: "error",
+      });
+      return;
+    }
+    setSelectedSectionId(id);
+  };
 
   useEffect(() => {
     void fetchCemeteries();
   }, [fetchCemeteries]);
+  useEffect(() => {
+    const cid = String(searchParams.get("cemeteryId") ?? "");
+    if (cid) setSelectedCemeteryId(cid);
+  }, [searchParams]);
+  useEffect(() => {
+    if (!selectedCemeteryId) {
+      try {
+        const stored = localStorage.getItem("activeCemeteryId") ?? "";
+        if (stored) setSelectedCemeteryId(stored);
+      } catch {}
+    }
+  }, []);
   useEffect(() => {
     if (selectedCemeteryId) {
       void fetchBlocks(selectedCemeteryId);
       void fetchPlots({ cemeteryId: selectedCemeteryId });
     }
   }, [selectedCemeteryId, fetchBlocks, fetchPlots]);
+  useEffect(() => {
+    if (selectedCemeteryId) {
+      try {
+        localStorage.setItem("activeCemeteryId", selectedCemeteryId);
+      } catch {}
+    }
+  }, [selectedCemeteryId]);
   useEffect(() => {
     if (selectedCemeteryId && selectedBlockId) {
       void fetchSections(selectedCemeteryId, selectedBlockId);
@@ -85,8 +191,9 @@ export default function PlotsPage() {
 
   const filteredPlots = useMemo(() => {
     return plots.filter((p: Plot) => {
-      const matchesSearch = search
-        ? (p.plotNumber ?? "").toLowerCase().includes(search.toLowerCase())
+      const term = searchTerm.toLowerCase();
+      const matchesSearch = term
+        ? (p.plotNumber ?? "").toLowerCase().includes(term)
         : true;
       const matchesCemetery = selectedCemeteryId
         ? p.cemeteryId === selectedCemeteryId
@@ -99,8 +206,55 @@ export default function PlotsPage() {
         : true;
       return matchesSearch && matchesCemetery && matchesBlock && matchesSection;
     });
-  }, [plots, search, selectedCemeteryId, selectedBlockId, selectedSectionId]);
+  }, [
+    plots,
+    searchTerm,
+    selectedCemeteryId,
+    selectedBlockId,
+    selectedSectionId,
+  ]);
 
+  /**
+   * Maps occupation status to badge props and tooltip text.
+   */
+  const getOccupationBadgeProps = (status: string) => {
+    const s = String(status).toUpperCase();
+    switch (s) {
+      case "AVAILABLE":
+        return {
+          label: "Disponível",
+          color: "success" as const,
+          tooltip: "Sepultura disponível para reserva/ocupação",
+        };
+      case "RESERVED":
+        return {
+          label: "Reservada",
+          color: "warning" as const,
+          tooltip: "Sepultura reservada aguardando ocupação ou cancelamento",
+        };
+      case "OCCUPIED":
+        return {
+          label: "Ocupada",
+          color: "secondary" as const,
+          tooltip: "Sepultura ocupada sem disponibilidade",
+        };
+      default:
+        return {
+          label: s || "—",
+          color: "info" as const,
+          tooltip: "Status desconhecido",
+        };
+    }
+  };
+  // transformar em uma função que redireciona para a página de criação de sepultura
+  const goToCreatePlot = () => {
+    if (!selectedCemeteryId) return;
+    router.push(`/cemeteries/${selectedCemeteryId}/plots/create`);
+  };
+
+  /**
+   * Validates form and returns error message or null.
+   */
   const validateForm = (): string | null => {
     if (!selectedCemeteryId) return "Cemetery is required";
     if (!selectedBlockId) return "Block is required";
@@ -116,10 +270,13 @@ export default function PlotsPage() {
     return null;
   };
 
+  /**
+   * Handles plot creation with toast notifications.
+   */
   const handleCreate = async () => {
     const validation = validateForm();
     if (validation) {
-      setErrorMsg(validation);
+      igrpToast({ title: "Erro", description: validation, type: "error" });
       return;
     }
     const payload: PlotFormData = {
@@ -139,22 +296,33 @@ export default function PlotsPage() {
         dimensions: { width: 0, length: 0, unit: "meters" },
         notes: "",
       });
-      setErrorMsg(null);
+      igrpToast({
+        title: "Sucesso",
+        description: "Sepultura criada com sucesso",
+        type: "success",
+      });
     }
   };
 
+  /**
+   * Handles plot update with toast notifications.
+   */
   const handleUpdate = async () => {
     if (!editing) return;
     const validation = validateForm();
     if (validation) {
-      setErrorMsg(validation);
+      igrpToast({ title: "Erro", description: validation, type: "error" });
       return;
     }
     const payload: PlotFormData = { ...form } as PlotFormData;
     const res = await updatePlot(editing.id, payload);
     if (res?.success) {
       setEditing(null);
-      setErrorMsg(null);
+      igrpToast({
+        title: "Sucesso",
+        description: "Sepultura atualizada com sucesso",
+        type: "success",
+      });
     }
   };
 
@@ -174,326 +342,376 @@ export default function PlotsPage() {
     } as PlotFormData);
   };
 
+  /**
+   * Handles plot reservation action with toast error placeholder.
+   */
   const doReserve = async (p: Plot) => {
-    setErrorMsg("Error: Missing required reservation data");
+    igrpToast({
+      title: "Erro",
+      description: "Missing required reservation data",
+      type: "error",
+    });
   };
+  /**
+   * Handles reservation cancel action with toast error placeholder.
+   */
   const doCancelReservation = async (p: Plot) => {
-    setErrorMsg("Error: Missing cancellation reason");
+    igrpToast({
+      title: "Erro",
+      description: "Missing cancellation reason",
+      type: "error",
+    });
   };
+  /**
+   * Handles mark occupied action with toast error placeholder.
+   */
   const doOccupy = async (p: Plot) => {
-    setErrorMsg("Error: Missing occupant information");
+    igrpToast({
+      title: "Erro",
+      description: "Missing occupant information",
+      type: "error",
+    });
   };
+  /**
+   * Handles mark available action with toast error placeholder.
+   */
   const doAvailable = async (p: Plot) => {
-    setErrorMsg("Error: Missing availability reason");
+    igrpToast({
+      title: "Erro",
+      description: "Missing availability reason",
+      type: "error",
+    });
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Gestão de Sepulturas
-          </h1>
-          <p className="text-muted-foreground">
-            Cadastro, reserva/ocupação e histórico básico
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/plots/search">
-            <IGRPButton variant="outline">Busca Avançada</IGRPButton>
-          </Link>
-        </div>
-      </div>
-
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Filtros</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          {errorMsg && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg mb-4">
-              <IGRPIcon iconName="AlertTriangle" className="h-4 w-4" />
-              <span className="text-sm">{errorMsg}</span>
-            </div>
+      <IGRPPageHeader
+        name={`pageHeader1`}
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries`}
+        variant={`h3`}
+        className={cn()}
+        title={"Sepulturas"}
+        description={"Gerencie as sepulturas do sistema"}
+      >
+        <div className="flex items-center gap-2">
+          {selectedCemeteryId && activeCemeteryName && (
+            <IGRPBadge color="info" variant="soft" size="sm">
+              {activeCemeteryName}
+            </IGRPBadge>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div>
-              <IGRPLabel>Cemitério</IGRPLabel>
-              <IGRPSelect
-                options={cemeteries.map((c: Cemetery) => ({
-                  value: c.id,
-                  label: c.name,
-                }))}
-                placeholder="Selecione"
-                onValueChange={(v) => setSelectedCemeteryId(String(v))}
-              />
-            </div>
-            <div>
-              <IGRPLabel>Bloco</IGRPLabel>
-              <IGRPSelect
-                options={blocks.map((b: CemeteryBlock) => ({
-                  value: b.id,
-                  label: b.name,
-                }))}
-                placeholder="Selecione"
-                onValueChange={(v) => setSelectedBlockId(String(v))}
-                disabled={!selectedCemeteryId}
-              />
-            </div>
-            <div>
-              <IGRPLabel>Sector</IGRPLabel>
-              <IGRPSelect
-                options={sections.map((s: CemeterySection) => ({
-                  value: s.id,
-                  label: s.name,
-                }))}
-                placeholder="Selecione"
-                onValueChange={(v) => setSelectedSectionId(String(v))}
-                disabled={!selectedBlockId}
-              />
-            </div>
-            <div>
-              <IGRPLabel>Busca</IGRPLabel>
-              <IGRPInputText
-                placeholder="Número da sepultura"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end">
-              <IGRPButton
-                onClick={() => fetchPlots({ cemeteryId: selectedCemeteryId })}
-                disabled={!selectedCemeteryId || isLoading}
-              >
-                Recarregar
-              </IGRPButton>
-            </div>
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
+          <IGRPButton
+            variant="default"
+            size={`sm`}
+            showIcon={true}
+            iconName={"Plus"}
+            onClick={() => {
+              if (!selectedCemeteryId) {
+                igrpToast({
+                  title: "Erro",
+                  description: "Selecione um cemitério primeiro",
+                  type: "error",
+                });
+                return;
+              }
+              goToCreatePlot();
+            }}
+            disabled={!selectedCemeteryId}
+          >
+            Adicionar Sepultura
+          </IGRPButton>
+
+          <IGRPButton
+            variant="outline"
+            size={`sm`}
+            showIcon={true}
+            iconName={"Blocks"}
+            onClick={() =>
+              selectedCemeteryId &&
+              router.push(`/blocks?cemeteryId=${selectedCemeteryId}`)
+            }
+            disabled={!selectedCemeteryId}
+          >
+            Gerir Blocos
+          </IGRPButton>
+          <IGRPButton
+            variant="outline"
+            size={`sm`}
+            showIcon={true}
+            iconName={"ListTree"}
+            onClick={() =>
+              selectedCemeteryId &&
+              router.push(`/sections?cemeteryId=${selectedCemeteryId}`)
+            }
+            disabled={!selectedCemeteryId}
+          >
+            Gerir Seções
+          </IGRPButton>
+        </div>
+      </IGRPPageHeader>
 
       <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>
-            {editing ? "Editar Sepultura" : "Nova Sepultura"}
-          </IGRPCardTitle>
-        </IGRPCardHeader>
         <IGRPCardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <IGRPLabel>Número</IGRPLabel>
-              <IGRPInputText
-                value={form.plotNumber}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, plotNumber: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <IGRPLabel>Tipo</IGRPLabel>
-              <IGRPSelect
-                options={[
-                  { value: "GROUND", label: "Solo" },
-                  { value: "MAUSOLEUM", label: "Mausoléu" },
-                  { value: "NICHE", label: "Nicho" },
-                  { value: "OSSUARY", label: "Ossário" },
-                ]}
-                placeholder="Tipo"
-                onValueChange={(v) =>
-                  setForm((f) => ({ ...f, plotType: v as Plot["plotType"] }))
-                }
-              />
-            </div>
-            <div>
-              <IGRPLabel>Dimensões (L x C)</IGRPLabel>
-              <div className="grid grid-cols-3 gap-2">
-                <IGRPInputText
-                  type="number"
-                  placeholder="Largura"
-                  value={Number(form.dimensions?.width ?? 0)}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      dimensions: {
-                        ...(f.dimensions ?? {
-                          width: 0,
-                          length: 0,
-                          unit: "meters",
-                        }),
-                        width: Number(e.target.value),
-                      },
-                    }))
-                  }
-                />
-                <IGRPInputText
-                  type="number"
-                  placeholder="Comprimento"
-                  value={Number(form.dimensions?.length ?? 0)}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      dimensions: {
-                        ...(f.dimensions ?? {
-                          width: 0,
-                          length: 0,
-                          unit: "meters",
-                        }),
-                        length: Number(e.target.value),
-                      },
-                    }))
-                  }
-                />
-                <IGRPSelect
-                  options={[
-                    { value: "meters", label: "Metros" },
-                    { value: "feet", label: "Pés" },
-                  ]}
-                  placeholder="Unidade"
-                  onValueChange={(v) =>
-                    setForm((f) => ({
-                      ...f,
-                      dimensions: {
-                        ...(f.dimensions ?? {
-                          width: 0,
-                          length: 0,
-                          unit: "meters",
-                        }),
-                        unit: v as "meters" | "feet",
-                      },
-                    }))
-                  }
+          <IGRPCard>
+            <IGRPCardContent>
+              <div className="flex space-x-4 mb-6">
+                <div className="relative flex-1">
+                  <IGRPInputText
+                    placeholder="Buscar por número da sepultura..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                    iconName={"Search"}
+                    showIcon={true}
+                  />
+                </div>
+                <div>
+                  <IGRPSelect
+                    label=""
+                    options={cemeteries.map((c: Cemetery) => ({
+                      value: c.id,
+                      label: c.name,
+                    }))}
+                    placeholder="Selecione o Cemitério"
+                    value={selectedCemeteryId}
+                    onValueChange={(v) => handleCemeteryChange(String(v))}
+                  />
+                </div>
+                <div>
+                  <IGRPSelect
+                    label=""
+                    options={blocks.map((b: CemeteryBlock) => ({
+                      value: b.id,
+                      label: b.name,
+                    }))}
+                    placeholder="Selecione o Bloco"
+                    value={selectedBlockId}
+                    onValueChange={(v) => handleBlockChange(String(v))}
+                    disabled={!selectedCemeteryId}
+                  />
+                </div>
+                <div>
+                  <IGRPSelect
+                    label=""
+                    options={sections.map((s: CemeterySection) => ({
+                      value: s.id,
+                      label: s.name,
+                    }))}
+                    placeholder="Selecione a Seção"
+                    value={selectedSectionId}
+                    onValueChange={(v) => handleSectionChange(String(v))}
+                    disabled={!selectedBlockId}
+                  />
+                </div>
+                <IGRPButton
+                  variant={"outline"}
+                  size={"sm"}
+                  showIcon={true}
+                  iconName={"Funnel"}
+                  className={cn()}
                 />
               </div>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-2">
-            {editing ? (
-              <>
-                <IGRPButton
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(null);
-                  }}
-                >
-                  Cancelar
-                </IGRPButton>
-                <IGRPButton
-                  onClick={handleUpdate}
-                  disabled={
-                    isLoading ||
-                    !selectedCemeteryId ||
-                    !selectedBlockId ||
-                    !selectedSectionId
-                  }
-                >
-                  Salvar
-                </IGRPButton>
-              </>
-            ) : (
-              <IGRPButton
-                onClick={handleCreate}
-                disabled={
-                  isLoading ||
-                  !selectedCemeteryId ||
-                  !selectedBlockId ||
-                  !selectedSectionId
-                }
-              >
-                Criar
-              </IGRPButton>
-            )}
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
 
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Sepulturas</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          <IGRPDataTable<Plot, Plot>
-            className={"rounded-md border"}
-            columns={[
-              {
-                header: ({ column }) => (
-                  <IGRPDataTableHeaderSortToggle
-                    column={column}
-                    title={`Número`}
-                  />
-                ),
-                accessorKey: "plotNumber",
-                cell: ({ row }) => row.getValue("plotNumber") as string,
-              },
-              {
-                header: ({ column }) => (
-                  <IGRPDataTableHeaderSortToggle
-                    column={column}
-                    title={`Tipo`}
-                  />
-                ),
-                accessorKey: "plotType",
-                cell: ({ row }) => String(row.getValue("plotType") ?? ""),
-              },
-              {
-                header: () => `Status`,
-                accessorKey: "occupationStatus",
-                cell: ({ row }) =>
-                  String(row.getValue("occupationStatus") ?? ""),
-              },
-              {
-                id: "actions",
-                enableHiding: false,
-                cell: ({ row }) => {
-                  const p = row.original as Plot;
-                  return (
-                    <div className="flex gap-2">
-                      <IGRPButton
-                        variant="outline"
-                        size="sm"
-                        onClick={() => startEdit(p)}
-                      >
-                        Editar
-                      </IGRPButton>
-                      <IGRPButton
-                        variant="outline"
-                        size="sm"
-                        onClick={() => doReserve(p)}
-                        disabled={p.occupationStatus !== "AVAILABLE"}
-                      >
-                        Reservar
-                      </IGRPButton>
-                      <IGRPButton
-                        variant="outline"
-                        size="sm"
-                        onClick={() => doCancelReservation(p)}
-                        disabled={p.occupationStatus !== "RESERVED"}
-                      >
-                        Cancelar Reserva
-                      </IGRPButton>
-                      <IGRPButton
-                        variant="outline"
-                        size="sm"
-                        onClick={() => doOccupy(p)}
-                        disabled={p.occupationStatus === "OCCUPIED"}
-                      >
-                        Ocupar
-                      </IGRPButton>
-                      <IGRPButton
-                        variant="outline"
-                        size="sm"
-                        onClick={() => doAvailable(p)}
-                        disabled={p.occupationStatus === "AVAILABLE"}
-                      >
-                        Disponibilizar
-                      </IGRPButton>
-                    </div>
-                  );
+          {isLoading && (
+            <div className="flex items-center justify-center py-8">
+              <IGRPIcon
+                iconName="RefreshCw"
+                className="h-6 w-6 animate-spin text-gray-400"
+              />
+              <span className="ml-2 text-gray-500">
+                Carregando sepulturas...
+              </span>
+            </div>
+          )}
+
+          {!isLoading && (
+            <IGRPDataTable<Plot, Plot>
+              className={"rounded-md border"}
+              columns={[
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Número`}
+                    />
+                  ),
+                  accessorKey: "plotNumber",
+                  cell: ({ row }) => row.getValue("plotNumber") as string,
                 },
-              },
-            ]}
-            clientFilters={[]}
-            data={filteredPlots}
-          />
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Tipo`}
+                    />
+                  ),
+                  accessorKey: "plotType",
+                  cell: ({ row }) => String(row.getValue("plotType") ?? ""),
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Ocupação`}
+                    />
+                  ),
+                  accessorKey: "occupationStatus",
+                  cell: ({ row }) => {
+                    const status = String(
+                      row.getValue("occupationStatus") ?? "",
+                    );
+                    const { label, color, tooltip } =
+                      getOccupationBadgeProps(status);
+                    return (
+                      <IGRPBadge
+                        color={color}
+                        variant="soft"
+                        size="sm"
+                        title={tooltip}
+                      >
+                        {label}
+                      </IGRPBadge>
+                    );
+                  },
+                },
+                {
+                  id: "actions",
+                  enableHiding: false,
+                  cell: ({ row }) => {
+                    const p = row.original as Plot;
+                    const items: any[] = [
+                      {
+                        component: IGRPDataTableButtonLink,
+                        props: {
+                          labelTrigger: `Detalhes`,
+                          href: `/plots/${p.id}`,
+                          variant: `ghost`,
+                          icon: `Eye`,
+                        },
+                      },
+                    ];
+                    const dropdownItems: any[] = [
+                      {
+                        component: IGRPDataTableDropdownMenuAlert,
+                        props: {
+                          modalTitle: `Reservar`,
+                          labelTrigger: `Reservar`,
+                          icon: `CalendarPlus`,
+                          showIcon: true,
+                          showCancel: true,
+                          labelCancel: `Cancelar`,
+                          variantCancel: `default` as const,
+                          showConfirm: true,
+                          labelConfirm: `Confirmar`,
+                          variantConfirm: `secondary` as const,
+                          onClickConfirm: () => {
+                            void doReserve(p);
+                          },
+                          children: <>Confirmar reserva da sepultura?</>,
+                        },
+                      },
+                      {
+                        component: IGRPDataTableDropdownMenuAlert,
+                        props: {
+                          modalTitle: `Cancelar Reserva`,
+                          labelTrigger: `Cancelar Reserva`,
+                          icon: `Ban`,
+                          showIcon: true,
+                          showCancel: true,
+                          labelCancel: `Cancelar`,
+                          variantCancel: `default` as const,
+                          showConfirm: true,
+                          labelConfirm: `Confirmar`,
+                          variantConfirm: `secondary` as const,
+                          onClickConfirm: () => {
+                            void doCancelReservation(p);
+                          },
+                          children: <>Deseja cancelar a reserva?</>,
+                        },
+                      },
+                      {
+                        component: IGRPDataTableDropdownMenuAlert,
+                        props: {
+                          modalTitle: `Ocupar`,
+                          labelTrigger: `Ocupar`,
+                          icon: `UserPlus`,
+                          showIcon: true,
+                          showCancel: true,
+                          labelCancel: `Cancelar`,
+                          variantCancel: `default` as const,
+                          showConfirm: true,
+                          labelConfirm: `Confirmar`,
+                          variantConfirm: `secondary` as const,
+                          onClickConfirm: () => {
+                            void doOccupy(p);
+                          },
+                          children: <>Confirmar ocupação da sepultura?</>,
+                        },
+                      },
+                      {
+                        component: IGRPDataTableDropdownMenuAlert,
+                        props: {
+                          modalTitle: `Disponibilizar`,
+                          labelTrigger: `Disponibilizar`,
+                          icon: `Undo2`,
+                          showIcon: true,
+                          showCancel: true,
+                          labelCancel: `Cancelar`,
+                          variantCancel: `default` as const,
+                          showConfirm: true,
+                          labelConfirm: `Confirmar`,
+                          variantConfirm: `secondary` as const,
+                          onClickConfirm: () => {
+                            void doAvailable(p);
+                          },
+                          children: (
+                            <>Confirmar disponibilização da sepultura?</>
+                          ),
+                        },
+                      },
+                    ];
+
+                    const filteredDropdownItems = dropdownItems.filter(
+                      (item) => {
+                        const status = String(
+                          p.occupationStatus || "",
+                        ).toUpperCase();
+                        const label = item.props.labelTrigger;
+                        if (label === "Reservar")
+                          return status === "AVAILABLE" && canWritePlots;
+                        if (label === "Cancelar Reserva")
+                          return status === "RESERVED" && canWritePlots;
+                        if (label === "Ocupar")
+                          return status !== "OCCUPIED" && canWritePlots;
+                        if (label === "Disponibilizar")
+                          return status !== "AVAILABLE" && canWritePlots;
+                        return true;
+                      },
+                    );
+
+                    return (
+                      <IGRPDataTableRowAction>
+                        <IGRPDataTableButtonLink
+                          labelTrigger={`Detalhes`}
+                          href={`/plots/${p.id}`}
+                          variant={`ghost`}
+                          icon={`Eye`}
+                        ></IGRPDataTableButtonLink>
+                        <IGRPDataTableDropdownMenu
+                          items={filteredDropdownItems}
+                        />
+                      </IGRPDataTableRowAction>
+                    );
+                  },
+                },
+              ]}
+              clientFilters={[]}
+              data={filteredPlots}
+            />
+          )}
         </IGRPCardContent>
       </IGRPCard>
     </div>

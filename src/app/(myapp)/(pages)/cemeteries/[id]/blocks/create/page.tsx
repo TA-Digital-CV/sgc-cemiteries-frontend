@@ -6,13 +6,17 @@ import {
   IGRPCardContent,
   IGRPCardHeader,
   IGRPCardTitle,
-  IGRPInputText,
-  IGRPLabel,
-  IGRPIcon,
+  IGRPForm,
+  type IGRPFormHandle,
+  IGRPPageHeader,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { z } from "zod";
+import { BlockFields } from "@/components/forms/BlockFields";
+import { FormActions } from "@/components/forms/FormActions";
 import { useCemetery } from "@/hooks/useCemetery";
 import type { CemeteryBlock } from "@/types/cemetery";
 
@@ -27,17 +31,8 @@ export default function BlocksCreatePage() {
   const cemeteryId = String(params.id ?? "");
 
   const { fetchBlocks, blocks, createBlock, isLoading } = useCemetery();
-
-  const [form, setForm] = useState<{
-    name: string;
-    code: string;
-    maxCapacity: number;
-  }>({
-    name: "",
-    code: "",
-    maxCapacity: 0,
-  });
-  const [error, setError] = useState<string | null>(null);
+  const { igrpToast } = useIGRPToast();
+  const formRef = useRef<IGRPFormHandle<any> | null>(null);
 
   useEffect(() => {
     if (cemeteryId) {
@@ -46,125 +41,128 @@ export default function BlocksCreatePage() {
   }, [cemeteryId, fetchBlocks]);
 
   const isCodeDuplicate = useMemo(() => {
-    const codeNorm = form.code.trim().toLowerCase();
-    return blocks.some(
-      (b: CemeteryBlock) =>
-        b.cemeteryId === cemeteryId &&
-        String(b.code).toLowerCase() === codeNorm,
-    );
-  }, [blocks, cemeteryId, form.code]);
+    return (code: string) => {
+      const codeNorm = String(code).trim().toLowerCase();
+      return blocks.some(
+        (b: CemeteryBlock) =>
+          b.cemeteryId === cemeteryId &&
+          String(b.code).toLowerCase() === codeNorm,
+      );
+    };
+  }, [blocks, cemeteryId]);
 
-  const validate = (): string | null => {
-    if (!cemeteryId) return "Cemetery is required";
-    if (!form.name.trim()) return "Name is required";
-    if (!form.code.trim()) return "Code is required";
-    if (isCodeDuplicate) return "Code must be unique in this cemetery";
-    if (!Number.isFinite(form.maxCapacity) || form.maxCapacity <= 0)
-      return "Max capacity must be greater than 0";
-    return null;
-  };
+  /**
+   * Validates block create form using Zod and DS form components.
+   */
+  const formSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    code: z.string().min(1, "Code is required"),
+    maxCapacity: z
+      .number({ message: "Max capacity must be a number" })
+      .gt(0, "Max capacity must be greater than 0"),
+  });
 
-  const handleCreate = async () => {
-    const v = validate();
-    if (v) {
-      setError(v);
+  /**
+   * Handles validated create submission and toast feedback.
+   */
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      const ctx = localStorage.getItem("activeCemeteryId") ?? "";
+      if (ctx && ctx !== cemeteryId) {
+        igrpToast({
+          title: "Erro",
+          description: "Contexto de cemitério diferente do selecionado",
+          type: "error",
+        });
+        return;
+      }
+    } catch {}
+    if (!cemeteryId) {
+      igrpToast({
+        title: "Erro",
+        description: "Cemetery is required",
+        type: "error",
+      });
       return;
     }
-    setError(null);
+    if (isCodeDuplicate(data.code)) {
+      igrpToast({
+        title: "Erro",
+        description: "Code must be unique in this cemetery",
+        type: "error",
+      });
+      return;
+    }
     const res = await createBlock({
       cemeteryId,
-      name: form.name.trim(),
-      maxCapacity: Number(form.maxCapacity),
-      code: form.code.trim(),
+      name: data.name.trim(),
+      maxCapacity: Number(data.maxCapacity),
+      code: data.code.trim(),
     });
     if (res.success) {
+      igrpToast({
+        title: "Sucesso",
+        description: "Bloco criado com sucesso",
+        type: "success",
+      });
       router.push(`/cemeteries/${cemeteryId}`);
     } else {
-      setError(res.errors?.[0] || "Failed to create block");
+      const err = res.errors?.[0] || "Failed to create block";
+      igrpToast({ title: "Erro", description: err, type: "error" });
     }
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href={`/cemeteries/${cemeteryId}`}>
-            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Novo Bloco</h1>
-            <p className="text-muted-foreground">
-              Adicionar bloco ao cemitério
-            </p>
-          </div>
+      <IGRPPageHeader
+        name={`pageHeaderBlockCreate`}
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries/${cemeteryId}`}
+        variant={`h3`}
+        title={"Novo Bloco"}
+        description={"Adicionar bloco ao cemitério"}
+      >
+        <div className="flex items-center gap-2">
+          <IGRPButton
+            variant={`default`}
+            size={`default`}
+            showIcon={true}
+            iconName={`Save`}
+            onClick={() => formRef.current?.submit()}
+          >
+            Salvar
+          </IGRPButton>
         </div>
-      </div>
+      </IGRPPageHeader>
 
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          {error && (
-            <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
-              <IGRPIcon iconName="AlertTriangle" className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <IGRPLabel>Nome *</IGRPLabel>
-              <IGRPInputText
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
+      <IGRPForm
+        schema={formSchema}
+        validationMode={"onBlur"}
+        formRef={formRef}
+        onSubmit={onSubmit}
+        defaultValues={{ name: "", code: "", maxCapacity: 0 }}
+      >
+        <>
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <BlockFields
+                capacityFieldName="maxCapacity"
+                capacityLabel="Capacidade Máxima "
               />
-            </div>
-            <div>
-              <IGRPLabel>Código *</IGRPLabel>
-              <IGRPInputText
-                value={form.code}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, code: e.target.value }))
-                }
+              <FormActions
+                onCancel={() => router.push(`/cemeteries/${cemeteryId}`)}
+                onSubmit={() => formRef.current?.submit()}
+                submitLabel="Criar"
+                disabled={isLoading || !cemeteryId}
               />
-            </div>
-            <div>
-              <IGRPLabel>Capacidade Máxima *</IGRPLabel>
-              <IGRPInputText
-                type="number"
-                value={String(form.maxCapacity)}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    maxCapacity: Number(e.target.value),
-                  }))
-                }
-              />
-            </div>
-          </div>
-
-          <div className="mt-6 flex gap-2">
-            <IGRPButton
-              variant="outline"
-              onClick={() => router.push(`/cemeteries/${cemeteryId}`)}
-              type="button"
-            >
-              Cancelar
-            </IGRPButton>
-            <IGRPButton
-              onClick={handleCreate}
-              disabled={isLoading || !cemeteryId}
-            >
-              Criar
-            </IGRPButton>
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
+        </>
+      </IGRPForm>
     </div>
   );
 }

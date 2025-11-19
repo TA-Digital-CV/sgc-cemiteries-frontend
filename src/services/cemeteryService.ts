@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { ApiResponse, PaginatedResponse } from "@/types/Common";
 import type {
   CapacityProjection,
@@ -12,7 +13,6 @@ import type {
   CemeteryStructure,
   GrowthScenario,
 } from "@/types/cemetery";
-import { z } from "zod";
 
 // Validation schemas for API payloads
 const CemeterySchema = z.object({
@@ -234,6 +234,32 @@ export class CemeteryService {
       plots: [],
     };
     return [mapped];
+  }
+
+  async getCemeteryStructureSummary(cemeteryId: string): Promise<{
+    totalBlocks: number;
+    totalSections: number;
+    totalPlots: number;
+  }> {
+    const url = `${this.baseUrl}/cemeteries/${cemeteryId}/structure`;
+    const response = await this.fetchWithErrorHandling<any>(url);
+    const summary = response?.summary ?? {};
+    const hasSummary = summary && summary.totalBlocks !== undefined;
+    if (hasSummary) {
+      return {
+        totalBlocks: Number(summary.totalBlocks ?? 0),
+        totalSections: Number(summary.totalSections ?? 0),
+        totalPlots: Number(summary.totalPlots ?? 0),
+      };
+    }
+    const structure = (response?.structure ?? {}) as any;
+    const blocks = Array.isArray(structure.blocks) ? structure.blocks : [];
+    const sections = blocks.flatMap((b: any) => b.sections ?? []);
+    return {
+      totalBlocks: blocks.length,
+      totalSections: sections.length,
+      totalPlots: Array.isArray(structure.plots) ? structure.plots.length : 0,
+    };
   }
 
   // Buscar estatísticas de cemitério

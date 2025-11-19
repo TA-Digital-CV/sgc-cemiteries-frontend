@@ -4,13 +4,13 @@ import { useCallback, useEffect, useState } from "react";
 import { PlotService } from "@/services/plotService";
 import type { ActionResult } from "@/types/Common";
 import type {
+  PaginationInfo,
   Plot,
   PlotAvailability,
   PlotFilters,
   PlotFormData,
   PlotSearchParams,
   PlotStatistics,
-  PaginationInfo,
 } from "@/types/Plot";
 
 // Interface de retorno do hook usePlot

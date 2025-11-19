@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  cn,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
@@ -84,7 +85,13 @@ export default function EditCemeteryPage() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Link href="/cemeteries">
-            <IGRPButton type="button" variant="ghost" size="sm" showIcon iconName="ArrowLeft">
+            <IGRPButton
+              type="button"
+              variant="ghost"
+              size="sm"
+              showIcon
+              iconName="ArrowLeft"
+            >
               Voltar
             </IGRPButton>
           </Link>
@@ -110,32 +117,12 @@ export default function EditCemeteryPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/cemeteries">
-            <IGRPButton type="button" variant="ghost" size="sm" showIcon iconName="ArrowLeft">
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Editar Cemitério
-            </h1>
-            <p className="text-muted-foreground">
-              Atualize as informações de {selectedCemetery.name}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className={cn("page", "space-y-6")}>
       {/* Formulário */}
       <CemeteryForm
         cemetery={selectedCemetery}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        className="max-w-4xl mx-auto"
       />
     </div>
   );

@@ -1,18 +1,18 @@
 import type { ApiResponse } from "@/types/Common";
 import type {
+  PaginationInfo,
   Plot,
   PlotApiResponse,
   PlotApiSingleResponse,
   PlotAvailability,
   PlotAvailabilityApiResponse,
+  PlotDimensions,
   PlotFilters,
   PlotFormData,
   PlotSearchParams,
   PlotStatistics,
   PlotStatisticsApiResponse,
-  PlotDimensions,
 } from "@/types/Plot";
-import type { PaginationInfo } from "@/types/Plot";
 
 // Classe de serviço para operações relacionadas a sepulturas (plots)
 export class PlotService {
@@ -20,9 +20,12 @@ export class PlotService {
   private apiKey: string;
 
   constructor() {
-    // TODO: Configurar base URL e API key a partir de variáveis de ambiente
-    this.baseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
+    const rawBase =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api/v1";
+    const normalized = rawBase.replace(/\/$/, "");
+    this.baseUrl = /\/api\/v1$/i.test(normalized)
+      ? normalized
+      : `${normalized}/v1`;
     this.apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
   }
 
@@ -46,10 +49,11 @@ export class PlotService {
     options: RequestInit = {},
   ): Promise<T> {
     try {
+      const isFormData = options.body instanceof FormData;
       const response = await fetch(url, {
         ...options,
         headers: {
-          ...this.getHeaders(),
+          ...(isFormData ? {} : this.getHeaders()),
           ...options.headers,
         },
       });
@@ -85,45 +89,67 @@ export class PlotService {
     }
 
     const url = `${this.baseUrl}/plots${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
-    const response = await this.fetchWithErrorHandling<PlotApiResponse>(url);
-    return { data: response.data, pagination: response.pagination };
+    const response: any = await this.fetchWithErrorHandling<any>(url);
+    const data: Plot[] = (response?.data ?? response?.content ?? []) as Plot[];
+    const pag = (response?.pagination ?? response?.pageable ?? null) as any;
+    const pagination: PaginationInfo | undefined = pag
+      ? {
+          page: Number(pag.page ?? pag.pageNumber ?? 0),
+          limit: Number(pag.size ?? pag.pageSize ?? 10),
+          total: Number(pag.totalElements ?? pag.total ?? 0),
+          totalPages: Number(pag.totalPages ?? 0),
+          hasNext: Boolean(
+            pag.hasNext ??
+              Number(pag.page ?? 0) + 1 < Number(pag.totalPages ?? 0),
+          ),
+          hasPrev: Boolean((pag.page ?? 0) > 0),
+        }
+      : undefined;
+    return { data, pagination };
   }
 
   // Buscar sepultura por ID
   async getPlotById(id: string): Promise<Plot> {
     const url = `${this.baseUrl}/plots/${id}`;
-    const response =
-      await this.fetchWithErrorHandling<PlotApiSingleResponse>(url);
-
-    return response.data;
+    const response: any = await this.fetchWithErrorHandling<any>(url);
+    return (response?.data ?? response) as Plot;
   }
 
   // Criar nova sepultura
   async createPlot(data: PlotFormData): Promise<Plot> {
     const url = `${this.baseUrl}/plots`;
-    const response = await this.fetchWithErrorHandling<PlotApiSingleResponse>(
-      url,
-      {
-        method: "POST",
-        body: JSON.stringify(data),
-      },
-    );
-
-    return response.data;
+    const response: any = await this.fetchWithErrorHandling<any>(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return (response?.data ?? response) as Plot;
   }
 
   // Atualizar sepultura existente
   async updatePlot(id: string, data: PlotFormData): Promise<Plot> {
     const url = `${this.baseUrl}/plots/${id}`;
-    const response = await this.fetchWithErrorHandling<PlotApiSingleResponse>(
-      url,
-      {
-        method: "PUT",
-        body: JSON.stringify(data),
-      },
-    );
+    const response: any = await this.fetchWithErrorHandling<any>(url, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+    return (response?.data ?? response) as Plot;
+  }
 
-    return response.data;
+  // Upload plot photo and return its URL
+  async uploadPlotPhoto(id: string, file: File): Promise<string> {
+    const url = `${this.baseUrl}/plots/${id}/photos`;
+    const form = new FormData();
+    form.append("file", file);
+    const response: any = await this.fetchWithErrorHandling<any>(url, {
+      method: "POST",
+      body: form,
+    });
+    const data = response?.data ?? response;
+    const photoUrl = typeof data === "string" ? data : String(data?.url ?? "");
+    if (!photoUrl) {
+      throw new Error("Erro ao obter URL da imagem enviada");
+    }
+    return photoUrl;
   }
 
   // Deletar sepultura
@@ -147,18 +173,31 @@ export class PlotService {
     });
 
     const url = `${this.baseUrl}/plots/search?${queryParams.toString()}`;
-    const response = await this.fetchWithErrorHandling<PlotApiResponse>(url);
-    return { data: response.data, pagination: response.pagination };
+    const response: any = await this.fetchWithErrorHandling<any>(url);
+    const data: Plot[] = (response?.data ?? response?.content ?? []) as Plot[];
+    const pag = (response?.pagination ?? response?.pageable ?? null) as any;
+    const pagination: PaginationInfo | undefined = pag
+      ? {
+          page: Number(pag.page ?? pag.pageNumber ?? 0),
+          limit: Number(pag.size ?? pag.pageSize ?? 10),
+          total: Number(pag.totalElements ?? pag.total ?? 0),
+          totalPages: Number(pag.totalPages ?? 0),
+          hasNext: Boolean(
+            pag.hasNext ??
+              Number(pag.page ?? 0) + 1 < Number(pag.totalPages ?? 0),
+          ),
+          hasPrev: Boolean((pag.page ?? 0) > 0),
+        }
+      : undefined;
+    return { data, pagination };
   }
 
   // Buscar estatísticas de sepulturas
   async getPlotStatistics(cemeteryId?: string): Promise<PlotStatistics> {
     const queryParams = cemeteryId ? `?cemeteryId=${cemeteryId}` : "";
     const url = `${this.baseUrl}/plots/statistics${queryParams}`;
-    const response =
-      await this.fetchWithErrorHandling<PlotStatisticsApiResponse>(url);
-
-    return response.data;
+    const response: any = await this.fetchWithErrorHandling<any>(url);
+    return (response?.data ?? response) as PlotStatistics;
   }
 
   // Buscar disponibilidade de sepulturas
@@ -176,7 +215,7 @@ export class PlotService {
     }
 
     const url = `${this.baseUrl}/cemeteries/${cemeteryId}/availability?${queryParams.toString()}`;
-    const response = await this.fetchWithErrorHandling<any>(url);
+    const response: any = await this.fetchWithErrorHandling<any>(url);
 
     const data: any = response ?? {};
     const summary = data.summary ?? {};

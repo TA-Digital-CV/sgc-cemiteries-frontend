@@ -197,7 +197,7 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
         titleSize={`sm`}
         valueSize={`2xl`}
         showIcon={true}
-        iconName={`CheckCircle`}
+        iconName={`CheckLine`}
         iconSize={`md`}
         iconVariant={`primary`}
         iconPlacement={`end`}

@@ -8,11 +8,11 @@ import {
   IGRPCardDescription,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPCheckbox,
   IGRPIcon,
   IGRPInputText,
   IGRPLabel,
   IGRPSelect,
-  IGRPCheckbox,
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useState } from "react";
 import type {
@@ -393,7 +393,9 @@ export function QRCodeBatchGenerator({
                 disabled={loading}
                 className="flex-1"
                 showIcon={!loading}
-                iconName={!loading ? "QrCode" : undefined as unknown as string}
+                iconName={
+                  !loading ? "QrCode" : (undefined as unknown as string)
+                }
               >
                 {loading ? "Gerando..." : "Gerar Lote"}
               </IGRPButton>

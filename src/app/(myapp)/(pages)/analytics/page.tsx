@@ -56,9 +56,13 @@ export default function AnalyticsPage() {
           >
             Atualizar
           </IGRPButton>
-          <IGRPButton showIcon iconName={"Download"}>Exportar Dados</IGRPButton>
+          <IGRPButton showIcon iconName={"Download"}>
+            Exportar Dados
+          </IGRPButton>
           <Link href="/analytics/occupancy">
-            <IGRPButton showIcon iconName={"BarChart3"}>Ocupação</IGRPButton>
+            <IGRPButton showIcon iconName={"BarChart3"}>
+              Ocupação
+            </IGRPButton>
           </Link>
         </div>
       </div>
@@ -153,7 +157,9 @@ export default function AnalyticsPage() {
                   Gerencie e visualize relatórios detalhados
                 </p>
               </div>
-              <IGRPButton showIcon iconName={"Plus"}>Novo Relatório</IGRPButton>
+              <IGRPButton showIcon iconName={"Plus"}>
+                Novo Relatório
+              </IGRPButton>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -169,7 +175,14 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">PDF</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
+                    <IGRPButton
+                      variant="outline"
+                      size="sm"
+                      showIcon
+                      iconName={"Eye"}
+                    >
+                      Visualizar
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -186,7 +199,14 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">CSV</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
+                    <IGRPButton
+                      variant="outline"
+                      size="sm"
+                      showIcon
+                      iconName={"Eye"}
+                    >
+                      Visualizar
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -203,7 +223,14 @@ export default function AnalyticsPage() {
                 <IGRPCardContent>
                   <div className="flex justify-between items-center">
                     <IGRPBadge color="info">CSV</IGRPBadge>
-                    <IGRPButton variant="outline" size="sm" showIcon iconName={"Eye"}>Visualizar</IGRPButton>
+                    <IGRPButton
+                      variant="outline"
+                      size="sm"
+                      showIcon
+                      iconName={"Eye"}
+                    >
+                      Visualizar
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -220,7 +247,9 @@ export default function AnalyticsPage() {
                   Análise de projeções futuras e tendências
                 </p>
               </div>
-              <IGRPButton showIcon iconName={"Calendar"}>Atualizar Projeções</IGRPButton>
+              <IGRPButton showIcon iconName={"Calendar"}>
+                Atualizar Projeções
+              </IGRPButton>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

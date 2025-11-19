@@ -12,6 +12,7 @@ import {
   IGRPInputText,
   IGRPLabel,
   IGRPSelect,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import { useCallback, useEffect, useState } from "react";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -55,6 +56,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     clearFilters,
     exportData,
   } = useAnalytics();
+  const { igrpToast } = useIGRPToast();
 
   // Local date range state aligned to DateRange type (startDate/endDate)
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -119,6 +121,25 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
   useEffect(() => {
     void loadAnalyticsData();
   }, [loadAnalyticsData]);
+
+  // Fire toast notifications for alerts using IGRP toast system
+  useEffect(() => {
+    if (alerts && alerts.length > 0) {
+      for (const alert of alerts) {
+        const type =
+          alert.severity === "CRITICAL" || alert.severity === "ERROR"
+            ? "error"
+            : alert.severity === "WARNING"
+              ? "warning"
+              : "info";
+        igrpToast({
+          title: alert.title,
+          description: alert.description,
+          type,
+        });
+      }
+    }
+  }, [alerts, igrpToast]);
 
   const handleExport = async (format: "pdf" | "csv" | "json") => {
     await exportData(format);
@@ -499,66 +520,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
           </IGRPCardContent>
         </IGRPCard>
 
-        {/* Alertas e Notificações */}
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle className="flex items-center">
-              <IGRPIcon iconName="Activity" className="h-5 w-5 mr-2" />
-              Alertas e Notificações
-            </IGRPCardTitle>
-            <IGRPCardDescription>
-              Alertas importantes sobre o cemitério
-            </IGRPCardDescription>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            {alerts && alerts.length > 0 ? (
-              <div className="space-y-3">
-                {alerts.map((alert) => (
-                  <div
-                    key={`${alert.title}-${alert.triggeredAt}`}
-                    className={`p-3 rounded-lg border-l-4 ${
-                      alert.severity === "CRITICAL"
-                        ? "border-red-600 bg-red-50"
-                        : alert.severity === "ERROR"
-                          ? "border-red-500 bg-red-50"
-                          : alert.severity === "WARNING"
-                            ? "border-yellow-500 bg-yellow-50"
-                            : "border-blue-500 bg-blue-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-sm">{alert.title}</span>
-                      <IGRPBadge
-                        variant="soft"
-                        color={
-                          alert.severity === "CRITICAL"
-                            ? "destructive"
-                            : alert.severity === "ERROR"
-                              ? "destructive"
-                              : alert.severity === "WARNING"
-                                ? "warning"
-                                : "info"
-                        }
-                      >
-                        {alert.severity}
-                      </IGRPBadge>
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {alert.description}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {new Date(alert.triggeredAt).toLocaleDateString("pt-CV")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                Nenhum alerta disponível
-              </div>
-            )}
-          </IGRPCardContent>
-        </IGRPCard>
+        {/* Alertas exibidos via igrpToast; UI persistente removida para aderir ao padrão */}
       </div>
     </div>
   );

@@ -7,9 +7,9 @@ import {
   IGRPCardDescription,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPIcon,
   IGRPLabel,
   IGRPSelect,
-  IGRPIcon,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useEffect, useState } from "react";

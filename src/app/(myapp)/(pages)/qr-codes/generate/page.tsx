@@ -21,7 +21,12 @@ export default function QRCodesGeneratePage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link href="/qr-codes-reports">
-            <IGRPButton variant="ghost" size="sm" showIcon iconName={"ArrowLeft"}>
+            <IGRPButton
+              variant="ghost"
+              size="sm"
+              showIcon
+              iconName={"ArrowLeft"}
+            >
               Voltar
             </IGRPButton>
           </Link>

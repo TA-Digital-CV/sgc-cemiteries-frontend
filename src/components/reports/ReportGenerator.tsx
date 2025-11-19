@@ -398,7 +398,7 @@ export function ReportGenerator({ className }: ReportGeneratorProps) {
             disabled={loading}
             className="w-full"
             showIcon={!loading}
-            iconName={!loading ? "FileText" : undefined as unknown as string}
+            iconName={!loading ? "FileText" : (undefined as unknown as string)}
           >
             {loading ? "Gerando Relatório..." : "Gerar Relatório"}
           </IGRPButton>

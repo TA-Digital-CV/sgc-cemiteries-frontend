@@ -15,7 +15,7 @@ import {
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useState } from "react";
 import { useMap } from "@/hooks/useMap";
-import type { LayerType, MapViewport, LayerStyle } from "@/types/Map";
+import type { LayerStyle, LayerType, MapViewport } from "@/types/Map";
 
 // Available map layers used for UI toggling only (not full MapLayer objects)
 const AVAILABLE_LAYERS: Array<{
@@ -398,9 +398,27 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
         {/* Controles do mapa */}
         <div className="flex items-center justify-between">
           <div className="flex gap-2">
-            <IGRPButton variant="outline" size="sm" onClick={handleZoomIn} showIcon iconName="ZoomIn"></IGRPButton>
-            <IGRPButton variant="outline" size="sm" onClick={handleZoomOut} showIcon iconName="ZoomOut"></IGRPButton>
-            <IGRPButton variant="outline" size="sm" onClick={handleCenterMap} showIcon iconName="Maximize2"></IGRPButton>
+            <IGRPButton
+              variant="outline"
+              size="sm"
+              onClick={handleZoomIn}
+              showIcon
+              iconName="ZoomIn"
+            ></IGRPButton>
+            <IGRPButton
+              variant="outline"
+              size="sm"
+              onClick={handleZoomOut}
+              showIcon
+              iconName="ZoomOut"
+            ></IGRPButton>
+            <IGRPButton
+              variant="outline"
+              size="sm"
+              onClick={handleCenterMap}
+              showIcon
+              iconName="Maximize2"
+            ></IGRPButton>
           </div>
           <div className="text-sm text-gray-600">
             Zoom: {mapViewport.zoom} • Centro:{" "}

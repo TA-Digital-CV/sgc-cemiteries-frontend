@@ -1,5 +1,5 @@
-import { USE_REAL_BACKEND, proxyFetch } from "../../config";
-import { plots, pageable } from "../../mock-data";
+import { proxyFetch, USE_REAL_BACKEND } from "../../config";
+import { pageable, plots } from "../../mock-data";
 
 /**
  * GET /api/v1/plots

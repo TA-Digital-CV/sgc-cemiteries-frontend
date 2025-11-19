@@ -8,6 +8,8 @@ import {
   IGRPCardDescription,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPDataTable,
+  IGRPDataTableHeaderSortToggle,
   IGRPIcon,
   IGRPLabel,
 } from "@igrp/igrp-framework-react-design-system";
@@ -15,7 +17,11 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useCemetery } from "@/hooks/useCemetery";
-import type { Cemetery } from "@/types/cemetery";
+import type {
+  Cemetery,
+  CemeteryBlock,
+  CemeterySection,
+} from "@/types/cemetery";
 
 /**
  * CemeteryDetailPage
@@ -28,8 +34,16 @@ export default function CemeteryDetailPage() {
   const router = useRouter();
   const cemeteryId = params.id as string;
 
-  const { selectCemetery, deleteCemetery, isLoading, error, selectedCemetery } =
-    useCemetery();
+  const {
+    selectCemetery,
+    deleteCemetery,
+    isLoading,
+    error,
+    selectedCemetery,
+    fetchCemeteryStructures,
+    blocks,
+    sections,
+  } = useCemetery();
   const [localError, setLocalError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -39,7 +53,8 @@ export default function CemeteryDetailPage() {
    */
   const loadCemetery = useCallback(async () => {
     await selectCemetery(cemeteryId);
-  }, [cemeteryId, selectCemetery]);
+    await fetchCemeteryStructures(cemeteryId);
+  }, [cemeteryId, selectCemetery, fetchCemeteryStructures]);
 
   useEffect(() => {
     if (cemeteryId) {
@@ -106,7 +121,12 @@ export default function CemeteryDetailPage() {
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <Link href="/cemeteries">
-            <IGRPButton variant="outline" size="sm" showIcon iconName="ArrowLeft">
+            <IGRPButton
+              variant="outline"
+              size="sm"
+              showIcon
+              iconName="ArrowLeft"
+            >
               Voltar
             </IGRPButton>
           </Link>
@@ -157,12 +177,22 @@ export default function CemeteryDetailPage() {
 
         <div className="flex gap-2">
           <Link href={`/cemeteries/${cemeteryId}/edit`}>
-            <IGRPButton type="button" variant="outline" showIcon iconName="Edit">
+            <IGRPButton
+              type="button"
+              variant="outline"
+              showIcon
+              iconName="Edit"
+            >
               Editar
             </IGRPButton>
           </Link>
           <Link href={`/analytics?cemetery=${cemeteryId}`}>
-            <IGRPButton type="button" variant="outline" showIcon iconName="BarChart3">
+            <IGRPButton
+              type="button"
+              variant="outline"
+              showIcon
+              iconName="BarChart3"
+            >
               Analytics
             </IGRPButton>
           </Link>
@@ -171,6 +201,40 @@ export default function CemeteryDetailPage() {
               Mapa
             </IGRPButton>
           </Link>
+          <Link href={`/cemeteries/${cemeteryId}/blocks/create`}>
+            <IGRPButton
+              type="button"
+              variant="outline"
+              showIcon
+              iconName="Blocks"
+            >
+              Adicionar Bloco
+            </IGRPButton>
+          </Link>
+          {blocks && blocks.length > 0 && (
+            <Link href={`/cemeteries/${cemeteryId}/sections/create`}>
+              <IGRPButton
+                type="button"
+                variant="outline"
+                showIcon
+                iconName="ListTree"
+              >
+                Adicionar Seção
+              </IGRPButton>
+            </Link>
+          )}
+          {sections && sections.length > 0 && (
+            <Link href={`/plots/create?cemeteryId=${cemeteryId}`}>
+              <IGRPButton
+                type="button"
+                variant="outline"
+                showIcon
+                iconName="Plus"
+              >
+                Adicionar Sepultura
+              </IGRPButton>
+            </Link>
+          )}
           <IGRPButton
             type="button"
             variant="outline"
@@ -332,6 +396,123 @@ export default function CemeteryDetailPage() {
         )}
       </div>
 
+      {/* Estrutura Hierárquica: Blocos e Seções */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <IGRPCard>
+          <IGRPCardHeader>
+            <IGRPCardTitle>Blocos</IGRPCardTitle>
+          </IGRPCardHeader>
+          <IGRPCardContent>
+            <IGRPDataTable<CemeteryBlock, CemeteryBlock>
+              className={"rounded-md border"}
+              columns={[
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Nome`}
+                    />
+                  ),
+                  accessorKey: "name",
+                  cell: ({ row }) => String(row.getValue("name") ?? ""),
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Capacidade`}
+                    />
+                  ),
+                  accessorKey: "totalPlots",
+                  cell: ({ row }) => {
+                    const b = row.original as any;
+                    const cap = Number(b.totalPlots ?? b.maxCapacity ?? 0);
+                    return new Intl.NumberFormat("pt-CV").format(cap);
+                  },
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Ocupação`}
+                    />
+                  ),
+                  accessorKey: "occupiedPlots",
+                  cell: ({ row }) => {
+                    const b = row.original as any;
+                    const total = Number(b.totalPlots ?? b.maxCapacity ?? 0);
+                    const occ = Number(
+                      b.occupiedPlots ?? b.currentOccupancy ?? 0,
+                    );
+                    const rate = total > 0 ? (occ / total) * 100 : 0;
+                    return `${rate.toFixed(1)}%`;
+                  },
+                },
+              ]}
+              clientFilters={[]}
+              data={blocks}
+            />
+          </IGRPCardContent>
+        </IGRPCard>
+
+        <IGRPCard>
+          <IGRPCardHeader>
+            <IGRPCardTitle>Seções</IGRPCardTitle>
+          </IGRPCardHeader>
+          <IGRPCardContent>
+            <IGRPDataTable<CemeterySection, CemeterySection>
+              className={"rounded-md border"}
+              columns={[
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Nome`}
+                    />
+                  ),
+                  accessorKey: "name",
+                  cell: ({ row }) => String(row.getValue("name") ?? ""),
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Capacidade`}
+                    />
+                  ),
+                  accessorKey: "totalPlots",
+                  cell: ({ row }) => {
+                    const s = row.original as any;
+                    const cap = Number(s.totalPlots ?? s.maxCapacity ?? 0);
+                    return new Intl.NumberFormat("pt-CV").format(cap);
+                  },
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Ocupação`}
+                    />
+                  ),
+                  accessorKey: "occupiedPlots",
+                  cell: ({ row }) => {
+                    const s = row.original as any;
+                    const total = Number(s.totalPlots ?? s.maxCapacity ?? 0);
+                    const occ = Number(
+                      s.occupiedPlots ?? s.currentOccupancy ?? 0,
+                    );
+                    const rate = total > 0 ? (occ / total) * 100 : 0;
+                    return `${rate.toFixed(1)}%`;
+                  },
+                },
+              ]}
+              clientFilters={[]}
+              data={sections}
+            />
+          </IGRPCardContent>
+        </IGRPCard>
+      </div>
+
       {/* Modal de confirmação de exclusão */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -353,7 +534,12 @@ export default function CemeteryDetailPage() {
               >
                 Cancelar
               </IGRPButton>
-              <IGRPButton variant="outline" onClick={handleDelete} showIcon iconName="Trash2">
+              <IGRPButton
+                variant="outline"
+                onClick={handleDelete}
+                showIcon
+                iconName="Trash2"
+              >
                 Excluir
               </IGRPButton>
             </IGRPCardContent>

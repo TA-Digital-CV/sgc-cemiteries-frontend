@@ -1,16 +1,25 @@
 "use client";
 import {
+  IGRPBadge,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
   IGRPCardHeader,
   IGRPCardTitle,
+  IGRPDataTable,
+  IGRPDataTableButtonLink,
+  IGRPDataTableDropdownMenu,
+  IGRPDataTableDropdownMenuLink,
+  IGRPDataTableHeaderSortToggle,
+  IGRPDataTableRowAction,
+  IGRPIcon,
   IGRPInputText,
   IGRPLabel,
+  IGRPPageHeader,
   IGRPSelect,
-  IGRPDataTable,
-  IGRPDataTableHeaderSortToggle,
+  useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCemetery } from "@/hooks/useCemetery";
 import type {
@@ -32,24 +41,97 @@ export default function SectionsPage() {
     fetchBlocks,
     sections,
     fetchSections,
-    createSection,
-    updateSection,
     isLoading,
+    error,
   } = useCemetery();
+  const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
+    .split(",")
+    .map((p) => p.trim().toUpperCase());
+  const canWriteStructure = perms.includes("CEMETERY_WRITE");
 
   const [selectedCemeteryId, setSelectedCemeteryId] = useState<string>("");
   const [selectedBlockId, setSelectedBlockId] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
-  const [editing, setEditing] = useState<CemeterySection | null>(null);
-  const [form, setForm] = useState<{
-    name: string;
-    totalPlots: number;
-    description?: string;
-  }>({ name: "", totalPlots: 0, description: "" });
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { igrpToast } = useIGRPToast();
+
+  /**
+   * Navigates to section create form for the selected cemetery.
+   */
+  const goToCreateSection = () => {
+    if (!selectedCemeteryId) {
+      igrpToast({
+        title: "Erro",
+        description: "Selecione um cemitério primeiro",
+        type: "error",
+      });
+      return;
+    }
+    router.push(`/cemeteries/${selectedCemeteryId}/sections/create`);
+  };
+
+  /**
+   * Validates and applies cemetery selection for sections filters, clearing dependent block.
+   */
+  const handleCemeteryChange = (id: string) => {
+    const exists = cemeteries.some((c) => String(c.id) === String(id));
+    if (!exists) {
+      igrpToast({
+        title: "Erro",
+        description: "Cemitério inválido",
+        type: "error",
+      });
+      return;
+    }
+    setSelectedCemeteryId(id);
+    setSelectedBlockId("");
+  };
+
+  /**
+   * Validates and applies block selection ensuring it belongs to selected cemetery.
+   */
+  const handleBlockChange = (id: string) => {
+    const b = blocks.find((x) => String(x.id) === String(id));
+    if (!b) {
+      igrpToast({
+        title: "Erro",
+        description: "Bloco inválido",
+        type: "error",
+      });
+      return;
+    }
+    if (
+      selectedCemeteryId &&
+      String(b.cemeteryId) !== String(selectedCemeteryId)
+    ) {
+      igrpToast({
+        title: "Erro",
+        description: "O bloco selecionado não pertence ao cemitério",
+        type: "error",
+      });
+      return;
+    }
+    setSelectedBlockId(id);
+  };
 
   useEffect(() => {
     void fetchCemeteries();
   }, [fetchCemeteries]);
+
+  useEffect(() => {
+    const cid = String(searchParams.get("cemeteryId") ?? "");
+    if (cid) setSelectedCemeteryId(cid);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!selectedCemeteryId) {
+      try {
+        const stored = localStorage.getItem("activeCemeteryId") ?? "";
+        if (stored) setSelectedCemeteryId(stored);
+      } catch {}
+    }
+  }, []);
 
   useEffect(() => {
     if (selectedCemeteryId) void fetchBlocks(selectedCemeteryId);
@@ -60,278 +142,238 @@ export default function SectionsPage() {
       void fetchSections(selectedCemeteryId, selectedBlockId);
   }, [selectedCemeteryId, selectedBlockId, fetchSections]);
 
+  useEffect(() => {
+    if (selectedCemeteryId) {
+      try {
+        localStorage.setItem("activeCemeteryId", selectedCemeteryId);
+      } catch {}
+    }
+  }, [selectedCemeteryId]);
+
+  useEffect(() => {
+    if (error) {
+      igrpToast({ title: "Erro", description: String(error), type: "error" });
+    }
+  }, [error, igrpToast]);
+
   const filteredSections = useMemo(() => {
-    return sections.filter((s) => {
-      const matchesSearch = search
-        ? (s.name ?? "").toLowerCase().includes(search.toLowerCase())
-        : true;
-      return matchesSearch;
-    });
-  }, [sections, search]);
-
-  const validateForm = (): string | null => {
-    if (!selectedCemeteryId) return "Cemetery is required";
-    if (!selectedBlockId) return "Block is required";
-    if (!form.name || form.name.trim().length < 3)
-      return "Name must have at least 3 characters";
-    if (!form.totalPlots || form.totalPlots <= 0)
-      return "Max capacity must be greater than 0";
-    return null;
-  };
-
-  const handleCreate = async () => {
-    const validation = validateForm();
-    if (validation) {
-      return;
-    }
-    const res = await createSection({
-      cemeteryId: selectedCemeteryId,
-      blockId: selectedBlockId,
-      name: form.name.trim(),
-      maxCapacity: form.totalPlots,
-      description: form.description ?? "",
-    });
-    if (res.success) {
-      setForm({ name: "", totalPlots: 0, description: "" });
-    } else {
-      // noop
-    }
-  };
-
-  const handleUpdate = async () => {
-    if (!editing) return;
-    const validation = validateForm();
-    if (validation) {
-      return;
-    }
-    const res = await updateSection(editing.id, {
-      name: form.name.trim(),
-      totalPlots: form.totalPlots,
-      description: form.description ?? "",
-    });
-    if (res.success) {
-      setEditing(null);
-      setForm({ name: "", totalPlots: 0, description: "" });
-    } else {
-      // noop
-    }
-  };
+    const term = searchTerm.toLowerCase();
+    return sections.filter((s) =>
+      term
+        ? String(s.name || "")
+            .toLowerCase()
+            .includes(term)
+        : true,
+    );
+  }, [sections, searchTerm]);
 
   const startEdit = (s: CemeterySection) => {
-    setEditing(s);
-    setForm({
-      name: s.name ?? "",
-      totalPlots: Number(s.totalPlots ?? 0),
-      description: String(s.description ?? ""),
-    });
+    // Navegar para a página de edição dedicada
+    // Mantemos apenas ações de listagem aqui
   };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Gestão de Sectores
-          </h1>
-          <p className="text-muted-foreground">
-            CRUD completo e hierarquia bloco → sector
-          </p>
+      <IGRPPageHeader
+        name={`pageHeaderSections`}
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries`}
+        variant={`h3`}
+        title={"Sectores"}
+        description={"Lista de sectores por bloco"}
+      >
+        <div className="flex items-center gap-2">
+          {selectedCemeteryId &&
+            cemeteries.find((x) => x.id === selectedCemeteryId)?.name && (
+              <IGRPBadge color="info" variant="soft" size="sm">
+                {cemeteries.find((x) => x.id === selectedCemeteryId)?.name}
+              </IGRPBadge>
+            )}
+          <IGRPButton
+            variant="default"
+            size={`sm`}
+            showIcon={true}
+            iconName={"Plus"}
+            onClick={goToCreateSection}
+            disabled={!selectedCemeteryId}
+          >
+            Adicionar Seção
+          </IGRPButton>
+          <IGRPButton
+            variant="outline"
+            size={`sm`}
+            showIcon={true}
+            iconName={"Blocks"}
+            onClick={() =>
+              selectedCemeteryId &&
+              router.push(`/blocks?cemeteryId=${selectedCemeteryId}`)
+            }
+            disabled={!selectedCemeteryId}
+          >
+            Gerir Blocos
+          </IGRPButton>
+          <IGRPButton
+            variant="outline"
+            size={`sm`}
+            showIcon={true}
+            iconName={"Crosshair"}
+            onClick={() =>
+              selectedCemeteryId &&
+              router.push(`/plots?cemeteryId=${selectedCemeteryId}`)
+            }
+            disabled={!selectedCemeteryId}
+          >
+            Gerir Sepulturas
+          </IGRPButton>
         </div>
-      </div>
+      </IGRPPageHeader>
 
       <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Filtros</IGRPCardTitle>
-        </IGRPCardHeader>
         <IGRPCardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="flex space-x-4 mb-6">
+            <div className="relative flex-1">
+              <IGRPInputText
+                placeholder="Buscar sector por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+                iconName={"Search"}
+                showIcon={true}
+              />
+            </div>
             <div>
-              <IGRPLabel>Cemitério</IGRPLabel>
               <IGRPSelect
+                label=""
                 options={cemeteries.map((c: Cemetery) => ({
                   value: c.id,
                   label: c.name,
                 }))}
-                placeholder="Selecione"
-                onValueChange={(v) => setSelectedCemeteryId(String(v))}
+                placeholder="Selecione o Cemitério"
+                value={selectedCemeteryId}
+                onValueChange={(v) => handleCemeteryChange(String(v))}
               />
             </div>
             <div>
-              <IGRPLabel>Bloco</IGRPLabel>
               <IGRPSelect
+                label=""
                 options={blocks.map((b: CemeteryBlock) => ({
                   value: b.id,
                   label: b.name,
                 }))}
-                placeholder="Selecione"
-                onValueChange={(v) => setSelectedBlockId(String(v))}
+                placeholder="Selecione o Bloco"
+                value={selectedBlockId}
+                onValueChange={(v) => handleBlockChange(String(v))}
                 disabled={!selectedCemeteryId}
               />
             </div>
-            <div>
-              <IGRPLabel>Busca</IGRPLabel>
-              <IGRPInputText
-                placeholder="Nome do sector"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="flex items-end">
-              <IGRPButton
-                onClick={() =>
-                  selectedCemeteryId &&
-                  selectedBlockId &&
-                  fetchSections(selectedCemeteryId, selectedBlockId)
-                }
-                disabled={!selectedBlockId || isLoading}
-              >
-                Recarregar
-              </IGRPButton>
-            </div>
+            <IGRPButton
+              variant={"outline"}
+              size={"sm"}
+              showIcon={true}
+              iconName={"Funnel"}
+              onClick={() =>
+                selectedCemeteryId &&
+                selectedBlockId &&
+                fetchSections(selectedCemeteryId, selectedBlockId)
+              }
+            />
           </div>
         </IGRPCardContent>
       </IGRPCard>
 
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>
-            {editing ? "Editar Sector" : "Novo Sector"}
-          </IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <IGRPLabel>Nome</IGRPLabel>
-              <IGRPInputText
-                value={form.name}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
-                }
-              />
-            </div>
-            <div>
-              <IGRPLabel>Capacidade Máxima</IGRPLabel>
-              <IGRPInputText
-                type="number"
-                value={form.totalPlots}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, totalPlots: Number(e.target.value) }))
-                }
-              />
-            </div>
-            <div>
-              <IGRPLabel>Descrição</IGRPLabel>
-              <IGRPInputText
-                value={form.description}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, description: e.target.value }))
-                }
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex gap-2">
-            {editing ? (
-              <>
-                <IGRPButton
-                  variant="outline"
-                  onClick={() => {
-                    setEditing(null);
-                    setForm({ name: "", totalPlots: 0, description: "" });
-                  }}
-                >
-                  Cancelar
-                </IGRPButton>
-                <IGRPButton
-                  onClick={handleUpdate}
-                  disabled={
-                    isLoading || !selectedCemeteryId || !selectedBlockId
-                  }
-                >
-                  Salvar
-                </IGRPButton>
-              </>
-            ) : (
-              <IGRPButton
-                onClick={handleCreate}
-                disabled={isLoading || !selectedCemeteryId || !selectedBlockId}
-              >
-                Criar
-              </IGRPButton>
-            )}
-          </div>
-        </IGRPCardContent>
-      </IGRPCard>
-
-      <IGRPCard>
-        <IGRPCardHeader>
-          <IGRPCardTitle>Sectores</IGRPCardTitle>
-        </IGRPCardHeader>
-        <IGRPCardContent>
-          <IGRPDataTable<CemeterySection, CemeterySection>
-            className={"rounded-md border"}
-            columns={[
-              {
-                header: ({ column }) => (
-                  <IGRPDataTableHeaderSortToggle
-                    column={column}
-                    title={`Nome`}
-                  />
-                ),
-                accessorKey: "name",
-                cell: ({ row }) => row.getValue("name") as string,
-              },
-              {
-                header: ({ column }) => (
-                  <IGRPDataTableHeaderSortToggle
-                    column={column}
-                    title={`Capacidade`}
-                  />
-                ),
-                accessorKey: "totalPlots",
-                cell: ({ row }) =>
-                  new Intl.NumberFormat("pt-CV").format(
-                    Number(row.getValue("totalPlots") ?? 0),
-                  ),
-              },
-              {
-                header: ({ column }) => (
-                  <IGRPDataTableHeaderSortToggle
-                    column={column}
-                    title={`Ocupação`}
-                  />
-                ),
-                accessorKey: "occupiedPlots",
-                cell: ({ row }) => {
-                  const s = row.original as CemeterySection;
-                  const rate =
-                    s.totalPlots > 0
-                      ? (s.occupiedPlots / s.totalPlots) * 100
-                      : 0;
-                  return `${rate.toFixed(1)}%`;
-                },
-              },
-              {
-                id: "actions",
-                enableHiding: false,
-                cell: ({ row }) => {
-                  const s = row.original as CemeterySection;
-                  return (
-                    <IGRPButton
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startEdit(s)}
-                    >
-                      Editar
-                    </IGRPButton>
-                  );
-                },
-              },
-            ]}
-            clientFilters={[]}
-            data={filteredSections}
+      {isLoading && (
+        <div className="flex items-center justify-center py-8">
+          <IGRPIcon
+            iconName="RefreshCw"
+            className="h-6 w-6 animate-spin text-gray-400"
           />
-        </IGRPCardContent>
-      </IGRPCard>
+          <span className="ml-2 text-gray-500">Carregando sectores...</span>
+        </div>
+      )}
+
+      {!isLoading && (
+        <IGRPCard>
+          <IGRPCardContent>
+            <IGRPDataTable<CemeterySection, CemeterySection>
+              className={"rounded-md border"}
+              columns={[
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Nome`}
+                    />
+                  ),
+                  accessorKey: "name",
+                  cell: ({ row }) => row.getValue("name") as string,
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Capacidade`}
+                    />
+                  ),
+                  accessorKey: "totalPlots",
+                  cell: ({ row }) =>
+                    new Intl.NumberFormat("pt-CV").format(
+                      Number(row.getValue("totalPlots") ?? 0),
+                    ),
+                },
+                {
+                  header: ({ column }) => (
+                    <IGRPDataTableHeaderSortToggle
+                      column={column}
+                      title={`Ocupação`}
+                    />
+                  ),
+                  accessorKey: "occupiedPlots",
+                  cell: ({ row }) => {
+                    const s = row.original as CemeterySection;
+                    const rate =
+                      s.totalPlots > 0
+                        ? (s.occupiedPlots / s.totalPlots) * 100
+                        : 0;
+                    return `${rate.toFixed(1)}%`;
+                  },
+                },
+                {
+                  id: "actions",
+                  enableHiding: false,
+                  cell: ({ row }) => {
+                    const s = row.original as CemeterySection;
+                    const items: any[] = [
+                      {
+                        component: IGRPDataTableDropdownMenuLink,
+                        props: {
+                          labelTrigger: `Editar`,
+                          icon: `SquarePen`,
+                          href: `/cemeteries/${String(s.cemeteryId)}/sections/${String(s.id)}/edit`,
+                          showIcon: true,
+                        },
+                      },
+                    ];
+                    return (
+                      <IGRPDataTableRowAction>
+                        <IGRPDataTableButtonLink
+                          labelTrigger={`Detalhes`}
+                          href={`/cemeteries/${String(s.cemeteryId)}`}
+                          variant={`ghost`}
+                          icon={`Eye`}
+                        ></IGRPDataTableButtonLink>
+                        <IGRPDataTableDropdownMenu items={items} />
+                      </IGRPDataTableRowAction>
+                    );
+                  },
+                },
+              ]}
+              clientFilters={[]}
+              data={filteredSections}
+            />
+          </IGRPCardContent>
+        </IGRPCard>
+      )}
     </div>
   );
 }

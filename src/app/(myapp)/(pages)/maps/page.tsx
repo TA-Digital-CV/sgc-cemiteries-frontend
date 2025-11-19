@@ -63,7 +63,9 @@ export default function MapsPage() {
           >
             Atualizar
           </IGRPButton>
-          <IGRPButton showIcon iconName="Plus">Novo Mapa</IGRPButton>
+          <IGRPButton showIcon iconName="Plus">
+            Novo Mapa
+          </IGRPButton>
         </div>
       </div>
 
@@ -104,10 +106,38 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm" showIcon iconName="ZoomIn">Zoom In</IGRPButton>
-                <IGRPButton variant="outline" size="sm" showIcon iconName="ZoomOut">Zoom Out</IGRPButton>
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Home">Centralizar</IGRPButton>
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Share2">Compartilhar</IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="ZoomIn"
+                >
+                  Zoom In
+                </IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="ZoomOut"
+                >
+                  Zoom Out
+                </IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="Home"
+                >
+                  Centralizar
+                </IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="Share2"
+                >
+                  Compartilhar
+                </IGRPButton>
               </div>
             </div>
 
@@ -125,8 +155,17 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Eye">Mostrar Todas</IGRPButton>
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Settings">Configurar</IGRPButton>
+                <IGRPButton variant="outline" size="sm" showIcon iconName="Eye">
+                  Mostrar Todas
+                </IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="Settings"
+                >
+                  Configurar
+                </IGRPButton>
               </div>
             </div>
 
@@ -144,8 +183,22 @@ export default function MapsPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Navigation">GPS</IGRPButton>
-                <IGRPButton variant="outline" size="sm" showIcon iconName="Filter">Filtros</IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="Navigation"
+                >
+                  GPS
+                </IGRPButton>
+                <IGRPButton
+                  variant="outline"
+                  size="sm"
+                  showIcon
+                  iconName="Filter"
+                >
+                  Filtros
+                </IGRPButton>
               </div>
             </div>
 
@@ -173,7 +226,9 @@ export default function MapsPage() {
                         placeholder="Selecione o cemitério"
                       />
                     </div>
-                    <IGRPButton className="w-full" showIcon iconName="Search">Buscar</IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Search">
+                      Buscar
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -229,7 +284,14 @@ export default function MapsPage() {
                       </IGRPLabel>
                       <IGRPDatePicker id="filterDate" />
                     </div>
-                    <IGRPButton variant="outline" className="w-full" showIcon iconName="Filter">Aplicar Filtros</IGRPButton>
+                    <IGRPButton
+                      variant="outline"
+                      className="w-full"
+                      showIcon
+                      iconName="Filter"
+                    >
+                      Aplicar Filtros
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -294,7 +356,9 @@ export default function MapsPage() {
                         placeholder="Média"
                       />
                     </div>
-                    <IGRPButton className="w-full" showIcon iconName="Download">Exportar Mapa</IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Download">
+                      Exportar Mapa
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -341,7 +405,13 @@ export default function MapsPage() {
                       </IGRPLabel>
                       <IGRPDatePicker id="reportDate" />
                     </div>
-                    <IGRPButton className="w-full" showIcon iconName="BarChart3">Gerar Relatório</IGRPButton>
+                    <IGRPButton
+                      className="w-full"
+                      showIcon
+                      iconName="BarChart3"
+                    >
+                      Gerar Relatório
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>
@@ -397,7 +467,9 @@ export default function MapsPage() {
                       />
                       <IGRPLabel htmlFor="printScale">Incluir escala</IGRPLabel>
                     </div>
-                    <IGRPButton className="w-full" showIcon iconName="Printer">Imprimir</IGRPButton>
+                    <IGRPButton className="w-full" showIcon iconName="Printer">
+                      Imprimir
+                    </IGRPButton>
                   </div>
                 </IGRPCardContent>
               </IGRPCard>

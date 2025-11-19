@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  cn,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
@@ -64,50 +65,9 @@ export default function NewCemeteryPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/cemeteries">
-            <IGRPButton variant="ghost" size="sm" showIcon iconName="ArrowLeft">
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              Novo Cemitério
-            </h1>
-            <p className="text-muted-foreground">
-              Cadastre um novo cemitério no sistema
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Mensagem de erro */}
-      {error && (
-        <IGRPCard>
-          <IGRPCardHeader>
-            <div className="flex items-center space-x-2">
-              <IGRPIcon iconName="AlertTriangle" className="h-5 w-5" />
-              <IGRPCardTitle>Erro ao criar cemitério</IGRPCardTitle>
-            </div>
-            <IGRPCardDescription>{error}</IGRPCardDescription>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            <p className="text-muted-foreground">
-              Verifique os dados informados e tente novamente.
-            </p>
-          </IGRPCardContent>
-        </IGRPCard>
-      )}
-
+    <div className={cn("page", "space-y-6")}>
       {/* Formulário */}
-      <CemeteryForm
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        className="max-w-4xl mx-auto"
-      />
+      <CemeteryForm onSubmit={handleSubmit} onCancel={handleCancel} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { USE_REAL_BACKEND } from "../../../../config";
-import { plots, blocks, sections } from "../../../../mock-data";
+import { blocks, plots, sections } from "../../../../mock-data";
 
 /**
  * GET /api/v1/cemeteries/{id}/availability
