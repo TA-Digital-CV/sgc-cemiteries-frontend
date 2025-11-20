@@ -14,12 +14,14 @@ import {
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
 import { useState } from "react";
+import { PlotService } from "@/app/(myapp)/services/plotService";
+import type { PlotFormData } from "@/app/(myapp)/types/Plot";
 import type {
   QRCodeData,
   QRCodeFormat,
   QRCodeOptions,
   QRCodeSize,
-} from "@/types/QRCode";
+} from "@/app/(myapp)/types/QRCode";
 
 interface QRCodeGeneratorProps {
   cemeteryId?: string;
@@ -36,6 +38,7 @@ export function QRCodeGenerator({
   const [qrCodes] = useState<QRCodeData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const service = new PlotService();
 
   /**
    * Performs a single QR code generation for the given cemetery and plot.
@@ -43,13 +46,21 @@ export function QRCodeGenerator({
    */
   const generateQRCode = async (
     _cemeteryId: string,
-    _plotId: string,
+    plotId: string,
     _type: string,
     _options: QRCodeOptions,
   ): Promise<void> => {
     setLoading(true);
+    setError(null);
     try {
-      setError(ERROR_UNAVAILABLE);
+      const code = await service.generatePlotQRCode(plotId);
+      const payload: Partial<PlotFormData> = {
+        qrCode: code,
+      } as Partial<PlotFormData>;
+      await service.updatePlot(plotId, payload as PlotFormData);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ERROR_UNAVAILABLE;
+      setError(`Error: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -61,12 +72,22 @@ export function QRCodeGenerator({
    */
   const generateBatch = async (
     _cemeteryId: string,
-    _plotIds: string[],
+    plotIds: string[],
     _options: QRCodeOptions,
   ): Promise<void> => {
     setLoading(true);
+    setError(null);
     try {
-      setError(ERROR_UNAVAILABLE);
+      const results = await service.generateBulkQRCodes(plotIds);
+      for (const r of results) {
+        if (r.qrCode) {
+          const payload: Partial<PlotFormData> = { qrCode: r.qrCode };
+          await service.updatePlot(r.id, payload as PlotFormData);
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : ERROR_UNAVAILABLE;
+      setError(`Error: ${msg}`);
     } finally {
       setLoading(false);
     }

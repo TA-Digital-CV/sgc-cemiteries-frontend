@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { blocks, plots, sections } from "../../../../mock-data";
 
 /**
@@ -16,42 +16,20 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/cemeteries/${id}/availability`, {
-      method: "GET",
-      headers: {
-        accept: request.headers.get("accept") ?? "application/json",
-      },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}/availability`);
   }
   const plotType = request.nextUrl.searchParams.get("plotType") ?? undefined;
   const limit = Number(request.nextUrl.searchParams.get("limit") ?? 20);
   const available = plots
-    .filter(
-      (p: any) => p.cemeteryId === id && p.occupationStatus === "AVAILABLE",
-    )
-    .filter((p: any) => (plotType ? p.plotType === plotType : true))
+    .filter((p) => p.cemeteryId === id && p.occupationStatus === "AVAILABLE")
+    .filter((p) => (plotType ? p.plotType === plotType : true))
     .slice(0, limit)
-    .map((p: any) => ({
+    .map((p) => ({
       id: p.id,
       plotNumber: p.plotNumber,
       location: {
-        blockName: blocks.find((b: any) => b.id === p.blockId)?.name ?? "",
-        sectionName:
-          sections.find((s: any) => s.id === p.sectionId)?.name ?? "",
+        blockName: blocks.find((b) => b.id === p.blockId)?.name ?? "",
+        sectionName: sections.find((s) => s.id === p.sectionId)?.name ?? "",
         coordinates: p.geoPoint,
       },
       plotType: p.plotType,

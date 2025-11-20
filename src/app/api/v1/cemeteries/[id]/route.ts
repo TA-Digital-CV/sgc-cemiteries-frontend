@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../config";
 import { blocks, cemeteries, plots, sections } from "../../../mock-data";
 
 /**
@@ -16,40 +16,23 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/cemeteries/${id}`, {
-      method: "GET",
-      headers: { accept: request.headers.get("accept") ?? "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}`);
   }
-  const item = cemeteries.find((c: any) => c.id === id);
+  const item = cemeteries.find((c) => c.id === id);
   if (!item) {
     return Response.json(
       { error: "NOT_FOUND", message: "Cemitério não encontrado" },
       { status: 404 },
     );
   }
-  const cemeteryBlocks = blocks.filter((b: any) => b.cemeteryId === id);
-  const cemeterySections = sections.filter((s: any) => s.cemeteryId === id);
-  const cemeteryPlots = plots.filter((p: any) => p.cemeteryId === id);
-  const occupiedPlots = cemeteryPlots.filter(
-    (p: any) => p.occupationStatus === "OCCUPIED",
+  const cemeteryBlocks = blocks.filter((b) => b.cemeteryId === id);
+  const cemeterySections = sections.filter((s) => s.cemeteryId === id);
+  const cemeteryPlots = plots.filter((p) => p.cemeteryId === id);
+  const _occupiedPlots = cemeteryPlots.filter(
+    (p) => p.occupationStatus === "OCCUPIED",
   ).length;
   const availablePlots = cemeteryPlots.filter(
-    (p: any) => p.occupationStatus === "AVAILABLE",
+    (p) => p.occupationStatus === "AVAILABLE",
   ).length;
   const response = {
     ...item,
@@ -99,7 +82,7 @@ export async function PUT(
       },
     });
   }
-  const idx = cemeteries.findIndex((c: any) => c.id === id);
+  const idx = cemeteries.findIndex((c) => c.id === id);
   if (idx === -1) {
     return Response.json(
       { error: "NOT_FOUND", message: "Cemitério não encontrado" },
@@ -158,9 +141,9 @@ export async function DELETE(
       { status: 400 },
     );
   }
-  const cemeteryPlots = plots.filter((p: any) => p.cemeteryId === id);
+  const cemeteryPlots = plots.filter((p) => p.cemeteryId === id);
   const hasOccupied = cemeteryPlots.some(
-    (p: any) => p.occupationStatus === "OCCUPIED",
+    (p) => p.occupationStatus === "OCCUPIED",
   );
   if (hasOccupied) {
     return Response.json(
@@ -171,7 +154,7 @@ export async function DELETE(
       { status: 400 },
     );
   }
-  const idx = cemeteries.findIndex((c: any) => c.id === id);
+  const idx = cemeteries.findIndex((c) => c.id === id);
   if (idx === -1) {
     return Response.json(
       { error: "NOT_FOUND", message: "Cemitério não encontrado" },

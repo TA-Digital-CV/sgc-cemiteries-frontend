@@ -15,13 +15,13 @@ import {
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import { useCallback, useEffect, useState } from "react";
-import { useAnalytics } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/app/(myapp)/hooks/useAnalytics";
 import type {
   AnalyticsFilters,
   DateRange,
   PlotStatus,
   PlotType,
-} from "@/types/Analytics";
+} from "@/app/(myapp)/types/Analytics";
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -42,18 +42,17 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     occupancyData,
     statistics,
     projections,
-    heatmapData,
     alerts,
     loading,
-    error,
+    error: _error,
     fetchMetrics,
     fetchOccupancyData,
     fetchStatistics,
     fetchProjections,
     fetchHeatmapData,
     fetchAlerts,
-    setFilters,
-    clearFilters,
+    setFilters: _setFilters,
+    clearFilters: _clearFilters,
     exportData,
   } = useAnalytics();
   const { igrpToast } = useIGRPToast();
@@ -66,7 +65,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     endDate: new Date().toISOString().split("T")[0],
   });
 
-  const [selectedMetric, setSelectedMetric] = useState<string>("occupancy");
+  const [_selectedMetric, _setSelectedMetric] = useState<string>("occupancy");
   const [filters, setLocalFilters] = useState({
     cemeteryId: "",
     plotType: "all",

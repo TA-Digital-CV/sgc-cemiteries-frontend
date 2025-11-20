@@ -27,29 +27,28 @@ export async function GET(req: Request) {
     .filter((s) => s);
   const minDimensions = url.searchParams.get("minDimensions");
 
-  let list: any[] = plots;
-  if (cemeteryId) list = list.filter((p: any) => p.cemeteryId === cemeteryId);
-  if (blockId) list = list.filter((p: any) => p.blockId === blockId);
-  if (sectionId) list = list.filter((p: any) => p.sectionId === sectionId);
-  if (plotNumber)
-    list = list.filter((p: any) => p.plotNumber.includes(plotNumber));
-  if (plotType) list = list.filter((p: any) => p.plotType === plotType);
-  if (status) list = list.filter((p: any) => p.occupationStatus === status);
+  let list = plots;
+  if (cemeteryId) list = list.filter((p) => p.cemeteryId === cemeteryId);
+  if (blockId) list = list.filter((p) => p.blockId === blockId);
+  if (sectionId) list = list.filter((p) => p.sectionId === sectionId);
+  if (plotNumber) list = list.filter((p) => p.plotNumber.includes(plotNumber));
+  if (plotType) list = list.filter((p) => p.plotType === plotType);
+  if (status) list = list.filter((p) => p.occupationStatus === status);
   if (q)
     list = list.filter(
-      (p: any) =>
+      (p) =>
         (p.notes ?? "").toLowerCase().includes(q.toLowerCase()) ||
         p.plotNumber.includes(q),
     );
   if (availableOnly)
-    list = list.filter((p: any) => p.occupationStatus === "AVAILABLE");
+    list = list.filter((p) => p.occupationStatus === "AVAILABLE");
   if (plotTypes.length)
-    list = list.filter((p: any) => plotTypes.includes(p.plotType));
+    list = list.filter((p) => plotTypes.includes(p.plotType));
   if (minDimensions) {
     const [lenStr, widStr] = minDimensions.split(",");
     const minLen = Number(lenStr ?? 0);
     const minWid = Number(widStr ?? 0);
-    list = list.filter((p: any) => {
+    list = list.filter((p) => {
       const d = p.dimensions || {};
       return Number(d.length ?? 0) >= minLen && Number(d.width ?? 0) >= minWid;
     });
@@ -69,7 +68,7 @@ export async function GET(req: Request) {
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       return R * c;
     };
-    list = list.filter((p: any) => {
+    list = list.filter((p) => {
       const gp = p.geoPoint;
       if (!gp) return false;
       return dist(lat, lng, gp.latitude, gp.longitude) <= radius;

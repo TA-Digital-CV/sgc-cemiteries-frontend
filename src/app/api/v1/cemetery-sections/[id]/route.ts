@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../config";
 import { sections } from "../../../mock-data";
 
 /**
@@ -12,31 +12,10 @@ export async function PUT(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const body = await request.text();
-    const res = await fetch(`${base}/cemetery-sections/${id}`, {
-      method: "PUT",
-      headers: {
-        "content-type":
-          request.headers.get("content-type") ?? "application/json",
-      },
-      body,
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemetery-sections/${id}`, { body });
   }
-  const idx = sections.findIndex((s: any) => s.id === id);
+  const idx = sections.findIndex((s) => s.id === id);
   if (idx === -1) {
     return Response.json(
       { error: "NOT_FOUND", message: "Setor não encontrado" },
@@ -63,26 +42,9 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/cemetery-sections/${id}`, {
-      method: "GET",
-      headers: { accept: "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(_request, `/cemetery-sections/${id}`);
   }
-  const section = sections.find((s: any) => s.id === id);
+  const section = sections.find((s) => s.id === id);
   if (!section) {
     return Response.json(
       { error: "NOT_FOUND", message: "Setor não encontrado" },

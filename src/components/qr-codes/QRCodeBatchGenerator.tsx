@@ -14,13 +14,13 @@ import {
   IGRPLabel,
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type {
   QRCodeData,
   QRCodeFormat,
   QRCodeOptions,
   QRCodeSize,
-} from "@/types/QRCode";
+} from "@/app/(myapp)/types/QRCode";
 
 interface QRCodeBatchGeneratorProps {
   className?: string;
@@ -73,18 +73,20 @@ export function QRCodeBatchGenerator({
 
   const [showHistory, setShowHistory] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState<any | "all">("all");
+  const [_filterType, _setFilterType] = useState<string | "all">("all");
+
+  const loadQRCodeHistory = useCallback(async (): Promise<void> => {
+    setError("Error: Service unavailable - Try again later");
+  }, []);
 
   useEffect(() => {
     loadQRCodeHistory();
-  }, [cemeteryId]);
+  }, [loadQRCodeHistory]);
 
   /**
    * Loads history for QR codes. Minimal fallback to explicit error message.
    */
-  const loadQRCodeHistory = async (): Promise<void> => {
-    setError("Error: Service unavailable - Try again later");
-  };
+  // moved above as useCallback
 
   /**
    * Handles batch generation using UI options and maps to service options.
@@ -92,7 +94,7 @@ export function QRCodeBatchGenerator({
   const handleGenerateBatch = async (): Promise<void> => {
     setLoading(true);
     try {
-      const options: QRCodeOptions = {
+      const _options: QRCodeOptions = {
         format: batchOptions.format,
         size: batchOptions.size,
         errorCorrection: "MEDIUM",
@@ -112,17 +114,17 @@ export function QRCodeBatchGenerator({
   };
 
   /** Copies QR code data to clipboard. */
-  const handleCopyQRCode = async (qrCodeId: string): Promise<void> => {
+  const handleCopyQRCode = async (_qrCodeId: string): Promise<void> => {
     setError("Error: Service unavailable - Try again later");
   };
 
   /** Shares the QR code using available integration. */
-  const handleShareQRCode = async (qrCodeId: string): Promise<void> => {
+  const handleShareQRCode = async (_qrCodeId: string): Promise<void> => {
     setError("Error: Service unavailable - Try again later");
   };
 
   /** Deletes a QR code entry. */
-  const handleDeleteQRCode = async (qrCodeId: string): Promise<void> => {
+  const handleDeleteQRCode = async (_qrCodeId: string): Promise<void> => {
     setError("Error: Service unavailable - Try again later");
   };
 

@@ -8,19 +8,18 @@ import {
   IGRPCardDescription,
   IGRPCardHeader,
   IGRPCardTitle,
-  IGRPCheckbox,
   IGRPIcon,
   IGRPInputText,
   IGRPLabel,
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type {
   Report,
   ReportFormat,
   ReportTemplate,
   ReportType,
-} from "@/types/QRCode";
+} from "@/app/(myapp)/types/QRCode";
 
 interface ReportTemplatesProps {
   className?: string;
@@ -37,8 +36,8 @@ export function ReportTemplates({
   className,
   cemeteryId,
 }: ReportTemplatesProps) {
-  const [reports, setReports] = useState<Report[]>([]);
-  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [reports, _setReports] = useState<Report[]>([]);
+  const [templates, _setTemplates] = useState<ReportTemplate[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,17 +56,7 @@ export function ReportTemplates({
     sections: [],
   });
 
-  useEffect(() => {
-    loadTemplates();
-  }, [cemeteryId]);
-
-  /**
-   * loadTemplates
-   *
-   * Attempts to load templates from the backend. Since the hook/data source
-   * is unavailable, we provide a minimal fallback with a clear error message.
-   */
-  const loadTemplates = async (): Promise<void> => {
+  const loadTemplates = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       throw new Error("Service unavailable - Try again later");
@@ -80,7 +69,19 @@ export function ReportTemplates({
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  /**
+   * loadTemplates
+   *
+   * Attempts to load templates from the backend. Since the hook/data source
+   * is unavailable, we provide a minimal fallback with a clear error message.
+   */
+  // loadTemplates provided via useCallback above
 
   const handleCreateTemplate = (): void => {
     setSelectedTemplate(null);
@@ -126,7 +127,7 @@ export function ReportTemplates({
    *
    * Deletes a template. Minimal fallback: explicit error due to missing backend.
    */
-  const handleDeleteTemplate = async (templateId: string): Promise<void> => {
+  const handleDeleteTemplate = async (_templateId: string): Promise<void> => {
     if (confirm("Tem certeza que deseja excluir este template?")) {
       try {
         throw new Error("Service unavailable - Try again later");
@@ -147,7 +148,7 @@ export function ReportTemplates({
    * Generates a report from a template. Minimal fallback: explicit error.
    */
   const handleGenerateReportFromTemplate = async (
-    template: ReportTemplate,
+    _template: ReportTemplate,
   ): Promise<void> => {
     try {
       throw new Error("Service unavailable - Try again later");
@@ -166,7 +167,7 @@ export function ReportTemplates({
    *
    * Downloads a report by id. Minimal fallback: explicit error.
    */
-  const handleDownloadReport = async (reportId: string): Promise<void> => {
+  const handleDownloadReport = async (_reportId: string): Promise<void> => {
     try {
       throw new Error("Service unavailable - Try again later");
     } catch (error) {

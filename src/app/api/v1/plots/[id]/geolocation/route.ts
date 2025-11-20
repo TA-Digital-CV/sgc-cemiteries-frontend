@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { plots } from "../../../../mock-data";
 
 /**
@@ -16,31 +16,10 @@ export async function POST(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const body = await request.text();
-    const res = await fetch(`${base}/plots/${id}/geolocation`, {
-      method: "POST",
-      headers: {
-        "content-type":
-          request.headers.get("content-type") ?? "application/json",
-      },
-      body,
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/plots/${id}/geolocation`, { body });
   }
-  const idx = plots.findIndex((p: any) => p.id === id);
+  const idx = plots.findIndex((p) => p.id === id);
   if (idx === -1) {
     return Response.json(
       { error: "NOT_FOUND", message: "Sepultura não encontrada" },

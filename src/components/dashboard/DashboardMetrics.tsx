@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  IGRPBadge,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
@@ -11,9 +10,10 @@ import {
   IGRPIcon,
   IGRPStatsCard,
 } from "@igrp/igrp-framework-react-design-system";
-import { useCemetery } from "@/hooks/useCemetery";
-import { usePlot } from "@/hooks/usePlot";
-import type { PlotStatistics } from "@/types/Plot";
+import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
+import { usePlot } from "@/app/(myapp)/hooks/usePlot";
+
+//
 
 interface DashboardMetricsProps {
   className?: string;
@@ -314,8 +314,9 @@ interface RecentActivityProps {
 }
 
 export function RecentActivity({ className }: RecentActivityProps) {
-  const { cemeteries, selectedCemetery } = useCemetery();
-  const { plots } = usePlot();
+  const { cemeteries: _cemeteries, selectedCemetery: _selectedCemetery } =
+    useCemetery();
+  const { plots: _plots } = usePlot();
 
   // No mock data: show a clear message if no real activity is available
   const recentActivities: Array<{

@@ -13,9 +13,15 @@ import {
   IGRPLabel,
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
-import { useEffect, useState } from "react";
-import { useMap } from "@/hooks/useMap";
-import type { LayerStyle, LayerType, MapViewport } from "@/types/Map";
+import { useCallback, useEffect, useState } from "react";
+import { useMap } from "@/app/(myapp)/hooks/useMap";
+import type {
+  LayerStyle,
+  LayerType,
+  MapViewport,
+} from "@/app/(myapp)/types/Map";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 // Available map layers used for UI toggling only (not full MapLayer objects)
 const AVAILABLE_LAYERS: Array<{
@@ -88,26 +94,32 @@ interface MapViewerProps {
 export function MapViewer({ cemeteryId, className }: MapViewerProps) {
   const {
     mapData,
-    layers,
+    layers: _layers,
     markers,
-    heatmapPoints,
-    viewport,
+    heatmapPoints: _heatmapPoints,
+    viewport: _viewport,
+    activeLevel,
+    legendItems,
     searchResults,
     loading,
-    error,
+    error: _error,
     fetchMapData,
     fetchLayers,
+    fetchSections,
+    fetchBlocks,
     fetchMarkers,
     fetchHeatmapData,
+    fetchOccupancy,
     searchLocations,
-    addMarker,
-    updateMarker,
+    addMarker: _addMarker,
+    updateMarker: _updateMarker,
     deleteMarker,
     toggleLayer,
     clearSearch,
     centerOnLocation,
     exportMap,
     printMap,
+    setActiveLevel,
   } = useMap();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,18 +148,34 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
     lot: "all",
   });
 
-  useEffect(() => {
-    loadMapData();
-  }, [cemeteryId]);
+  const loadMapDataCb = useCallback(async () => {
+    if (!cemeteryId) return;
+    await Promise.all([
+      fetchMapData(cemeteryId),
+      fetchBlocks(cemeteryId),
+      fetchSections(cemeteryId),
+      fetchLayers(cemeteryId),
+      fetchMarkers(cemeteryId),
+      fetchHeatmapData(cemeteryId),
+      fetchOccupancy(cemeteryId),
+    ]);
+  }, [cemeteryId, fetchMapData, fetchLayers, fetchMarkers, fetchHeatmapData]);
 
-  const loadMapData = async () => {
+  useEffect(() => {
+    void loadMapDataCb();
+  }, [loadMapDataCb]);
+
+  const _loadMapData = async () => {
     if (!cemeteryId) return;
 
     await Promise.all([
       fetchMapData(cemeteryId),
+      fetchBlocks(cemeteryId),
+      fetchSections(cemeteryId),
       fetchLayers(cemeteryId),
       fetchMarkers(cemeteryId),
       fetchHeatmapData(cemeteryId),
+      fetchOccupancy(cemeteryId),
     ]);
   };
 
@@ -207,6 +235,102 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
 
   const availableLayers = AVAILABLE_LAYERS;
 
+  // MapLibre GL rendering
+  useEffect(() => {
+    const container = document.getElementById("cemetery-map-container");
+    if (!container || !mapData) return;
+
+    const map = new maplibregl.Map({
+      container,
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: "raster",
+            tiles: [mapData.style.url],
+            tileSize: mapData.style.tileSize,
+            attribution: mapData.style.attribution,
+          },
+        },
+        layers: [
+          {
+            id: "osm",
+            type: "raster",
+            source: "osm",
+          },
+        ],
+      } as any,
+      center: [mapViewport.center.longitude, mapViewport.center.latitude],
+      zoom: mapViewport.zoom,
+    });
+
+    // Add layers from mapData and hook layers
+    const allLayers = [...(mapData.layers ?? []), ..._layers];
+    allLayers.forEach((layer) => {
+      if (!layer.data?.geoJson) return;
+      const srcId = `src-${layer.id}`;
+      const lyrId = `lyr-${layer.id}`;
+      if (!map.getSource(srcId)) {
+        map.addSource(srcId, {
+          type: "geojson",
+          data: layer.data.geoJson as any,
+        });
+      }
+      if (!map.getLayer(lyrId)) {
+        const isPlots = layer.id === "plots";
+        const paint: any = isPlots
+          ? {
+              "fill-color": [
+                "match",
+                ["get", "occupationStatus"],
+                "AVAILABLE",
+                "#22c55e",
+                "OCCUPIED",
+                "#ef4444",
+                "RESERVED",
+                "#f59e0b",
+                "MAINTENANCE",
+                "#fb923c",
+                layer.style?.fillColor ?? layer.style?.strokeColor ?? "#3b82f6",
+              ],
+              "fill-opacity": layer.style?.fillOpacity ?? 0.5,
+              "line-color": layer.style?.strokeColor ?? "#3b82f6",
+              "line-width": layer.style?.strokeWidth ?? 1.5,
+            }
+          : {
+              "fill-color":
+                layer.style?.fillColor ?? layer.style?.strokeColor ?? "#3b82f6",
+              "fill-opacity": layer.style?.fillOpacity ?? 0.4,
+              "line-color": layer.style?.strokeColor ?? "#3b82f6",
+              "line-width": layer.style?.strokeWidth ?? 2,
+            };
+
+        map.addLayer({
+          id: lyrId,
+          type: layer.type === "POLYLINE" ? "line" : "fill",
+          source: srcId,
+          paint,
+        } as any);
+      }
+      map.setLayoutProperty(
+        lyrId,
+        "visibility",
+        layer.visible ? "visible" : "none",
+      );
+    });
+
+    return () => {
+      map.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    mapData,
+    _layers,
+    mapViewport.center.latitude,
+    mapViewport.center.longitude,
+    mapViewport.zoom,
+  ]);
+
   return (
     <IGRPCard className={className}>
       <IGRPCardHeader>
@@ -233,7 +357,7 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
             <IGRPButton
               variant="outline"
               size="sm"
-              onClick={loadMapData}
+              onClick={_loadMapData}
               disabled={loading}
               showIcon
               iconName="RefreshCw"
@@ -263,11 +387,26 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
       </IGRPCardHeader>
 
       <IGRPCardContent className="space-y-6">
+        {/* Seleção de nível / hierarquia */}
+        <div className="flex items-center gap-2">
+          <IGRPLabel htmlFor="level">Nível</IGRPLabel>
+          <IGRPSelect
+            options={[
+              { value: "BLOCKS", label: "Blocos" },
+              { value: "SECTIONS", label: "Seções" },
+              { value: "PLOTS", label: "Sepulturas" },
+            ]}
+            value={activeLevel}
+            onValueChange={(v) => setActiveLevel(v as any)}
+            placeholder="Blocos"
+          />
+        </div>
+
         {/* Mensagem de erro */}
-        {error && (
+        {_error && (
           <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
             <IGRPIcon iconName="MapPin" className="h-4 w-4" />
-            <span className="text-sm">{error}</span>
+            <span className="text-sm">{_error}</span>
           </div>
         )}
 
@@ -427,27 +566,27 @@ export function MapViewer({ cemeteryId, className }: MapViewerProps) {
           </div>
         </div>
 
-        {/* Visualização do mapa (placeholder) */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg h-96 flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <IGRPIcon
-              iconName="MapPin"
-              className="h-16 w-16 text-gray-400 mx-auto mb-4"
-            />
-            <p className="text-gray-600 font-medium">Visualização do Mapa</p>
-            <p className="text-sm text-gray-500 mt-2">
-              {cemeteryId
-                ? `Carregando mapa do cemitério ${cemeteryId}...`
-                : "Selecione um cemitério para visualizar o mapa"}
-            </p>
-            {loading && (
-              <div className="mt-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Carregando dados do mapa...
-                </p>
+        {/* Visualização do mapa */}
+        <div className="border rounded-lg h-96 bg-gray-50">
+          <div id="cemetery-map-container" className="w-full h-full" />
+        </div>
+
+        {/* Legenda dinâmica */}
+        <div>
+          <h3 className="font-medium mb-3 flex items-center">
+            <IGRPIcon iconName="List" className="h-4 w-4 mr-2" />
+            Legenda
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {legendItems.map((item) => (
+              <div key={item.label} className="flex items-center gap-2 text-sm">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span>{item.label}</span>
               </div>
-            )}
+            ))}
           </div>
         </div>
 

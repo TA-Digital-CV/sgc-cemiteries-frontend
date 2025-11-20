@@ -25,7 +25,7 @@ import type {
   ReportFormat,
   ReportType,
   ScheduleFrequency,
-} from "@/types/QRCode";
+} from "@/app/(myapp)/types/QRCode";
 
 interface ReportGeneratorProps {
   className?: string;

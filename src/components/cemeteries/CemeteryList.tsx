@@ -1,14 +1,12 @@
 "use client";
 
+import type { IGRPDataTableActionDropdown } from "@igrp/igrp-framework-react-design-system";
 import {
   cn,
   IGRPBadge,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
-  IGRPCardDescription,
-  IGRPCardHeader,
-  IGRPCardTitle,
   IGRPDataTable,
   IGRPDataTableButtonLink,
   IGRPDataTableCellBadge,
@@ -22,9 +20,9 @@ import {
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useMemo, useState } from "react";
-import { useCemetery } from "@/hooks/useCemetery";
-import { CemeteryService } from "@/services/cemeteryService";
-import type { Cemetery, CemeteryFilters } from "@/types/cemetery";
+import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
+import { CemeteryService } from "@/app/(myapp)/services/cemeteryService";
+import type { Cemetery, CemeteryFilters } from "@/app/(myapp)/types/cemetery";
 
 interface CemeteryListProps {
   className?: string;
@@ -37,7 +35,7 @@ export function CemeteryList({
   className,
   onCemeterySelect,
   onCemeteryEdit,
-  onCemeteryDelete,
+  onCemeteryDelete: _onCemeteryDelete,
 }: CemeteryListProps) {
   /**
    * CemeteryList renders a paginated table of cemeteries.
@@ -46,7 +44,7 @@ export function CemeteryList({
   const { cemeteries, isLoading, error, fetchCemeteries, deleteCemetery } =
     useCemetery();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<CemeteryFilters>({});
+  const [filters, _setFilters] = useState<CemeteryFilters>({});
   const [countsById, setCountsById] = useState<
     Record<string, { blocks: number; sections: number; plots: number }>
   >({});
@@ -54,8 +52,8 @@ export function CemeteryList({
   const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
     .split(",")
     .map((p) => p.trim().toUpperCase());
-  const canWriteStructure = perms.includes("CEMETERY_WRITE");
-  const canWritePlots = perms.includes("PLOTS_WRITE");
+  const _canWriteStructure = perms.includes("CEMETERY_WRITE");
+  const _canWritePlots = perms.includes("PLOTS_WRITE");
   const cemeteryService = useMemo(() => new CemeteryService(), []);
   /**
    * Maps CemeteryStatus to label and style classes for DataTable badges.
@@ -120,7 +118,7 @@ export function CemeteryList({
     };
     if (cemeteries.length) void loadCounts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cemeteries]);
+  }, [cemeteries, cemeteryService, countsById]);
 
   // Filtrar cemitérios por termo de busca
   /**
@@ -147,11 +145,11 @@ export function CemeteryList({
     setSearchTerm(term);
   };
 
-  const handleViewDetails = (cemetery: Cemetery) => {
+  const _handleViewDetails = (cemetery: Cemetery) => {
     onCemeterySelect?.(cemetery);
   };
 
-  const handleEdit = (cemetery: Cemetery) => {
+  const _handleEdit = (cemetery: Cemetery) => {
     onCemeteryEdit?.(cemetery);
   };
 
@@ -179,9 +177,9 @@ export function CemeteryList({
     }
   };
 
-  const hasBlocks = (cemeteryId: string) =>
+  const _hasBlocks = (cemeteryId: string) =>
     Boolean(countsById[cemeteryId]?.blocks);
-  const hasSections = (cemeteryId: string) =>
+  const _hasSections = (cemeteryId: string) =>
     Boolean(countsById[cemeteryId]?.sections);
 
   // Status badge mapping consolidated: use getStatusBadgeProps with IGRPDataTableCellBadge
@@ -416,7 +414,7 @@ export function CemeteryList({
                 enableHiding: false,
                 cell: ({ row }) => {
                   const rowData = row.original as Cemetery;
-                  const items: any[] = [
+                  const items: IGRPDataTableActionDropdown[] = [
                     {
                       component: IGRPDataTableDropdownMenuAlert,
                       props: {
@@ -482,7 +480,7 @@ export function CemeteryList({
                     props: {
                       labelTrigger: `Gerir Sepulturas`,
                       icon: `Crosshair`,
-                      href: `/blocks?cemeteryId=${rowData.id}`,
+                      href: `/plots?cemeteryId=${rowData.id}`,
                       showIcon: true,
                     },
                   });

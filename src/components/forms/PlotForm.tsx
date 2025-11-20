@@ -19,11 +19,11 @@ interface Option {
 }
 
 interface PlotFormProps {
-  defaultValues: any;
+  defaultValues: import("@/app/(myapp)/types/Plot").PlotFormData;
   cemeteryOptions: Option[];
   blockOptions: Option[];
   sectionOptions: Option[];
-  onSubmit: (data: any) => void;
+  onSubmit: (data: import("@/app/(myapp)/types/Plot").PlotFormData) => void;
   onCancel: () => void;
   onClear?: () => void;
   loading?: boolean;
@@ -89,32 +89,30 @@ export function PlotForm({
       onSubmit={onSubmit}
       defaultValues={defaultValues}
     >
-      <>
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>{title}</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            <PlotFields
-              cemeteryOptions={cemeteryOptions}
-              blockOptions={blockOptions}
-              sectionOptions={sectionOptions}
-              onCemeteryChange={onCemeteryChange}
-              onBlockChange={onBlockChange}
-              onSectionChange={onSectionChange}
-            />
-            <FormActions
-              onCancel={onCancel}
-              onSubmit={() => formRef.current?.submit()}
-              onClear={onClear}
-              cancelLabel="Cancelar"
-              submitLabel="Salvar"
-              clearLabel="Limpar"
-              disabled={Boolean(loading)}
-            />
-          </IGRPCardContent>
-        </IGRPCard>
-      </>
+      <IGRPCard>
+        <IGRPCardHeader>
+          <IGRPCardTitle>{title}</IGRPCardTitle>
+        </IGRPCardHeader>
+        <IGRPCardContent>
+          <PlotFields
+            cemeteryOptions={cemeteryOptions}
+            blockOptions={blockOptions}
+            sectionOptions={sectionOptions}
+            onCemeteryChange={onCemeteryChange}
+            onBlockChange={onBlockChange}
+            onSectionChange={onSectionChange}
+          />
+          <FormActions
+            onCancel={onCancel}
+            onSubmit={() => formRef.current?.submit()}
+            onClear={onClear}
+            cancelLabel="Cancelar"
+            submitLabel="Salvar"
+            clearLabel="Limpar"
+            disabled={Boolean(loading)}
+          />
+        </IGRPCardContent>
+      </IGRPCard>
     </IGRPForm>
   );
 }

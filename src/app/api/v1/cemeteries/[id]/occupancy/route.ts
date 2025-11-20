@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { blocks, plots } from "../../../../mock-data";
 
 /**
@@ -16,55 +16,32 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/cemeteries/${id}/occupancy`, {
-      method: "GET",
-      headers: { accept: request.headers.get("accept") ?? "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}/occupancy`);
   }
-  const cp = plots.filter((p: any) => p.cemeteryId === id);
+  const cp = plots.filter((p) => p.cemeteryId === id);
   const totalPlots = cp.length;
   const occupiedPlots = cp.filter(
-    (p: any) => p.occupationStatus === "OCCUPIED",
+    (p) => p.occupationStatus === "OCCUPIED",
   ).length;
   const reservedPlots = cp.filter(
-    (p: any) => p.occupationStatus === "RESERVED",
+    (p) => p.occupationStatus === "RESERVED",
   ).length;
   const availablePlots = cp.filter(
-    (p: any) => p.occupationStatus === "AVAILABLE",
+    (p) => p.occupationStatus === "AVAILABLE",
   ).length;
   const maintenancePlots = cp.filter(
-    (p: any) => p.occupationStatus === "MAINTENANCE",
+    (p) => p.occupationStatus === "MAINTENANCE",
   ).length;
   const occupancyRate = totalPlots
     ? Number(((occupiedPlots / totalPlots) * 100).toFixed(2))
     : 0;
   const byBlocks = blocks
-    .filter((b: any) => b.cemeteryId === id)
-    .map((b: any) => {
-      const bp = cp.filter((p: any) => p.blockId === b.id);
-      const occ = bp.filter(
-        (p: any) => p.occupationStatus === "OCCUPIED",
-      ).length;
-      const av = bp.filter(
-        (p: any) => p.occupationStatus === "AVAILABLE",
-      ).length;
-      const resv = bp.filter(
-        (p: any) => p.occupationStatus === "RESERVED",
-      ).length;
+    .filter((b) => b.cemeteryId === id)
+    .map((b) => {
+      const bp = cp.filter((p) => p.blockId === b.id);
+      const occ = bp.filter((p) => p.occupationStatus === "OCCUPIED").length;
+      const av = bp.filter((p) => p.occupationStatus === "AVAILABLE").length;
+      const resv = bp.filter((p) => p.occupationStatus === "RESERVED").length;
       const rate = bp.length ? Number(((occ / bp.length) * 100).toFixed(2)) : 0;
       return {
         blockId: b.id,

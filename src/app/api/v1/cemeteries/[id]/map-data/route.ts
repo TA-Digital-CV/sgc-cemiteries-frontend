@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { blocks } from "../../../../mock-data";
 
 /**
@@ -16,26 +16,11 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const search = request.nextUrl.searchParams.toString();
-    const url = `${base}/cemeteries/${id}/map-data${search ? `?${search}` : ""}`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { accept: request.headers.get("accept") ?? "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(
+      request,
+      `/cemeteries/${id}/map-data${search ? `?${search}` : ""}`,
+    );
   }
   const level = (
     request.nextUrl.searchParams.get("level") ?? "BLOCKS"
@@ -51,11 +36,11 @@ export async function GET(
       { status: 400 },
     );
   }
-  let features: any[] = [];
+  let features: Array<Record<string, unknown>> = [];
   if (level === "BLOCKS") {
     features = blocks
-      .filter((b: any) => b.cemeteryId === id)
-      .map((b: any) => ({
+      .filter((b) => b.cemeteryId === id)
+      .map((b) => ({
         type: "Feature",
         id: b.id,
         properties: {
@@ -72,11 +57,11 @@ export async function GET(
   } else if (level === "PLOTS") {
     const { plots } = await import("../../../../mock-data");
     features = plots
-      .filter((p: any) => p.cemeteryId === id)
-      .filter((p: any) =>
+      .filter((p) => p.cemeteryId === id)
+      .filter((p) =>
         includeOccupied ? true : p.occupationStatus !== "OCCUPIED",
       )
-      .map((p: any) => ({
+      .map((p) => ({
         type: "Feature",
         id: p.id,
         properties: {
@@ -96,8 +81,8 @@ export async function GET(
   } else if (level === "SECTIONS") {
     const { sections } = await import("../../../../mock-data");
     features = sections
-      .filter((s: any) => s.cemeteryId === id)
-      .map((s: any) => ({
+      .filter((s) => s.cemeteryId === id)
+      .map((s) => ({
         type: "Feature",
         id: s.id,
         properties: {
@@ -113,7 +98,7 @@ export async function GET(
       }));
   } else if (level === "CEMETERY") {
     const { cemeteries } = await import("../../../../mock-data");
-    const c = cemeteries.find((k: any) => k.id === id);
+    const c = cemeteries.find((k) => k.id === id);
     if (c) {
       features = [
         {

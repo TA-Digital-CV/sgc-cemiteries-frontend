@@ -14,8 +14,8 @@ import {
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
 import { useEffect, useState } from "react";
-import { useMap } from "@/hooks/useMap";
-import type { LayerType, MapLayer } from "@/types/Map";
+import { useMap } from "@/app/(myapp)/hooks/useMap";
+import type { LayerType, MapLayer } from "@/app/(myapp)/types/Map";
 
 interface MapLayersProps {
   className?: string;
@@ -54,8 +54,8 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
   });
 
   useEffect(() => {
-    loadLayers();
-  }, [cemeteryId]);
+    void fetchLayers(cemeteryId ?? "");
+  }, [fetchLayers, cemeteryId]);
 
   /**
    * Loads map layers for the given cemetery context.
@@ -127,6 +127,18 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
   const handleDeleteLayer = async (_layerId: string) => {
     // Deleting layers is not supported by current map API
     console.warn("Layer deletion is not supported");
+  };
+
+  const showAllLayers = async () => {
+    for (const l of layers) {
+      if (!l.visible) await handleToggleLayer(l.id);
+    }
+  };
+
+  const hideAllLayers = async () => {
+    for (const l of layers) {
+      if (l.visible) await handleToggleLayer(l.id);
+    }
   };
 
   const typeMap: Record<string, LayerType> = {
@@ -202,6 +214,14 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
                 className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
               />
               Atualizar
+            </IGRPButton>
+            <IGRPButton variant="outline" size="sm" onClick={showAllLayers}>
+              <IGRPIcon iconName="Eye" className="h-4 w-4 mr-2" />
+              Mostrar todas
+            </IGRPButton>
+            <IGRPButton variant="outline" size="sm" onClick={hideAllLayers}>
+              <IGRPIcon iconName="EyeOff" className="h-4 w-4 mr-2" />
+              Ocultar todas
             </IGRPButton>
             <IGRPButton
               onClick={handleCreateLayer}
@@ -498,7 +518,7 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
                     onChange={(e) =>
                       setLayerForm((prev) => ({
                         ...prev,
-                        zIndex: parseInt(e.target.value) || 1,
+                        zIndex: parseInt(e.target.value, 10) || 1,
                       }))
                     }
                     placeholder="Ordem de sobreposição"
@@ -571,7 +591,7 @@ export function MapLayers({ className, cemeteryId }: MapLayersProps) {
                             ...prev,
                             style: {
                               ...prev.style,
-                              strokeWidth: parseInt(e.target.value) || 2,
+                              strokeWidth: parseInt(e.target.value, 10) || 2,
                             },
                           }))
                         }

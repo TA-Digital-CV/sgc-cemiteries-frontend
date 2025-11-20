@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { blocks, cemeteries, sections } from "../../../../mock-data";
 
 /**
@@ -16,26 +16,9 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/cemeteries/${id}/structure`, {
-      method: "GET",
-      headers: { accept: request.headers.get("accept") ?? "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}/structure`);
   }
-  const cemetery = cemeteries.find((c: any) => c.id === id);
+  const cemetery = cemeteries.find((c) => c.id === id);
   if (!cemetery) {
     return Response.json(
       { error: "NOT_FOUND", message: "Cemitério não encontrado" },
@@ -44,27 +27,24 @@ export async function GET(
   }
   const includeInactive =
     (request.nextUrl.searchParams.get("includeInactive") ?? "false") === "true";
-  const level = request.nextUrl.searchParams.get("level") ?? "SECTIONS";
+  const _level = request.nextUrl.searchParams.get("level") ?? "SECTIONS";
   const resBlocks = blocks.filter(
-    (b: any) =>
-      b.cemeteryId === id && (includeInactive || b.status === "ACTIVE"),
+    (b) => b.cemeteryId === id && (includeInactive || b.status === "ACTIVE"),
   );
   const resSections = sections.filter(
-    (s: any) =>
-      s.cemeteryId === id && (includeInactive || s.status === "ACTIVE"),
+    (s) => s.cemeteryId === id && (includeInactive || s.status === "ACTIVE"),
   );
   const structure = {
-    blocks: resBlocks.map((b: any) => ({
+    blocks: resBlocks.map((b) => ({
       ...b,
-      sections: resSections.filter((s: any) => s.blockId === b.id),
+      sections: resSections.filter((s) => s.blockId === b.id),
     })),
   };
   const summary = {
     totalBlocks: resBlocks.length,
-    activeBlocks: resBlocks.filter((b: any) => b.status === "ACTIVE").length,
+    activeBlocks: resBlocks.filter((b) => b.status === "ACTIVE").length,
     totalSections: resSections.length,
-    activeSections: resSections.filter((s: any) => s.status === "ACTIVE")
-      .length,
+    activeSections: resSections.filter((s) => s.status === "ACTIVE").length,
     totalPlots: 0,
     occupiedPlots: 0,
   };

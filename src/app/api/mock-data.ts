@@ -73,7 +73,7 @@ export const sections = [
   },
 ];
 
-export function pageable(items: any[], page = 0, size = 10) {
+export function pageable<T>(items: T[], page = 0, size = 10) {
   const start = page * size;
   const content = items.slice(start, start + size);
   return {

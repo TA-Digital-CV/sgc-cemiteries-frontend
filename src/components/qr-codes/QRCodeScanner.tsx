@@ -11,15 +11,19 @@ import {
   IGRPIcon,
   IGRPLabel,
 } from "@igrp/igrp-framework-react-design-system";
-import { useEffect, useState } from "react";
-import type { QRCodeScanResult } from "@/types/QRCode";
+import { useCallback, useEffect, useState } from "react";
+import { PlotService } from "@/app/(myapp)/services/plotService";
+import type { QRCodeScanResult } from "@/app/(myapp)/types/QRCode";
 
 interface QRCodeScannerProps {
   className?: string;
   onScan?: (result: QRCodeScanResult) => void;
 }
 
-export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
+export function QRCodeScanner({
+  className,
+  onScan: _onScan,
+}: QRCodeScannerProps) {
   // Local state and handlers replacing the missing hook useQRCode
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,23 +33,25 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
 
+  const loadScanHistory = useCallback(async (): Promise<void> => {
+    setScanHistory([]);
+  }, []);
+
   useEffect(() => {
     loadScanHistory();
-  }, []);
+  }, [loadScanHistory]);
 
   /**
    * Loads the last scans history.
    * Since no data source is available here, we keep local state only.
    */
-  const loadScanHistory = async (): Promise<void> => {
-    setScanHistory([]);
-  };
+  // useCallback variant declared above
 
   /**
    * Handles QR code scanning from camera or uploaded file.
    * Without a real scanning service, returns an explicit error.
    */
-  const handleScanQRCode = async (imageFile?: File): Promise<void> => {
+  const handleScanQRCode = async (_imageFile?: File): Promise<void> => {
     try {
       setIsScanning(true);
       setLoading(true);
@@ -69,7 +75,7 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
    * Legacy camera scan simulation removed to enforce real-data only.
    * Use a proper scanning provider/service when available.
    */
-  const simulateCameraScan = async (): Promise<QRCodeScanResult> => {
+  const _simulateCameraScan = async (): Promise<QRCodeScanResult> => {
     throw new Error("Service unavailable - Try again later");
   };
 
@@ -77,7 +83,7 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
    * Legacy manual scan simulation removed to enforce real-data only.
    * Use a proper scanning provider/service when available.
    */
-  const simulateManualScan = async (): Promise<QRCodeScanResult> => {
+  const _simulateManualScan = async (): Promise<QRCodeScanResult> => {
     throw new Error("Service unavailable - Try again later");
   };
 
@@ -85,9 +91,28 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
    * Validates the current scan by its id.
    * Placeholder implementation returning an error due to missing backend.
    */
-  const handleValidateScan = async (scanId: string): Promise<void> => {
-    if (!scanResult) return;
-    setError("Error: Service unavailable - Try again later");
+  const handleValidateScan = async (scanCode: string): Promise<void> => {
+    const service = new PlotService();
+    try {
+      setError(null);
+      const parts = String(scanCode).split("_");
+      const plotId =
+        parts.length >= 3 && parts[0] === "QR" ? parts[1] : scanCode;
+      const plot = await service.getPlotById(plotId);
+      setScanResult({
+        code: scanCode,
+        plotId: plot.id,
+        cemeteryId: plot.cemeteryId,
+        valid: true,
+        scannedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      const msg =
+        e instanceof Error
+          ? e.message
+          : "Service unavailable - Try again later";
+      setError(`Error: ${msg}`);
+    }
   };
 
   /**
@@ -359,8 +384,11 @@ export function QRCodeScanner({ className, onScan }: QRCodeScannerProps) {
 
             {scanHistory.length > 0 ? (
               <div className="space-y-2 max-h-64 overflow-y-auto">
-                {scanHistory.map((scan, index) => (
-                  <IGRPCard key={`${index}`} className="p-3">
+                {scanHistory.map((scan) => (
+                  <IGRPCard
+                    key={`${scan.plotId || scan.code}-${scan.scannedAt}`}
+                    className="p-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <IGRPIcon

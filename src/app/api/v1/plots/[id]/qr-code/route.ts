@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { plots } from "../../../../mock-data";
 
 /**
@@ -11,28 +11,14 @@ import { plots } from "../../../../mock-data";
  * Proxy to backend using IGRP_APP_MANAGER_API.
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const res = await fetch(`${base}/plots/${id}/qr-code`, { method: "GET" });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/plots/${id}/qr-code`);
   }
-  const item = plots.find((p: any) => p.id === id);
+  const item = plots.find((p) => p.id === id);
   if (!item) {
     return Response.json(
       { error: "NOT_FOUND", message: "Sepultura não encontrada" },

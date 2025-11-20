@@ -5,26 +5,22 @@ import {
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
-  IGRPCardDescription,
   IGRPCardHeader,
   IGRPCardTitle,
   IGRPForm,
   type IGRPFormHandle,
-  IGRPHeadline,
-  IGRPIcon,
   IGRPInputHidden,
   IGRPInputNumber,
   IGRPInputText,
-  IGRPLabel,
   IGRPPageHeader,
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
-import type { ActionResult } from "@/types/Common";
-import type { Cemetery, CemeteryFormData } from "@/types/cemetery";
+import type { ActionResult } from "@/app/(myapp)/types/Common";
+import type { Cemetery, CemeteryFormData } from "@/app/(myapp)/types/cemetery";
 
 interface CemeteryFormProps {
   cemetery?: Cemetery;
@@ -51,9 +47,9 @@ export function CemeteryForm({
   onCancel,
   className,
 }: CemeteryFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [_isSubmitting, setIsSubmitting] = useState(false);
+  const [_submitError, setSubmitError] = useState<string | null>(null);
+  const [_submitSuccess, setSubmitSuccess] = useState(false);
   const { igrpToast } = useIGRPToast();
 
   // Zod schema aligned to current validations and nested structure
@@ -115,8 +111,7 @@ export function CemeteryForm({
   const formCemeteryRef = useRef<IGRPFormHandle<CemeteryFormZodType> | null>(
     null,
   );
-  const [cemeteryFormData, setCemeteryFormData] =
-    useState<any>(initFormCemetery);
+  const [cemeteryFormData, _setCemeteryFormData] = useState(initFormCemetery);
 
   /**
    * onSubmitCemetery
@@ -128,8 +123,7 @@ export function CemeteryForm({
     const cleaned: CemeteryFormData = {
       ...rawData,
       metadata:
-        rawData.metadata &&
-        rawData.metadata.contact &&
+        rawData.metadata?.contact &&
         (rawData.metadata.contact.phone ||
           rawData.metadata.contact.email ||
           rawData.metadata.contact.responsible)
@@ -171,7 +165,7 @@ export function CemeteryForm({
   // IGRPForm manages validation, submit via onSubmitCemetery
 
   return (
-    <div className={cn("component")}>
+    <div className={cn("component", className)}>
       <IGRPPageHeader
         name={`pageHeader1`}
         iconBackButton={`ArrowLeft`}
@@ -203,121 +197,119 @@ export function CemeteryForm({
         onSubmit={onSubmitCemetery}
         defaultValues={cemeteryFormData}
       >
-        <>
-          <IGRPCard>
-            <IGRPCardHeader>
-              <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
-            </IGRPCardHeader>
-            <IGRPCardContent>
-              {/* Informações Básicas */}
-              <div className="space-y-4">
-                <IGRPInputHidden
-                  name={"municipalityId"}
-                  label={"municipalityId"}
-                  required={false}
-                ></IGRPInputHidden>
-                <IGRPInputText
-                  name={"name"}
-                  label={"Nome do Cemitério"}
-                  required={true}
-                  placeholder={"Cemitério Municipal"}
-                ></IGRPInputText>
-                <IGRPInputText
-                  name={"address"}
-                  label={"Endereço"}
-                  required={true}
-                  placeholder={"Rua Exemplo, 123 - Centro, Cidade/UF"}
-                ></IGRPInputText>
-              </div>
-            </IGRPCardContent>
-          </IGRPCard>
+        <IGRPCard>
+          <IGRPCardHeader>
+            <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
+          </IGRPCardHeader>
+          <IGRPCardContent>
+            {/* Informações Básicas */}
+            <div className="space-y-4">
+              <IGRPInputHidden
+                name={"municipalityId"}
+                label={"municipalityId"}
+                required={false}
+              ></IGRPInputHidden>
+              <IGRPInputText
+                name={"name"}
+                label={"Nome do Cemitério"}
+                required={true}
+                placeholder={"Cemitério Municipal"}
+              ></IGRPInputText>
+              <IGRPInputText
+                name={"address"}
+                label={"Endereço"}
+                required={true}
+                placeholder={"Rua Exemplo, 123 - Centro, Cidade/UF"}
+              ></IGRPInputText>
+            </div>
+          </IGRPCardContent>
+        </IGRPCard>
 
-          <IGRPCard>
-            <IGRPCardHeader>
-              <IGRPCardTitle>Localização e Área</IGRPCardTitle>
-            </IGRPCardHeader>
-            <IGRPCardContent>
-              {/* Localização e Área */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <IGRPInputNumber
-                      name={"geoPoint.latitude"}
-                      label={"Latitude"}
-                      required={true}
-                      step={0.000001}
-                      placeholder={"-23.550520"}
-                    ></IGRPInputNumber>
-                  </div>
-                  <div>
-                    <IGRPInputNumber
-                      name={"geoPoint.longitude"}
-                      label={"Longitude"}
-                      required={true}
-                      step={0.000001}
-                      placeholder={"-46.633308"}
-                    ></IGRPInputNumber>
-                  </div>
+        <IGRPCard>
+          <IGRPCardHeader>
+            <IGRPCardTitle>Localização e Área</IGRPCardTitle>
+          </IGRPCardHeader>
+          <IGRPCardContent>
+            {/* Localização e Área */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <IGRPInputNumber
+                    name={"geoPoint.latitude"}
+                    label={"Latitude"}
+                    required={true}
+                    step={0.000001}
+                    placeholder={"-23.550520"}
+                  ></IGRPInputNumber>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <IGRPInputNumber
-                      name={"totalArea"}
-                      label={"Área Total (m²)"}
-                      required={true}
-                      step={1}
-                      placeholder={"50000"}
-                    ></IGRPInputNumber>
-                  </div>
-                  <div>
-                    <IGRPInputNumber
-                      name={"maxCapacity"}
-                      label={"Capacidade Máxima"}
-                      required={true}
-                      step={1}
-                      placeholder={"10000"}
-                    ></IGRPInputNumber>
-                  </div>
+                <div>
+                  <IGRPInputNumber
+                    name={"geoPoint.longitude"}
+                    label={"Longitude"}
+                    required={true}
+                    step={0.000001}
+                    placeholder={"-46.633308"}
+                  ></IGRPInputNumber>
                 </div>
               </div>
-            </IGRPCardContent>
-          </IGRPCard>
-
-          <IGRPCard>
-            <IGRPCardHeader>
-              <IGRPCardTitle>Contato</IGRPCardTitle>
-            </IGRPCardHeader>
-
-            <IGRPCardContent>
-              {/* Contato */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <IGRPInputText
-                      name={"metadata.contact.phone"}
-                      label={"Telefone"}
-                      placeholder={"(11) 99999-9999"}
-                    ></IGRPInputText>
-                  </div>
-                  <div>
-                    <IGRPInputText
-                      name={"metadata.contact.email"}
-                      label={"Email"}
-                      placeholder={"contato@cemiterio.br"}
-                    ></IGRPInputText>
-                  </div>
-                  <div>
-                    <IGRPInputText
-                      name={"metadata.contact.responsible"}
-                      label={"Responsável"}
-                      placeholder={"Nome do responsável"}
-                    ></IGRPInputText>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <IGRPInputNumber
+                    name={"totalArea"}
+                    label={"Área Total (m²)"}
+                    required={true}
+                    step={1}
+                    placeholder={"50000"}
+                  ></IGRPInputNumber>
+                </div>
+                <div>
+                  <IGRPInputNumber
+                    name={"maxCapacity"}
+                    label={"Capacidade Máxima"}
+                    required={true}
+                    step={1}
+                    placeholder={"10000"}
+                  ></IGRPInputNumber>
                 </div>
               </div>
-            </IGRPCardContent>
-          </IGRPCard>
-        </>
+            </div>
+          </IGRPCardContent>
+        </IGRPCard>
+
+        <IGRPCard>
+          <IGRPCardHeader>
+            <IGRPCardTitle>Contato</IGRPCardTitle>
+          </IGRPCardHeader>
+
+          <IGRPCardContent>
+            {/* Contato */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <IGRPInputText
+                    name={"metadata.contact.phone"}
+                    label={"Telefone"}
+                    placeholder={"(11) 99999-9999"}
+                  ></IGRPInputText>
+                </div>
+                <div>
+                  <IGRPInputText
+                    name={"metadata.contact.email"}
+                    label={"Email"}
+                    placeholder={"contato@cemiterio.br"}
+                  ></IGRPInputText>
+                </div>
+                <div>
+                  <IGRPInputText
+                    name={"metadata.contact.responsible"}
+                    label={"Responsável"}
+                    placeholder={"Nome do responsável"}
+                  ></IGRPInputText>
+                </div>
+              </div>
+            </div>
+          </IGRPCardContent>
+        </IGRPCard>
       </IGRPForm>
     </div>
   );

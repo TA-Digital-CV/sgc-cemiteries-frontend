@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND } from "../../../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../../../config";
 import { cemeteries, plots } from "../../../../mock-data";
 
 /**
@@ -16,31 +16,16 @@ export async function GET(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const search = request.nextUrl.searchParams.toString();
-    const url = `${base}/cemeteries/${id}/capacity-projection${search ? `?${search}` : ""}`;
-    const res = await fetch(url, {
-      method: "GET",
-      headers: { accept: request.headers.get("accept") ?? "application/json" },
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(
+      request,
+      `/cemeteries/${id}/capacity-projection${search ? `?${search}` : ""}`,
+    );
   }
-  const cemetery = cemeteries.find((c: any) => c.id === id);
-  const cp = plots.filter((p: any) => p.cemeteryId === id);
+  const cemetery = cemeteries.find((c) => c.id === id);
+  const cp = plots.filter((p) => p.cemeteryId === id);
   const currentOccupancy = cp.filter(
-    (p: any) => p.occupationStatus === "OCCUPIED",
+    (p) => p.occupationStatus === "OCCUPIED",
   ).length;
   const totalCapacity = (cemetery?.maxCapacity ?? cp.length) || 0;
   const availableCapacity = Math.max(0, totalCapacity - currentOccupancy);
