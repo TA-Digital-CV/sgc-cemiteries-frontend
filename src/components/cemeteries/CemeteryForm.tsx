@@ -90,7 +90,9 @@ export function CemeteryForm({
   type CemeteryFormZodType = typeof formCemetery;
 
   const initFormCemetery: z.infer<CemeteryFormZodType> = {
-    municipalityId: cemetery?.municipalityId ?? "",
+    municipalityId:
+      cemetery?.municipalityId ??
+      (process.env.NEXT_PUBLIC_MUNICIPALITY_ID || ""),
     name: cemetery?.name ?? "",
     address: cemetery?.address ?? "",
     geoPoint: {

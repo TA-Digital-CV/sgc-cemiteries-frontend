@@ -1,9 +1,5 @@
 import type { NextRequest } from "next/server";
-import {
-  proxyFetch,
-  USE_REAL_BACKEND,
-  errorResponse,
-} from "../../../config";
+import { proxyFetch, USE_REAL_BACKEND, errorResponse } from "../../../config";
 
 /**
  * GET /api/v1/concessions/expiring

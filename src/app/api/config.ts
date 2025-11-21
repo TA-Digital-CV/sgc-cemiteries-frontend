@@ -4,6 +4,11 @@ export const REAL_API_URL =
 export const REAL_API_BASE =
   process.env.REAL_API_BASE || REAL_API_URL.replace(/\/api\/v1$/, "");
 
+export const MUNICIPALITY_ID =
+  process.env.NEXT_PUBLIC_MUNICIPALITY_ID ||
+  process.env.APP_MUNICIPALITY_DEFAULT ||
+  process.env.APP_MUCIPALITY_DEFAULT || "";
+
 /**
  * proxyFetch
  * Proxies the current request to the real backend, preserving path and query.
@@ -35,7 +40,8 @@ export async function proxyFetch(
   if (contentTypeHeader) headers.set("content-type", contentTypeHeader);
   headers.set("Accept", "*/*");
   headers.set("X-Request-ID", requestId);
-  if (token?.accessToken) headers.set("Authorization", `Bearer ${token.accessToken}`);
+  if (token?.accessToken)
+    headers.set("Authorization", `Bearer ${token.accessToken}`);
 
   const res = await fetch(target, {
     method: init?.method ?? req.method,
@@ -85,7 +91,8 @@ export async function proxyFetchToBase(
   if (contentTypeHeader) headers.set("content-type", contentTypeHeader);
   headers.set("Accept", "*/*");
   headers.set("X-Request-ID", requestId);
-  if (token?.accessToken) headers.set("Authorization", `Bearer ${token.accessToken}`);
+  if (token?.accessToken)
+    headers.set("Authorization", `Bearer ${token.accessToken}`);
 
   const res = await fetch(target, {
     method: init?.method ?? req.method,

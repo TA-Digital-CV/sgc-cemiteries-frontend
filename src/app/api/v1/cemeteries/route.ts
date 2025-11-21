@@ -1,12 +1,21 @@
-import { proxyFetch, USE_REAL_BACKEND } from "../../config";
+import { proxyFetch, USE_REAL_BACKEND, MUNICIPALITY_ID } from "../../config";
 import { cemeteries, pageable } from "../../mock-data";
 
 /**
  * GET /api/v1/cemeteries
  * Returns paginated cemetery list with optional filters.
  */
+/**
+ * GET /api/v1/cemeteries
+ * Ensures municipalityId is appended from environment when using real backend.
+ */
 export async function GET(req: Request) {
   if (USE_REAL_BACKEND) {
+    const u = new URL(req.url);
+    const hasMun = Boolean(u.searchParams.get("municipalityId"));
+    if (!hasMun && MUNICIPALITY_ID) {
+      return proxyFetch(req, `/cemeteries?municipalityId=${encodeURIComponent(MUNICIPALITY_ID)}`);
+    }
     return proxyFetch(req, "/cemeteries");
   }
   const url = new URL(req.url);

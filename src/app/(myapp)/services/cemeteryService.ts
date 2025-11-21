@@ -60,6 +60,7 @@ function parseCemeteryList(input: any): Cemetery[] {
 export class CemeteryService {
   private baseUrl: string;
   private apiKey: string;
+  private municipalityId?: string;
 
   constructor() {
     // Configure base URL and API key from environment. Ensure /api/v1 suffix.
@@ -70,6 +71,11 @@ export class CemeteryService {
       ? normalized
       : `${normalized}/v1`;
     this.apiKey = process.env.NEXT_PUBLIC_API_KEY || "";
+    this.municipalityId =
+      process.env.NEXT_PUBLIC_MUNICIPALITY_ID ||
+      process.env.APP_MUNICIPALITY_DEFAULT ||
+      process.env.APP_MUCIPALITY_DEFAULT ||
+      undefined;
   }
 
   // Headers padrão para requisições
@@ -84,6 +90,18 @@ export class CemeteryService {
     }
 
     return headers;
+  }
+
+  /**
+   * requireMunicipalityId
+   * Returns municipalityId from env or throws when unavailable.
+   */
+  private requireMunicipalityId(): string {
+    const id = this.municipalityId;
+    if (!id) {
+      throw new Error("Error: Municipality ID not configured");
+    }
+    return id;
   }
 
   // Método auxiliar para fazer requisições HTTP
@@ -132,6 +150,10 @@ export class CemeteryService {
   }
 
   // Buscar todos os cemitérios
+  /**
+   * getAllCemeteries
+   * Adds municipalityId to query when not provided.
+   */
   async getAllCemeteries(filters?: CemeteryFilters): Promise<Cemetery[]> {
     const queryParams = new URLSearchParams();
 
@@ -141,6 +163,10 @@ export class CemeteryService {
           queryParams.append(key, String(value));
         }
       });
+    }
+
+    if (!queryParams.has("municipalityId") && this.municipalityId) {
+      queryParams.append("municipalityId", this.municipalityId);
     }
 
     const url = `${this.baseUrl}/cemeteries${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
@@ -163,8 +189,15 @@ export class CemeteryService {
   }
 
   // Criar novo cemitério
+  /**
+   * createCemetery
+   * Ensures municipalityId is set from env when missing.
+   */
   async createCemetery(data: CemeteryFormData): Promise<Cemetery> {
     const url = `${this.baseUrl}/cemeteries`;
+    if (!data.municipalityId) {
+      data.municipalityId = this.requireMunicipalityId();
+    }
     const response = await this.fetchWithErrorHandling<any>(url, {
       method: "POST",
       body: JSON.stringify(data),
@@ -174,12 +207,19 @@ export class CemeteryService {
   }
 
   // Atualizar cemitério existente
+  /**
+   * updateCemetery
+   * Ensures municipalityId is present for consistency.
+   */
   async updateCemetery(id: string, data: CemeteryFormData): Promise<Cemetery> {
     const url = `${this.baseUrl}/cemeteries/${id}`;
     /**
      * PUT /cemeteries/{id}
      * Returns either raw Cemetery or { data: Cemetery }.
      */
+    if (!data.municipalityId && this.municipalityId) {
+      data.municipalityId = this.municipalityId;
+    }
     const response = await this.fetchWithErrorHandling<any>(url, {
       method: "PUT",
       body: JSON.stringify(data),
@@ -201,6 +241,10 @@ export class CemeteryService {
   }
 
   // Buscar cemitérios com parâmetros de busca
+  /**
+   * searchCemeteries
+   * Adds municipalityId to query when not provided.
+   */
   async searchCemeteries(params: CemeterySearchParams): Promise<Cemetery[]> {
     const queryParams = new URLSearchParams();
 
@@ -209,6 +253,10 @@ export class CemeteryService {
         queryParams.append(key, String(value));
       }
     });
+
+    if (!queryParams.has("municipalityId") && this.municipalityId) {
+      queryParams.append("municipalityId", this.municipalityId);
+    }
 
     const url = `${this.baseUrl}/cemeteries/search?${queryParams.toString()}`;
     const response = await this.fetchWithErrorHandling<any>(url);
