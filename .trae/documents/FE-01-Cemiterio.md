@@ -2500,36 +2500,57 @@ interface CemeterySection {
 
 ### 11.1 Escopo e Requisitos Específicos
 
-- Páginas e rotas (App Router):
-  - `/` (Dashboard principal)
-  - `/cemeteries` (lista paginada)
-  - `/cemeteries/[id]` (detalhes e estatísticas)
-  - `/plots` (lista de sepulturas)
-  - `/plots/create` (formulário de criação)
-  - `/analytics/occupancy` (ocupação por período)
-  - `/qr-codes/generate` (geração simples de QR)
-  - `/map` (mapa geral com camadas)
-- Integrações (sem hardcode): usar `process.env.NEXT_PUBLIC_API_URL` + prefixos da API (`/api/v1/...`).
-- Validações: coordenadas válidas, capacidade não ultrapassada, códigos únicos, RBAC básico em ações de escrita.
-- Conformidade: componentes de UI exclusivamente do `@igrp/igrp-framework-react-design-system`; SOLID; Clean Code; TypeScript estrito; acessibilidade WCAG 2.1 AA; performance com lazy loading em mapas/tabelas/gráficos.
+* Páginas e rotas (App Router):
+
+  * `/` (Dashboard principal)
+
+  * `/cemeteries` (lista paginada)
+
+  * `/cemeteries/[id]` (detalhes e estatísticas)
+
+  * `/plots` (lista de sepulturas)
+
+  * `/plots/create` (formulário de criação)
+
+  * `/analytics/occupancy` (ocupação por período)
+
+  * `/qr-codes/generate` (geração simples de QR)
+
+  * `/map` (mapa geral com camadas)
+
+* Integrações (sem hardcode): usar `process.env.NEXT_PUBLIC_API_URL` + prefixos da API (`/api/v1/...`).
+
+* Validações: coordenadas válidas, capacidade não ultrapassada, códigos únicos, RBAC básico em ações de escrita.
+
+* Conformidade: componentes de UI exclusivamente do `@igrp/igrp-framework-react-design-system`; SOLID; Clean Code; TypeScript estrito; acessibilidade WCAG 2.1 AA; performance com lazy loading em mapas/tabelas/gráficos.
 
 ### 11.2 Blueprint de Rotas (Fase 1)
 
-- `page.tsx` → `/`
-- `cemeteries/page.tsx` → `/cemeteries`
-- `cemeteries/[id]/page.tsx` → `/cemeteries/[id]`
-- `plots/page.tsx` → `/plots`
-- `plots/create/page.tsx` → `/plots/create`
-- `analytics/occupancy/page.tsx` → `/analytics/occupancy`
-- `qr-codes/generate/page.tsx` → `/qr-codes/generate`
-- `map/page.tsx` → `/map`
+* `page.tsx` → `/`
+
+* `cemeteries/page.tsx` → `/cemeteries`
+
+* `cemeteries/[id]/page.tsx` → `/cemeteries/[id]`
+
+* `plots/page.tsx` → `/plots`
+
+* `plots/create/page.tsx` → `/plots/create`
+
+* `analytics/occupancy/page.tsx` → `/analytics/occupancy`
+
+* `qr-codes/generate/page.tsx` → `/qr-codes/generate`
+
+* `map/page.tsx` → `/map`
 
 ### 11.3 Componentes e Hooks (Código de Referência)
 
 Observações gerais:
-- Usar apenas componentes de UI do IGRP DS; nenhuma biblioteca externa de UI.
-- Os trechos abaixo são referências para implementação e seguem SOLID e Clean Code.
-- Comentários e código em inglês, conforme padrão do projeto.
+
+* Usar apenas componentes de UI do IGRP DS; nenhuma biblioteca externa de UI.
+
+* Os trechos abaixo são referências para implementação e seguem SOLID e Clean Code.
+
+* Comentários e código em inglês, conforme padrão do projeto.
 
 ```typescript
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -2861,10 +2882,13 @@ export async function fetchAllCemeteries(page = 0, size = 10) {
 
 ### 11.4 Plano de Testes (Unitários e Integração)
 
-- Estratégia sem novas dependências até aprovação; foco em lógica de hooks e serviços.
-- Cobertura alvo: 80%+ para hooks e serviços desta fase.
-- Dados reais de staging; evitar mocks (exceto para isolar validações puras).
-- Testar cenários de erro (HTTP 4xx/5xx), paginação, filtros, validações de formulário e RBAC em ações.
+* Estratégia sem novas dependências até aprovação; foco em lógica de hooks e serviços.
+
+* Cobertura alvo: 80%+ para hooks e serviços desta fase.
+
+* Dados reais de staging; evitar mocks (exceto para isolar validações puras).
+
+* Testar cenários de erro (HTTP 4xx/5xx), paginação, filtros, validações de formulário e RBAC em ações.
 
 Exemplos de casos de teste (pseudo-código):
 
@@ -2901,52 +2925,82 @@ describe('formatCemeteryData', () => {
 ```
 
 Windows PowerShell (existente no projeto):
-- `npm run format` – formatação automática (Biome)
-- `npm run lint` – verificação de estilo e problemas
-- `npm run build` – compila e valida regressões
+
+* `npm run format` – formatação automática (Biome)
+
+* `npm run lint` – verificação de estilo e problemas
+
+* `npm run build` – compila e valida regressões
 
 ### 11.5 Relatório de Conformidade (Fase 1)
 
-- Design System IGRP: todos os componentes de UI indicados usam `@igrp/igrp-framework-react-design-system`.
-- SOLID: containers stateless; lógica em hooks; serviços e repositórios separados.
-- Clean Code: nomes claros, funções focadas, comentários úteis a nível de função.
-- TypeScript: estrito; `any` apenas documentado quando inevitável.
-- Performance: paginação server-side, lazy loading para UI pesada (mapas, tabelas, gráficos); sem sobrecarga desnecessária.
-- Segurança: sem secrets hardcoded; uso de `process.env` para base de API; validações de entrada e tratamento de erros explícito.
-- Acessibilidade: mensagens de erro com `role="alert"`, estrutura semântica, foco em ARIA nas páginas.
-- Responsividade: uso de grid em widgets, componentes IGRP responsivos.
+* Design System IGRP: todos os componentes de UI indicados usam `@igrp/igrp-framework-react-design-system`.
+
+* SOLID: containers stateless; lógica em hooks; serviços e repositórios separados.
+
+* Clean Code: nomes claros, funções focadas, comentários úteis a nível de função.
+
+* TypeScript: estrito; `any` apenas documentado quando inevitável.
+
+* Performance: paginação server-side, lazy loading para UI pesada (mapas, tabelas, gráficos); sem sobrecarga desnecessária.
+
+* Segurança: sem secrets hardcoded; uso de `process.env` para base de API; validações de entrada e tratamento de erros explícito.
+
+* Acessibilidade: mensagens de erro com `role="alert"`, estrutura semântica, foco em ARIA nas páginas.
+
+* Responsividade: uso de grid em widgets, componentes IGRP responsivos.
 
 ### 11.6 Checklist de Revisão de Código
 
-- Dependências: apenas IGRP DS e libs já presentes; nenhuma UI de terceiros.
-- Lógica: hooks limpos; evitar estado excessivo nos componentes.
-- Erros: tratamento explícito; mensagens claras; sem mascarar com valores padrão.
-- RBAC: validar permissões antes de exibir ações (quando integrado à autenticação).
-- Testes: casos cobrindo sucesso/erro; metas de cobertura atingíveis sem novas dependências.
-- Formatação/Lint: executar `npm run format` e `npm run lint` antes do build.
+* Dependências: apenas IGRP DS e libs já presentes; nenhuma UI de terceiros.
+
+* Lógica: hooks limpos; evitar estado excessivo nos componentes.
+
+* Erros: tratamento explícito; mensagens claras; sem mascarar com valores padrão.
+
+* RBAC: validar permissões antes de exibir ações (quando integrado à autenticação).
+
+* Testes: casos cobrindo sucesso/erro; metas de cobertura atingíveis sem novas dependências.
+
+* Formatação/Lint: executar `npm run format` e `npm run lint` antes do build.
+
 ## 10. QR Codes — Implementação e Fluxos
 
 **Interface Completa**
-- Geração: usar `QRCodeGenerator.tsx` com opções (`size`, `format`, `errorCorrection`, `customColors`) e suporte a lote.
-- Leitura/Validação: usar `QRCodeScanner.tsx` (upload/câmera) para obter `code` e validar/consultar.
-- Associação: ao gerar, atualizar o campo `qrCode` do plot via `PUT /api/v1/plots/{id}` e exibir ações (download/compartilhar) na UI do detalhe.
+
+* Geração: usar `QRCodeGenerator.tsx` com opções (`size`, `format`, `errorCorrection`, `customColors`) e suporte a lote.
+
+* Leitura/Validação: usar `QRCodeScanner.tsx` (upload/câmera) para obter `code` e validar/consultar.
+
+* Associação: ao gerar, atualizar o campo `qrCode` do plot via `PUT /api/v1/plots/{id}` e exibir ações (download/compartilhar) na UI do detalhe.
 
 **Fluxos Funcionais**
-- Cadastro QR↔Plot: selecionar `cemeteryId`/`plotId` → gerar QR → atualizar plot (`qrCode`) → confirmação/toast.
-- Consulta via QR: scanner lê `code` → resolve `plotId` (padrão `QR_{plotId}_{yyyy}` ou via `GET /plots/{id}/qr-code`) → carrega detalhe.
-- Atualização associada: editar dados do plot mantendo `qrCode`; salvar com `PUT /plots/{id}`.
+
+* Cadastro QR↔Plot: selecionar `cemeteryId`/`plotId` → gerar QR → atualizar plot (`qrCode`) → confirmação/toast.
+
+* Consulta via QR: scanner lê `code` → resolve `plotId` (padrão `QR_{plotId}_{yyyy}` ou via `GET /plots/{id}/qr-code`) → carrega detalhe.
+
+* Atualização associada: editar dados do plot mantendo `qrCode`; salvar com `PUT /plots/{id}`.
 
 **Serviços/Hooks e Integração**
-- `PlotService`: adicionar métodos `getPlotQRCode(id)`, `generatePlotQRCode(id, options?)`, `generateBulkQRCodes(plotIds, options?)` usando rotas `/api/v1` para preservar o switch (`USE_REAL_BACKEND`).
-- Opção: criar `useQRCode` encapsulando geração, validação e associação.
-- Alinhamento contratual com `src/types/QRCode.ts` e `src/types/Plot.ts`.
+
+* `PlotService`: adicionar métodos `getPlotQRCode(id)`, `generatePlotQRCode(id, options?)`, `generateBulkQRCodes(plotIds, options?)` usando rotas `/api/v1` para preservar o switch (`USE_REAL_BACKEND`).
+
+* Opção: criar `useQRCode` encapsulando geração, validação e associação.
+
+* Alinhamento contratual com `src/types/QRCode.ts` e `src/types/Plot.ts`.
 
 **UX/UI e Acessibilidade**
-- IGRP Design System: inputs, labels, cards, toasts; mensagens de erro claras; responsividade com grids (`md:grid-cols-*`).
-- Estados: `loading`, `success`, `error`; feedback visual consistente.
+
+* IGRP Design System: inputs, labels, cards, toasts; mensagens de erro claras; responsividade com grids (`md:grid-cols-*`).
+
+* Estados: `loading`, `success`, `error`; feedback visual consistente.
 
 **Testes e Conformidade**
-- Testes de integração dos fluxos: geração+associação, leitura+consulta, atualização.
-- Fallback explícito quando indisponível: seguir formato `Error: [descrição clara]`.
-- Remover simulações quando `USE_REAL_BACKEND=true` e manter switches documentados.
+
+* Testes de integração dos fluxos: geração+associação, leitura+consulta, atualização.
+
+* Fallback explícito quando indisponível: seguir formato `Error: [descrição clara]`.
+
+* Remover simulações quando `USE_REAL_BACKEND=true` e manter switches documentados.
 

@@ -1,30 +1,10 @@
-import { USE_REAL_BACKEND } from "../../config";
+import { USE_REAL_BACKEND, proxyFetch } from "../../config";
 import { sections } from "../../mock-data";
 
 export async function POST(req: Request) {
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const body = await req.text();
-    const res = await fetch(`${base}/cemetery-sections`, {
-      method: "POST",
-      headers: {
-        "content-type": req.headers.get("content-type") ?? "application/json",
-      },
-      body,
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(req, "/cemetery-sections", { method: "POST", body });
   }
   const payload = await req.json().catch(() => ({}));
   const item = {

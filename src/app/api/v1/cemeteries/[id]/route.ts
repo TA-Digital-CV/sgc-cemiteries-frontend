@@ -58,29 +58,8 @@ export async function PUT(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
     const body = await request.text();
-    const res = await fetch(`${base}/cemeteries/${id}`, {
-      method: "PUT",
-      headers: {
-        "content-type":
-          request.headers.get("content-type") ?? "application/json",
-      },
-      body,
-    });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}`, { method: "PUT", body });
   }
   const idx = cemeteries.findIndex((c) => c.id === id);
   if (idx === -1) {
@@ -113,23 +92,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   if (USE_REAL_BACKEND) {
-    const base = process.env.IGRP_APP_MANAGER_API || "";
-    if (!base) {
-      return new Response(
-        "Error: Serviço indisponível - variável IGRP_APP_MANAGER_API ausente",
-        { status: 500 },
-      );
-    }
-    const search = request.nextUrl.searchParams.toString();
-    const url = `${base}/cemeteries/${id}${search ? `?${search}` : ""}`;
-    const res = await fetch(url, { method: "DELETE" });
-    const text = await res.text();
-    return new Response(text, {
-      status: res.status,
-      headers: {
-        "content-type": res.headers.get("content-type") ?? "application/json",
-      },
-    });
+    return proxyFetch(request, `/cemeteries/${id}`, { method: "DELETE" });
   }
   const confirm = request.nextUrl.searchParams.get("confirm");
   if (confirm !== "true") {
