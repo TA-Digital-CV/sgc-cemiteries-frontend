@@ -71,7 +71,39 @@ export interface UseCemeteryReturn {
   getSectionById: (id: string) => Promise<CemeterySection | null>;
   clearSelection: () => void;
   clearError: () => void;
+
+  // Helpers
+  getStatusBadgeColor: (status: string) => string;
+  getStatusLabel: (status: string) => string;
 }
+
+// Helpers globais
+export const getStatusBadgeColor = (status: string) => {
+  // Map both lowercase and uppercase API values to design system colors
+  switch (status?.toUpperCase()) {
+    case "ACTIVE":
+      return "success";
+    case "INACTIVE":
+      return "secondary";
+    case "MAINTENANCE":
+      return "warning";
+    default:
+      return "info";
+  }
+};
+
+export const getStatusLabel = (status: string) => {
+  switch (status?.toUpperCase()) {
+    case "ACTIVE":
+      return "Ativo";
+    case "INACTIVE":
+      return "Inativo";
+    case "MAINTENANCE":
+      return "Em Manutenção";
+    default:
+      return status || "Desconhecido";
+  }
+};
 
 // Serviço de cemitérios (singleton)
 const cemeteryService = new CemeteryService();
@@ -539,5 +571,7 @@ export function useCemetery(): UseCemeteryReturn {
     getSectionById,
     clearSelection,
     clearError,
+    getStatusBadgeColor,
+    getStatusLabel,
   };
 }

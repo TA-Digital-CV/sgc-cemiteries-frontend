@@ -176,7 +176,7 @@ export default function SectionsPage() {
         name={`pageHeaderSections`}
         iconBackButton={`ArrowLeft`}
         showBackButton={true}
-        urlBackButton={`/cemeteries`}
+        urlBackButton={`/cemeteries/${selectedCemeteryId}`}
         variant={`h3`}
         title={"Sectores"}
         description={"Lista de sectores por bloco"}

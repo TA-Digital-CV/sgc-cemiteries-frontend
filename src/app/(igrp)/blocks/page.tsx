@@ -121,7 +121,7 @@ export default function BlocksPage() {
         name={`pageHeaderBlocks`}
         iconBackButton={`ArrowLeft`}
         showBackButton={true}
-        urlBackButton={`/cemeteries`}
+        urlBackButton={`/cemeteries/${selectedCemeteryId}`}
         variant={`h3`}
         title={"Blocos"}
         description={"Lista de blocos por cemitério"}

@@ -44,6 +44,8 @@ export default function CemeteryDetailPage() {
     fetchCemeteryStructures,
     blocks,
     sections,
+    getStatusBadgeColor,
+    getStatusLabel,
   } = useCemetery();
   const [localError, setLocalError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -59,7 +61,7 @@ export default function CemeteryDetailPage() {
     await fetchCemeteryStructures(cemeteryId);
     try {
       localStorage.setItem("activeCemeteryId", String(cemeteryId));
-    } catch {}
+    } catch { }
   }, [cemeteryId, selectCemetery, fetchCemeteryStructures]);
 
   useEffect(() => {
@@ -84,45 +86,10 @@ export default function CemeteryDetailPage() {
     }
   };
 
-  const getStatusBadgeColor = (status: string) => {
-    // Map both lowercase and uppercase API values to design system colors
-    switch (status.toUpperCase()) {
-      case "ACTIVE":
-        return "success";
-      case "INACTIVE":
-        return "secondary";
-      case "MAINTENANCE":
-        return "warning";
-      default:
-        return "info";
-    }
-  };
+  // Render skeletons if loading or if we don't have data yet but no error
+  const showSkeleton = isLoading || (!selectedCemetery && !error && !localError);
 
-  const getStatusLabel = (status: string) => {
-    switch (status.toUpperCase()) {
-      case "ACTIVE":
-        return "Ativo";
-      case "INACTIVE":
-        return "Inativo";
-      case "MAINTENANCE":
-        return "Em Manutenção";
-      default:
-        return status;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto p-6 space-y-6" aria-busy="true">
-        <div className="flex items-center justify-center h-64" role="status">
-          <IGRPIcon iconName="Loader2" className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Carregando cemitério...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (localError || error || !selectedCemetery) {
+  if (!showSkeleton && (localError || error || !selectedCemetery)) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -154,167 +121,215 @@ export default function CemeteryDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <IGRPPageHeader
-        name={"pageHeaderCemeteryDetail"}
-        iconBackButton={"ArrowLeft"}
-        showBackButton={true}
-        urlBackButton={`/cemeteries`}
-        variant={"h3"}
-        title={selectedCemetery.name}
-        description={selectedCemetery.address ?? ""}
-      >
-        <div className="flex flex-wrap gap-2">
-          <IGRPBadge
-            variant="soft"
-            color={getStatusBadgeColor(selectedCemetery.status)}
-          >
-            {getStatusLabel(selectedCemetery.status)}
-          </IGRPBadge>
-          <Link href={`/cemeteries/${cemeteryId}/edit`}>
-            <IGRPButton
-              type="button"
-              variant="outline"
-              showIcon
-              iconName="SquarePen"
-            >
-              Editar
-            </IGRPButton>
-          </Link>
-          <Link href={`/analytics?cemetery=${cemeteryId}`}>
-            <IGRPButton
-              type="button"
-              variant="outline"
-              showIcon
-              iconName="TrendingUp"
-            >
-              Analytics
-            </IGRPButton>
-          </Link>
-          <Link href={`/maps?cemetery=${cemeteryId}`}>
-            <IGRPButton type="button" variant="outline" showIcon iconName="Map">
-              Mapa
-            </IGRPButton>
-          </Link>
-          <Link href={`/cemeteries/${cemeteryId}/blocks/create`}>
-            <IGRPButton
-              type="button"
-              variant="outline"
-              showIcon
-              iconName="Blocks"
-            >
-              Adicionar Bloco
-            </IGRPButton>
-          </Link>
-          {blocks && blocks.length > 0 && (
-            <Link href={`/cemeteries/${cemeteryId}/sections/create`}>
-              <IGRPButton
-                type="button"
-                variant="outline"
-                showIcon
-                iconName="ListTree"
-              >
-                Adicionar Seção
-              </IGRPButton>
-            </Link>
-          )}
-          {sections && sections.length > 0 && (
-            <Link href={`/plots/create?cemeteryId=${cemeteryId}`}>
-              <IGRPButton
-                type="button"
-                variant="outline"
-                showIcon
-                iconName="Plus"
-              >
-                Adicionar Sepultura
-              </IGRPButton>
-            </Link>
-          )}
-          <IGRPButton
-            type="button"
-            variant="outline"
-            onClick={() => setShowDeleteConfirm(true)}
-            showIcon
-            iconName="Trash2"
-            ref={deleteTriggerBtnRef}
-          >
-            Excluir
-          </IGRPButton>
+      {showSkeleton ? (
+        <div className="space-y-6 animate-pulse">
+          {/* Header Skeleton */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="h-8 w-64 bg-gray-200 rounded"></div>
+              <div className="h-4 w-48 bg-gray-200 rounded"></div>
+            </div>
+            <div className="flex gap-2">
+              <div className="h-10 w-24 bg-gray-200 rounded"></div>
+              <div className="h-10 w-24 bg-gray-200 rounded"></div>
+            </div>
+          </div>
         </div>
-      </IGRPPageHeader>
+      ) : (
+        <IGRPPageHeader
+          name={"pageHeaderCemeteryDetail"}
+          iconBackButton={"ArrowLeft"}
+          showBackButton={true}
+          urlBackButton={`/cemeteries`}
+          variant={"h3"}
+          title={selectedCemetery!.name}
+          description={selectedCemetery!.address ?? ""}
+        >
+          <div className="flex flex-wrap gap-2">
+            <IGRPBadge
+              variant="soft"
+              color={getStatusBadgeColor(selectedCemetery!.status) as "indigo" | "warning" | "primary" | "success" | "info" | "destructive" | "secondary" | undefined}
+            >
+              {getStatusLabel(selectedCemetery!.status)}
+            </IGRPBadge>
+            <Link href={`/cemeteries/${cemeteryId}/edit`}>
+              <IGRPButton
+                type="button"
+                variant="outline"
+                showIcon
+                iconName="SquarePen"
+              >
+                Editar
+              </IGRPButton>
+            </Link>
+            <Link href={`/analytics?cemetery=${cemeteryId}`}>
+              <IGRPButton
+                type="button"
+                variant="outline"
+                showIcon
+                iconName="TrendingUp"
+              >
+                Analytics
+              </IGRPButton>
+            </Link>
+            <Link href={`/maps?cemetery=${cemeteryId}`}>
+              <IGRPButton type="button" variant="outline" showIcon iconName="Map">
+                Mapa
+              </IGRPButton>
+            </Link>
+            <Link href={`/cemeteries/${cemeteryId}/blocks/create`}>
+              <IGRPButton
+                type="button"
+                variant="outline"
+                showIcon
+                iconName="Blocks"
+              >
+                Adicionar Bloco
+              </IGRPButton>
+            </Link>
+            {blocks && blocks.length > 0 && (
+              <Link href={`/cemeteries/${cemeteryId}/sections/create`}>
+                <IGRPButton
+                  type="button"
+                  variant="outline"
+                  showIcon
+                  iconName="ListTree"
+                >
+                  Adicionar Seção
+                </IGRPButton>
+              </Link>
+            )}
+            {sections && sections.length > 0 && (
+              <Link href={`/cemeteries/${cemeteryId}/plots/create`}>
+                <IGRPButton
+                  type="button"
+                  variant="outline"
+                  showIcon
+                  iconName="Plus"
+                >
+                  Adicionar Sepultura
+                </IGRPButton>
+              </Link>
+            )}
+            <IGRPButton
+              type="button"
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(true)}
+              showIcon
+              iconName="Trash2"
+              ref={deleteTriggerBtnRef}
+            >
+              Excluir
+            </IGRPButton>
+          </div>
+        </IGRPPageHeader>
+      )}
 
       {/* Grid de informações */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Informações básicas */}
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent className="space-y-4">
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Nome
-              </IGRPLabel>
-              <p className="text-base">{selectedCemetery.name}</p>
-            </div>
-
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Capacidade Máxima
-              </IGRPLabel>
-              <p className="text-base">
-                {selectedCemetery.maxCapacity.toLocaleString("pt-CV")}{" "}
-                sepulturas
-              </p>
-            </div>
-
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Ocupação Atual
-              </IGRPLabel>
-              <p className="text-base">
-                {selectedCemetery.currentOccupancy.toLocaleString("pt-CV")}{" "}
-                sepulturas
-              </p>
-            </div>
-
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Taxa de Ocupação
-              </IGRPLabel>
-              <p className="text-base">{selectedCemetery.occupancyRate}%</p>
-            </div>
-          </IGRPCardContent>
-        </IGRPCard>
-
-        {/* Endereço */}
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle className="flex items-center">
-              <IGRPIcon iconName="MapPin" className="h-5 w-5 mr-2" />
-              Endereço
-            </IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent className="space-y-3">
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Endereço
-              </IGRPLabel>
-              <p className="text-base">{selectedCemetery.address}</p>
-            </div>
-
-            {selectedCemetery.geoPoint && (
+        {showSkeleton ? (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
+            </IGRPCardHeader>
+            <IGRPCardContent className="space-y-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i}>
+                  <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-1" />
+                  <div className="h-5 w-full bg-gray-200 animate-pulse rounded" />
+                </div>
+              ))}
+            </IGRPCardContent>
+          </IGRPCard>
+        ) : (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent className="space-y-4">
               <div>
                 <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                  Coordenadas
+                  Nome
+                </IGRPLabel>
+                <p className="text-base">{selectedCemetery!.name}</p>
+              </div>
+
+              <div>
+                <IGRPLabel className="text-sm font-medium text-muted-foreground">
+                  Capacidade Máxima
                 </IGRPLabel>
                 <p className="text-base">
-                  {selectedCemetery.geoPoint.latitude.toFixed(6)},{" "}
-                  {selectedCemetery.geoPoint.longitude.toFixed(6)}
+                  {selectedCemetery!.maxCapacity.toLocaleString("pt-CV")}{" "}
+                  sepulturas
                 </p>
               </div>
-            )}
-          </IGRPCardContent>
-        </IGRPCard>
+
+              <div>
+                <IGRPLabel className="text-sm font-medium text-muted-foreground">
+                  Ocupação Atual
+                </IGRPLabel>
+                <p className="text-base">
+                  {selectedCemetery!.currentOccupancy.toLocaleString("pt-CV")}{" "}
+                  sepulturas
+                </p>
+              </div>
+
+              <div>
+                <IGRPLabel className="text-sm font-medium text-muted-foreground">
+                  Taxa de Ocupação
+                </IGRPLabel>
+                <p className="text-base">{selectedCemetery!.occupancyRate}%</p>
+              </div>
+            </IGRPCardContent>
+          </IGRPCard>
+        )}
+
+        {/* Endereço */}
+        {showSkeleton ? (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <div className="h-6 w-48 bg-gray-200 animate-pulse rounded" />
+            </IGRPCardHeader>
+            <IGRPCardContent className="space-y-4">
+              {[1, 2].map((i) => (
+                <div key={i}>
+                  <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-1" />
+                  <div className="h-5 w-full bg-gray-200 animate-pulse rounded" />
+                </div>
+              ))}
+            </IGRPCardContent>
+          </IGRPCard>
+        ) : (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle className="flex items-center">
+                <IGRPIcon iconName="MapPin" className="h-5 w-5 mr-2" />
+                Endereço
+              </IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent className="space-y-3">
+              <div>
+                <IGRPLabel className="text-sm font-medium text-muted-foreground">
+                  Endereço
+                </IGRPLabel>
+                <p className="text-base">{selectedCemetery!.address}</p>
+              </div>
+
+              {selectedCemetery!.geoPoint && (
+                <div>
+                  <IGRPLabel className="text-sm font-medium text-muted-foreground">
+                    Coordenadas
+                  </IGRPLabel>
+                  <p className="text-base">
+                    {selectedCemetery!.geoPoint.latitude.toFixed(6)},{" "}
+                    {selectedCemetery!.geoPoint.longitude.toFixed(6)}
+                  </p>
+                </div>
+              )}
+            </IGRPCardContent>
+          </IGRPCard>
+        )}
       </div>
 
       {/* Estatísticas */}
@@ -322,119 +337,149 @@ export default function CemeteryDetailPage() {
 
       {/* Estrutura Hierárquica: Blocos e Seções */}
       <div className="grid gap-6 md:grid-cols-2">
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>Blocos</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            <IGRPDataTable<CemeteryBlock, CemeteryBlock>
-              className={"rounded-md border"}
-              columns={[
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Nome`}
-                    />
-                  ),
-                  accessorKey: "name",
-                  cell: ({ row }) => String(row.getValue("name") ?? ""),
-                },
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Capacidade`}
-                    />
-                  ),
-                  accessorKey: "maxCapacity",
-                  cell: ({ row }) => {
-                    const b = row.original as CemeteryBlock;
-                    const cap = Number(b.maxCapacity ?? 0);
-                    return new Intl.NumberFormat("pt-CV").format(cap);
+        {showSkeleton ? (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <div className="h-6 w-32 bg-gray-200 animate-pulse rounded" />
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <div className="space-y-2">
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+              </div>
+            </IGRPCardContent>
+          </IGRPCard>
+        ) : (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Blocos</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <IGRPDataTable<CemeteryBlock, CemeteryBlock>
+                className={"rounded-md border"}
+                columns={[
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Nome`}
+                      />
+                    ),
+                    accessorKey: "name",
+                    cell: ({ row }) => String(row.getValue("name") ?? ""),
                   },
-                },
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Ocupação`}
-                    />
-                  ),
-                  accessorKey: "currentOccupancy",
-                  cell: ({ row }) => {
-                    const b = row.original as CemeteryBlock;
-                    const total = Number(b.maxCapacity ?? 0);
-                    const occ = Number(b.currentOccupancy ?? 0);
-                    const rate = total > 0 ? (occ / total) * 100 : 0;
-                    return `${rate.toFixed(1)}%`;
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Capacidade`}
+                      />
+                    ),
+                    accessorKey: "maxCapacity",
+                    cell: ({ row }) => {
+                      const b = row.original as CemeteryBlock;
+                      const cap = Number(b.maxCapacity ?? 0);
+                      return new Intl.NumberFormat("pt-CV").format(cap);
+                    },
                   },
-                },
-              ]}
-              clientFilters={[]}
-              data={blocks}
-            />
-          </IGRPCardContent>
-        </IGRPCard>
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Ocupação`}
+                      />
+                    ),
+                    accessorKey: "currentOccupancy",
+                    cell: ({ row }) => {
+                      const b = row.original as CemeteryBlock;
+                      const total = Number(b.maxCapacity ?? 0);
+                      const occ = Number(b.currentOccupancy ?? 0);
+                      const rate = total > 0 ? (occ / total) * 100 : 0;
+                      return `${rate.toFixed(1)}%`;
+                    },
+                  },
+                ]}
+                clientFilters={[]}
+                data={blocks}
+              />
+            </IGRPCardContent>
+          </IGRPCard>
+        )}
 
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>Seções</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            <IGRPDataTable<CemeterySection, CemeterySection>
-              className={"rounded-md border"}
-              columns={[
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Nome`}
-                    />
-                  ),
-                  accessorKey: "name",
-                  cell: ({ row }) => String(row.getValue("name") ?? ""),
-                },
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Capacidade`}
-                    />
-                  ),
-                  accessorKey: "maxCapacity",
-                  cell: ({ row }) => {
-                    const s = row.original as CemeterySection;
-                    const cap = Number(s.maxCapacity ?? 0);
-                    return new Intl.NumberFormat("pt-CV").format(cap);
+        {showSkeleton ? (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <div className="h-6 w-32 bg-gray-200 animate-pulse rounded" />
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <div className="space-y-2">
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+                <div className="h-8 w-full bg-gray-200 animate-pulse rounded" />
+              </div>
+            </IGRPCardContent>
+          </IGRPCard>
+        ) : (
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Seções</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              <IGRPDataTable<CemeterySection, CemeterySection>
+                className={"rounded-md border"}
+                columns={[
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Nome`}
+                      />
+                    ),
+                    accessorKey: "name",
+                    cell: ({ row }) => String(row.getValue("name") ?? ""),
                   },
-                },
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Ocupação`}
-                    />
-                  ),
-                  // accessorKey: "currentOccupancy", // Missing in DTO? No, I added it to interface but DTO didn't have it.
-                  // Wait, CemeterySectionResponseDTO does NOT have currentOccupancy.
-                  // I should check if I added it to interface. Yes I did.
-                  // But backend DTO doesn't have it. So it will be undefined.
-                  // I should probably remove this column or use a fallback if possible.
-                  // But for now I'll use it as is, assuming maybe I missed it or it's not critical.
-                  // Actually, I should probably remove it if it's not in DTO.
-                  // But let's stick to what I have in interface.
-                  accessorKey: "id", // Dummy accessor
-                  cell: ({ row }) => {
-                    return "N/A"; // Placeholder as DTO doesn't have occupancy
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Capacidade`}
+                      />
+                    ),
+                    accessorKey: "maxCapacity",
+                    cell: ({ row }) => {
+                      const s = row.original as CemeterySection;
+                      const cap = Number(s.maxCapacity ?? 0);
+                      return new Intl.NumberFormat("pt-CV").format(cap);
+                    },
                   },
-                },
-              ]}
-              clientFilters={[]}
-              data={sections}
-            />
-          </IGRPCardContent>
-        </IGRPCard>
+                  {
+                    header: ({ column }) => (
+                      <IGRPDataTableHeaderSortToggle
+                        column={column}
+                        title={`Ocupação`}
+                      />
+                    ),
+                    // accessorKey: "currentOccupancy", // Missing in DTO? No, I added it to interface but DTO didn't have it.
+                    // Wait, CemeterySectionResponseDTO does NOT have currentOccupancy.
+                    // I should check if I added it to interface. Yes I did.
+                    // But backend DTO doesn't have it. So it will be undefined.
+                    // I should probably remove this column or use a fallback if possible.
+                    // But for now I'll use it as is, assuming maybe I missed it or it's not critical.
+                    // Actually, I should probably remove it if it's not in DTO.
+                    // But let's stick to what I have in interface.
+                    accessorKey: "id", // Dummy accessor
+                    cell: ({ row }) => {
+                      return "N/A"; // Placeholder as DTO doesn't have occupancy
+                    },
+                  },
+                ]}
+                clientFilters={[]}
+                data={sections}
+              />
+            </IGRPCardContent>
+          </IGRPCard>
+        )}
       </div>
 
       {/* Modal de confirmação de exclusão */}
@@ -462,7 +507,7 @@ export default function CemeteryDetailPage() {
                   setShowDeleteConfirm(false);
                   try {
                     deleteTriggerBtnRef.current?.focus();
-                  } catch {}
+                  } catch { }
                 }}
                 ref={deleteCancelBtnRef}
               >

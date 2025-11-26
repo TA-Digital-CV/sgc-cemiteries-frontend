@@ -381,7 +381,7 @@ export default function PlotsPage() {
         name={`pageHeader1`}
         iconBackButton={`ArrowLeft`}
         showBackButton={true}
-        urlBackButton={`/cemeteries`}
+        urlBackButton={`/cemeteries/${selectedCemeteryId}`}
         variant={`h3`}
         className={cn()}
         title={"Sepulturas"}

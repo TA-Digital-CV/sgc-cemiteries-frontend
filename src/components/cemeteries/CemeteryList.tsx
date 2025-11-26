@@ -17,8 +17,6 @@ import {
   IGRPDataTableRowAction,
   IGRPIcon,
   IGRPInputText,
-  IGRPLabel,
-  IGRPSelect,
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import { useRouter } from "next/navigation";
@@ -48,8 +46,15 @@ export function CemeteryList({
    * CemeteryList
    * Renders list and requires municipalityId filter to fetch data.
    */
-  const { cemeteries, isLoading, error, fetchCemeteries, deleteCemetery } =
-    useCemetery();
+  const {
+    cemeteries,
+    isLoading,
+    error,
+    fetchCemeteries,
+    deleteCemetery,
+    getStatusBadgeColor,
+    getStatusLabel,
+  } = useCemetery();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, _setFilters] = useState<CemeteryFilters>({});
   const [countsById, setCountsById] = useState<
@@ -63,31 +68,14 @@ export function CemeteryList({
   const _canWriteStructure = perms.includes("CEMETERY_WRITE");
   const _canWritePlots = perms.includes("PLOTS_WRITE");
   const cemeteryService = useMemo(() => new CemeteryService(), []);
-  /**
-   * Maps CemeteryStatus to label and style classes for DataTable badges.
-   */
-  const getStatusBadgeProps = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return {
-          label: "Ativo",
-          badgeClassName: "bg-green-100 text-green-800",
-        };
-      case "INACTIVE":
-        return {
-          label: "Inativo",
-          badgeClassName: "text-gray-800 bg-gray-100",
-        };
-      case "MAINTENANCE":
-        return {
-          label: "Manutenção",
-          badgeClassName: "bg-yellow-100 text-yellow-800",
-        };
-      case "full":
-        return { label: "Lotado", badgeClassName: "bg-red-100 text-red-800" };
-      default:
-        return { label: status, badgeClassName: "" };
-    }
+
+  // Map IGRPBadge colors to Tailwind classes for DataTable
+  const badgeColorMap: Record<string, string> = {
+    success: "bg-green-100 text-green-800",
+    secondary: "text-gray-800 bg-gray-100",
+    warning: "bg-yellow-100 text-yellow-800",
+    info: "bg-blue-100 text-blue-800",
+    destructive: "bg-red-100 text-red-800",
   };
 
   useEffect(() => {
@@ -156,13 +144,6 @@ export function CemeteryList({
     return matchesSearch && matchesMunicipality;
   });
 
-  // Paginação
-  /* const totalPages = Math.ceil(filteredCemeteries.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedCemeteries = filteredCemeteries.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );*/
 
   const handleSearch = (term: string) => {
     setSearchTerm(term);
@@ -426,7 +407,9 @@ export function CemeteryList({
                 accessorKey: "status",
                 cell: ({ row }) => {
                   const status = String(row.getValue("status") ?? "");
-                  const { label, badgeClassName } = getStatusBadgeProps(status);
+                  const label = getStatusLabel(status);
+                  const color = getStatusBadgeColor(status);
+                  const badgeClassName = badgeColorMap[color] || "";
                   return (
                     <IGRPDataTableCellBadge
                       label={label}

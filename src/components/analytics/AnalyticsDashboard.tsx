@@ -12,9 +12,10 @@ import {
   IGRPInputText,
   IGRPLabel,
   IGRPSelect,
+  IGRPStatsCard,
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useAnalytics } from "@/app/(myapp)/hooks/useAnalytics";
 import type {
   AnalyticsFilters,
@@ -27,10 +28,6 @@ interface AnalyticsDashboardProps {
   className?: string;
 }
 
-/**
- * AnalyticsDashboard renders analytics filters, metric cards, charts, and alerts.
- * Uses stable React keys for lists to improve reconciliation and performance.
- */
 /**
  * AnalyticsDashboard
  * Renders analytics filters, metric cards, charts, and alerts using IGRP components.
@@ -152,38 +149,99 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     setLocalFilters((prev) => ({ ...prev, [key]: value }));
   };
 
+  if (loading) {
+    return (
+      <div className={className}>
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-64 bg-gray-100 animate-pulse rounded" />
+          <div className="flex gap-2">
+            <div className="h-10 w-28 bg-gray-100 animate-pulse rounded" />
+            <div className="h-10 w-28 bg-gray-100 animate-pulse rounded" />
+            <div className="h-10 w-28 bg-gray-100 animate-pulse rounded" />
+          </div>
+        </div>
+
+        {/* Filters Skeleton */}
+        <IGRPCard className="mb-6">
+          <IGRPCardHeader>
+            <div className="h-6 w-24 bg-gray-100 animate-pulse rounded" />
+          </IGRPCardHeader>
+          <IGRPCardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 w-20 bg-gray-100 animate-pulse rounded" />
+                  <div className="h-10 w-full bg-gray-100 animate-pulse rounded" />
+                </div>
+              ))}
+            </div>
+          </IGRPCardContent>
+        </IGRPCard>
+
+        {/* Metrics Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          {[1, 2, 3, 4].map((i) => (
+            <IGRPStatsCard
+              key={i}
+              name={`loading-stat-${i}`}
+              cardBorderPosition="top"
+              cardBorder="rounded-xl"
+              cardVariant="info"
+              iconName="Activity"
+              showIcon={true}
+              showIconBackground={true}
+              className="animate-pulse"
+              value="..."
+              title="Carregando..."
+              titleSize="sm"
+              valueSize="2xl"
+              iconSize="md"
+              iconVariant="info"
+              iconPlacement="end"
+              itemPlacement="start"
+              iconBackground="square"
+            />
+          ))}
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <IGRPCard className="h-[400px]">
+            <IGRPCardContent className="h-full bg-gray-100 animate-pulse rounded" />
+          </IGRPCard>
+          <IGRPCard className="h-[400px]">
+            <IGRPCardContent className="h-full bg-gray-100 animate-pulse rounded" />
+          </IGRPCard>
+        </div>
+      </div>
+    );
+  }
+
   const metricCards = [
     {
       title: "Taxa de Ocupação Geral",
       value: `${metrics?.overallOccupancyRate ?? 0}%`,
       iconName: "PieChart" as const,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      trend: 0,
+      variant: "info" as const,
     },
     {
       title: "Total de Sepulturas",
       value: (metrics?.totalPlots ?? 0).toLocaleString("pt-CV"),
       iconName: "MapPin" as const,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      trend: 0,
+      variant: "success" as const,
     },
     {
       title: "Cemitérios Ativos",
       value: (metrics?.activeCemeteries ?? 0).toLocaleString("pt-CV"),
       iconName: "Users" as const,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
-      trend: 0,
+      variant: "warning" as const,
     },
     {
       title: "Capacidade Crítica",
       value: (metrics?.criticalCapacityCemeteries ?? 0).toLocaleString("pt-CV"),
       iconName: "Activity" as const,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      trend: 0,
+      variant: "danger" as const,
     },
   ];
 
@@ -305,21 +363,25 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {metricCards.map((metric) => {
           return (
-            <IGRPCard key={metric.title} className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-lg ${metric.bgColor}`}>
-                  <IGRPIcon
-                    iconName={metric.iconName}
-                    className={`h-6 w-6 ${metric.color}`}
-                  />
-                </div>
-                <div className={`text-sm text-gray-600`}> </div>
-              </div>
-              <h3 className="text-sm font-medium text-gray-600 mb-1">
-                {metric.title}
-              </h3>
-              <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
-            </IGRPCard>
+            <IGRPStatsCard
+              key={metric.title}
+              name={`stat-${metric.title}`}
+              cardBorderPosition="top"
+              cardBorder="rounded-xl"
+              cardVariant={metric.variant}
+              iconBackground="square"
+              title={metric.title}
+              titleSize="sm"
+              valueSize="2xl"
+              showIcon={true}
+              iconName={metric.iconName}
+              iconSize="md"
+              iconVariant={metric.variant}
+              iconPlacement="end"
+              itemPlacement="start"
+              showIconBackground={true}
+              value={metric.value}
+            />
           );
         })}
       </div>
