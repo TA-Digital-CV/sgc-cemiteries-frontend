@@ -16,6 +16,7 @@
     "start": "next start",
     "lint": "biome check --write",
     "format": "biome format --write",
+    "test": "vitest",
     "publish:template": "powershell -ExecutionPolicy Bypass -File ./create-template/create-zip-template.ps1"
   },
   "dependencies": {

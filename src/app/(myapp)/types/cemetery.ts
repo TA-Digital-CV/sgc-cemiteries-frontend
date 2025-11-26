@@ -115,7 +115,7 @@ export interface CemeteryBlock {
   name: string;
   description?: string;
   maxCapacity: number;
-  geoPolygon?: Record<string, any>;
+  geoPolygon?: Record<string, any>; // Mapped from backend DTO Map<String, Object>
   currentOccupancy: number;
   occupancyRate: number;
 }
@@ -124,7 +124,7 @@ export interface CemeterySection {
   id: string;
   name: string;
   description?: string;
-  geoPolygnon?: Record<string, any>; // Typo no backend mantido para compatibilidade
+  geoPolygon?: Record<string, any>; // Mapped from backend DTO Map<String, Object>
   maxCapacity: number;
   blockId: string;
   blockName: string;

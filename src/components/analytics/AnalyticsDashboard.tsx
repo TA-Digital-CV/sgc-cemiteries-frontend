@@ -368,7 +368,9 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
               name={`stat-${metric.title}`}
               cardBorderPosition="top"
               cardBorder="rounded-xl"
-              cardVariant={metric.variant}
+              cardVariant={
+                metric.variant === "danger" ? "destructive" : metric.variant
+              }
               iconBackground="square"
               title={metric.title}
               titleSize="sm"
@@ -376,7 +378,9 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
               showIcon={true}
               iconName={metric.iconName}
               iconSize="md"
-              iconVariant={metric.variant}
+              iconVariant={
+                metric.variant === "danger" ? "destructive" : metric.variant
+              }
               iconPlacement="end"
               itemPlacement="start"
               showIconBackground={true}

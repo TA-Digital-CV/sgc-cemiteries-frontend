@@ -28,7 +28,11 @@ interface OccupancyChartProps {
   isLoading?: boolean;
 }
 
-export function OccupancyChart({ className, data, isLoading }: OccupancyChartProps) {
+export function OccupancyChart({
+  className,
+  data,
+  isLoading,
+}: OccupancyChartProps) {
   if (isLoading) {
     return (
       <IGRPCard className={className}>

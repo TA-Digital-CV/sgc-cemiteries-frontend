@@ -154,135 +154,137 @@ export function CemeteryForm({
 
   return (
     <div className={cn("component", className)}>
-      <IGRPPageHeader
-        name={`pageHeader1`}
-        iconBackButton={`ArrowLeft`}
-        showBackButton={true}
-        urlBackButton={`/cemeteries`}
-        variant={`h3`}
-        className={cn()}
-        title={cemetery ? "Editar Cemitério" : "Novo Cemitério"}
-      >
-        <div className="flex items-center gap-2">
-          <IGRPButton
-            name={`button2`}
-            variant={`default`}
-            size={`default`}
-            showIcon={true}
-            iconName={`Save`}
-            className={cn()}
-            onClick={() => formCemeteryRef.current?.submit()}
-          >
-            Salvar
-          </IGRPButton>
-        </div>
-      </IGRPPageHeader>
+      <div className="container mx-auto p-6 space-y-6">
+        <IGRPPageHeader
+          name={`pageHeader1`}
+          iconBackButton={`ArrowLeft`}
+          showBackButton={true}
+          urlBackButton={`/cemeteries`}
+          variant={`h3`}
+          className={cn()}
+          title={cemetery ? "Editar Cemitério" : "Novo Cemitério"}
+        >
+          <div className="flex items-center gap-2">
+            <IGRPButton
+              name={`button2`}
+              variant={`default`}
+              size={`default`}
+              showIcon={true}
+              iconName={`Save`}
+              className={cn()}
+              onClick={() => formCemeteryRef.current?.submit()}
+            >
+              Salvar
+            </IGRPButton>
+          </div>
+        </IGRPPageHeader>
 
-      <IGRPForm
-        schema={formCemetery}
-        validationMode={"onBlur"}
-        formRef={formCemeteryRef}
-        onSubmit={onSubmitCemetery}
-        defaultValues={cemeteryFormData}
-      >
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            {/* Informações Básicas */}
-            <div className="space-y-4">
-              <IGRPInputHidden
-                name={"municipalityId"}
-                label={"municipalityId"}
-                required={true}
-              ></IGRPInputHidden>
-              <IGRPInputText
-                name={"name"}
-                label={"Nome do Cemitério"}
-                required={true}
-                placeholder={"Cemitério Municipal"}
-              ></IGRPInputText>
-              <IGRPInputText
-                name={"address"}
-                label={"Endereço"}
-                required={true}
-                placeholder={"Rua Exemplo, 123 - Centro, Cidade/UF"}
-              ></IGRPInputText>
-              <div>
-                <IGRPSelect
-                  name={"status"}
-                  label={"Status"}
+        <IGRPForm
+          schema={formCemetery}
+          validationMode={"onBlur"}
+          formRef={formCemeteryRef}
+          onSubmit={onSubmitCemetery}
+          defaultValues={cemeteryFormData}
+        >
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Informações Básicas</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <IGRPInputHidden
+                  name={"municipalityId"}
+                  label={"municipalityId"}
                   required={true}
-                  options={CEMETERY_STATUS.map((value) => ({
-                    value,
-                    label:
-                      value === "ACTIVE"
-                        ? "Ativo"
-                        : value === "INACTIVE"
-                          ? "Inativo"
-                          : "Manutenção",
-                  }))}
-                  placeholder={"Selecione o status"}
-                />
+                ></IGRPInputHidden>
+                <IGRPInputText
+                  name={"name"}
+                  label={"Nome do Cemitério"}
+                  required={true}
+                  placeholder={"Cemitério Municipal"}
+                ></IGRPInputText>
+                <IGRPInputText
+                  name={"address"}
+                  label={"Endereço"}
+                  required={true}
+                  placeholder={"Rua Exemplo, 123 - Centro, Cidade/UF"}
+                ></IGRPInputText>
+                <div>
+                  <IGRPSelect
+                    name={"status"}
+                    label={"Status"}
+                    required={true}
+                    options={CEMETERY_STATUS.map((value) => ({
+                      value,
+                      label:
+                        value === "ACTIVE"
+                          ? "Ativo"
+                          : value === "INACTIVE"
+                            ? "Inativo"
+                            : "Manutenção",
+                    }))}
+                    placeholder={"Selecione o status"}
+                  />
+                </div>
               </div>
-            </div>
-          </IGRPCardContent>
-        </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
 
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle>Localização e Área</IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent>
-            {/* Localização e Área */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <IGRPInputNumber
-                    name={"geoPoint.latitude"}
-                    label={"Latitude"}
-                    required={true}
-                    step={0.000001}
-                    placeholder={"-23.550520"}
-                  ></IGRPInputNumber>
+          <IGRPCard>
+            <IGRPCardHeader>
+              <IGRPCardTitle>Localização e Área</IGRPCardTitle>
+            </IGRPCardHeader>
+            <IGRPCardContent>
+              {/* Localização e Área */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <IGRPInputNumber
+                      name={"geoPoint.latitude"}
+                      label={"Latitude"}
+                      required={true}
+                      step={0.000001}
+                      placeholder={"-23.550520"}
+                    ></IGRPInputNumber>
+                  </div>
+                  <div>
+                    <IGRPInputNumber
+                      name={"geoPoint.longitude"}
+                      label={"Longitude"}
+                      required={true}
+                      step={0.000001}
+                      placeholder={"-46.633308"}
+                    ></IGRPInputNumber>
+                  </div>
                 </div>
-                <div>
-                  <IGRPInputNumber
-                    name={"geoPoint.longitude"}
-                    label={"Longitude"}
-                    required={true}
-                    step={0.000001}
-                    placeholder={"-46.633308"}
-                  ></IGRPInputNumber>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <IGRPInputNumber
+                      name={"totalArea"}
+                      label={"Área Total (m²)"}
+                      required={true}
+                      step={1}
+                      placeholder={"50000"}
+                    ></IGRPInputNumber>
+                  </div>
+                  <div>
+                    <IGRPInputNumber
+                      name={"maxCapacity"}
+                      label={"Capacidade Máxima"}
+                      required={true}
+                      step={1}
+                      placeholder={"10000"}
+                    ></IGRPInputNumber>
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <IGRPInputNumber
-                    name={"totalArea"}
-                    label={"Área Total (m²)"}
-                    required={true}
-                    step={1}
-                    placeholder={"50000"}
-                  ></IGRPInputNumber>
-                </div>
-                <div>
-                  <IGRPInputNumber
-                    name={"maxCapacity"}
-                    label={"Capacidade Máxima"}
-                    required={true}
-                    step={1}
-                    placeholder={"10000"}
-                  ></IGRPInputNumber>
-                </div>
-              </div>
-            </div>
-          </IGRPCardContent>
-        </IGRPCard>
+            </IGRPCardContent>
+          </IGRPCard>
 
-        {/* Removed non-essential fields to match API payload */}
-      </IGRPForm>
+          {/* Removed non-essential fields to match API payload */}
+        </IGRPForm>
+      </div>
     </div>
   );
 }

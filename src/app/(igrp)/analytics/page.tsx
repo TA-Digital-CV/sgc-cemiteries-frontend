@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  cn,
   IGRPBadge,
   IGRPButton,
   IGRPCard,
@@ -9,6 +10,7 @@ import {
   IGRPCardHeader,
   IGRPCardTitle,
   IGRPIcon,
+  IGRPPageHeader,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useState } from "react";
@@ -37,16 +39,16 @@ export default function AnalyticsPage() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Analytics e Dashboards
-          </h1>
-          <p className="text-muted-foreground">
-            Análise detalhada de métricas, tendências e projeções do sistema
-          </p>
-        </div>
-        <div className="flex gap-2">
+      <IGRPPageHeader
+        title="Análises e Dashboards"
+        description="Análise detalhada de métricas, tendências e projeções do sistema"
+        variant="h3"
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries`}
+        className={cn()}
+      >
+        <div className="flex items-center gap-2">
           <IGRPButton
             variant="outline"
             onClick={handleRefresh}
@@ -56,16 +58,8 @@ export default function AnalyticsPage() {
           >
             Atualizar
           </IGRPButton>
-          <IGRPButton showIcon iconName={"Download"}>
-            Exportar Dados
-          </IGRPButton>
-          <Link href="/analytics/occupancy">
-            <IGRPButton showIcon iconName={"BarChart3"}>
-              Ocupação
-            </IGRPButton>
-          </Link>
         </div>
-      </div>
+      </IGRPPageHeader>
 
       {/* Navegação por abas */}
       <div className="border-b">

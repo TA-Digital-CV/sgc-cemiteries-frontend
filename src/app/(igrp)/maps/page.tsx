@@ -1,5 +1,6 @@
 "use client";
 import {
+  cn,
   IGRPButton,
   IGRPCard,
   IGRPCardContent,
@@ -47,20 +48,15 @@ export default function MapsPage() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Cabeçalho */}
       <IGRPPageHeader
-        title="Mapas e Georreferenciamento"
+        title="Mapas de Cemitérios"
         description="Visualização interativa e gerenciamento de mapas de cemitérios"
         variant="h1"
+        iconBackButton={`ArrowLeft`}
+        showBackButton={true}
+        urlBackButton={`/cemeteries`}
+        className={cn()}
       >
         <div className="flex items-center gap-2">
-          <IGRPLabel htmlFor="cemeteryId" className="mb-0">
-            Cemitério
-          </IGRPLabel>
-          <IGRPInputText
-            id="cemeteryId"
-            placeholder="Digite o ID do cemitério"
-            value={cemeteryId}
-            onChange={(e) => setCemeteryId(e.target.value)}
-          />
           <IGRPButton
             variant="outline"
             onClick={handleRefresh}

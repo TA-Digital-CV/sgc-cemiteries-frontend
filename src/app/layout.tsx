@@ -1,4 +1,5 @@
 import "@/styles/globals.css";
+import "maplibre-gl/dist/maplibre-gl.css";
 
 import { IGRPRootLayout } from "@igrp/framework-next";
 import type { IGRPLayoutConfigArgs } from "@igrp/framework-next-types";

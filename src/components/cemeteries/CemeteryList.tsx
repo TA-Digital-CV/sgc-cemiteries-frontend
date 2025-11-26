@@ -144,7 +144,6 @@ export function CemeteryList({
     return matchesSearch && matchesMunicipality;
   });
 
-
   const handleSearch = (term: string) => {
     setSearchTerm(term);
   };

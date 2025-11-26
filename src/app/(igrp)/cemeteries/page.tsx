@@ -26,8 +26,8 @@ export default function CemeteriesPage() {
   const [selectedMunicipalityName, setSelectedMunicipalityName] =
     useState<string>("");
 
-  function goToCemeteries(_row?: unknown): void {
-    router.push(`/cemeteries`);
+  function goToAnalisys(_row?: unknown): void {
+    router.push(`/analytics`);
   }
 
   function goToNewCemetery(_row?: unknown): void {
@@ -89,7 +89,7 @@ export default function CemeteriesPage() {
             showIcon={true}
             iconName={"ChartSpline"}
             className={cn()}
-            onClick={() => goToCemeteries()}
+            onClick={() => goToAnalisys()}
           >
             Análises
           </IGRPButton>

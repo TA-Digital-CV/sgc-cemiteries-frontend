@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  IGRPStatsCard,
-} from "@igrp/igrp-framework-react-design-system";
+import { IGRPStatsCard } from "@igrp/igrp-framework-react-design-system";
 import React, { useEffect, useMemo, useRef } from "react";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import { OccupancyChart } from "./OccupancyChart";
@@ -19,7 +17,8 @@ export function DashboardStats({ cemeteryId }: DashboardStatsProps) {
     cemeteryStatistics,
     fetchCemeteryStatistics,
     isLoading,
-  } = useCemetery();
+    error,
+  } = useCemetery({ autoFetch: !cemeteryId });
 
   /**
    * Ensures statistics are fetched only once per mount or when cemeteryId changes.
@@ -37,7 +36,9 @@ export function DashboardStats({ cemeteryId }: DashboardStatsProps) {
     lastFetchedIdRef.current = cemeteryId;
 
     if (cemeteryId) {
-      console.log(`[DashboardStats] Fetching statistics for cemetery ${cemeteryId}`);
+      console.log(
+        `[DashboardStats] Fetching statistics for cemetery ${cemeteryId}`,
+      );
       void fetchCemeteryStatistics(cemeteryId);
     } else {
       console.log("[DashboardStats] Fetching all cemeteries for global stats");
@@ -88,7 +89,10 @@ export function DashboardStats({ cemeteryId }: DashboardStatsProps) {
     };
   }, [cemeteryId, cemeteryStatistics, cemeteries]);
 
-  if (isLoading) {
+  const showLoading =
+    isLoading || (!!cemeteryId && !cemeteryStatistics && !error);
+
+  if (showLoading) {
     return (
       <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -184,10 +188,13 @@ export function DashboardStats({ cemeteryId }: DashboardStatsProps) {
           iconName="Wrench"
           showIcon={true}
           showIconBackground={true}
-          value={(stats.burials + stats.exhumations + stats.transfers).toString()}
+          value={(
+            stats.burials +
+            stats.exhumations +
+            stats.transfers
+          ).toString()}
           title="Operações (Total)"
           label="Inumações, exumações e traslados"
-
         />
       </div>
 

@@ -78,7 +78,7 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     roles: [],
   },*/
   // --- SGC Essential Routes (Phase 1) ---
-  {
+  /*{
     id: 100,
     code: "CEMETERIES",
     name: "Cemitérios",
@@ -92,8 +92,8 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     parentCode: null,
     applicationCode: "APP_TEST_1",
     roles: [],
-  },
-  {
+  },*/
+  /*{
     id: 105,
     code: "BLOCKS",
     name: "Blocos",
@@ -122,23 +122,23 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     parentCode: "CEMETERIES",
     applicationCode: "APP_TEST_1",
     roles: [],
-  },
+  },*/
   {
     id: 101,
     code: "CEMETERIES_LIST",
     name: "Listar Cemitérios",
     type: "MENU_PAGE",
     position: 11,
-    icon: "List",
+    icon: "MapPin",
     status: "ACTIVE",
     target: "_self",
     url: "cemeteries",
     pageSlug: "cemeteries",
-    parentCode: "CEMETERIES",
+    parentCode: null,
     applicationCode: "APP_TEST_1",
     roles: [],
   },
-  {
+  /*{
     id: 110,
     code: "PLOTS",
     name: "Sepulturas",
@@ -426,5 +426,5 @@ export const IGRP_DEFAULT_MENU: IGRPMenuItemArgs[] = [
     parentCode: "FINANCIAL",
     applicationCode: "APP_TEST_1",
     roles: [],
-  },
+  },*/
 ];

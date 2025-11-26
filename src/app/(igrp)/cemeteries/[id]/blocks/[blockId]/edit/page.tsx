@@ -13,7 +13,7 @@ import {
 } from "@igrp/igrp-framework-react-design-system";
 //
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type { CemeteryBlock } from "@/app/(myapp)/types/cemetery";
@@ -42,10 +42,12 @@ export default function BlockEditPage() {
     name: string;
     description: string;
     maxCapacity: number;
+    geoPolygon?: string;
   }>({
     name: "",
     description: "",
     maxCapacity: 0,
+    geoPolygon: "",
   });
 
   useEffect(() => {
@@ -60,6 +62,9 @@ export default function BlockEditPage() {
         name: currentBlock.name,
         description: currentBlock.description || "",
         maxCapacity: Number(currentBlock.maxCapacity),
+        geoPolygon: currentBlock.geoPolygon
+          ? JSON.stringify(currentBlock.geoPolygon)
+          : "",
       });
     }
   }, [currentBlock]);
@@ -73,6 +78,18 @@ export default function BlockEditPage() {
     maxCapacity: z
       .number({ message: "Capacidade deve ser um número" })
       .gt(0, "Capacidade deve ser maior que 0"),
+    geoPolygon: z
+      .string()
+      .optional()
+      .refine((val) => {
+        if (!val) return true;
+        try {
+          JSON.parse(val);
+          return true;
+        } catch {
+          return false;
+        }
+      }, "JSON inválido"),
   });
 
   /**
@@ -98,11 +115,22 @@ export default function BlockEditPage() {
       });
       return;
     }
+
+    let geoPolygonObj = {};
+    if (data.geoPolygon) {
+      try {
+        geoPolygonObj = JSON.parse(data.geoPolygon);
+      } catch (e) {
+        console.error("Invalid JSON", e);
+      }
+    }
+
     const res = await updateBlock(blockId, {
       cemeteryId,
       name: data.name.trim(),
       description: data.description?.trim(),
       maxCapacity: Number(data.maxCapacity),
+      geoPolygon: geoPolygonObj,
     });
     if (res.success) {
       igrpToast({

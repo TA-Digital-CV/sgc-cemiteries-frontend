@@ -1,8 +1,10 @@
 "use client";
 
+import React from "react";
 import {
   IGRPInputNumber,
   IGRPInputText,
+  IGRPTextarea,
 } from "@igrp/igrp-framework-react-design-system";
 
 interface BlockFieldsProps {
@@ -32,6 +34,14 @@ export function BlockFields({ showDescription = false }: BlockFieldsProps) {
           <IGRPInputText name={"description"} label={"Descrição"} />
         </div>
       )}
+      <div className="col-span-2">
+        <IGRPTextarea
+          name={"geoPolygon"}
+          label={"Geolocalização (JSON)"}
+          placeholder='{"type": "Polygon", "coordinates": [[...]]}'
+          rows={4}
+        />
+      </div>
     </div>
   );
 }

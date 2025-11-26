@@ -108,7 +108,13 @@ export const getStatusLabel = (status: string) => {
 // Serviço de cemitérios (singleton)
 const cemeteryService = new CemeteryService();
 
-export function useCemetery(): UseCemeteryReturn {
+export interface UseCemeteryOptions {
+  autoFetch?: boolean;
+}
+
+export function useCemetery(
+  options: UseCemeteryOptions = { autoFetch: true },
+): UseCemeteryReturn {
   // Estado
   const [cemeteries, setCemeteries] = useState<Cemetery[]>([]);
   const [selectedCemetery, setSelectedCemetery] = useState<Cemetery | null>(
@@ -540,8 +546,10 @@ export function useCemetery(): UseCemeteryReturn {
 
   // Efeito para buscar cemitérios ao montar o hook
   useEffect(() => {
-    fetchCemeteries();
-  }, [fetchCemeteries]);
+    if (options.autoFetch) {
+      fetchCemeteries();
+    }
+  }, [fetchCemeteries, options.autoFetch]);
 
   return {
     cemeteries,
