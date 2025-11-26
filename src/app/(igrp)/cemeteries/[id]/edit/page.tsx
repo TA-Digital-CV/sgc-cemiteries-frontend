@@ -13,10 +13,10 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
-import { CemeteryForm } from "@/components/cemeteries/CemeteryForm";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type { ActionResult } from "@/app/(myapp)/types/Common";
 import type { Cemetery, CemeteryFormData } from "@/app/(myapp)/types/cemetery";
+import { CemeteryForm } from "@/components/cemeteries/CemeteryForm";
 
 /**
  * EditCemeteryPage renders the edit form for a specific cemetery.

@@ -1,4 +1,4 @@
-import { proxyFetch, USE_REAL_BACKEND, MUNICIPALITY_ID } from "../../config";
+import { MUNICIPALITY_ID, proxyFetch, USE_REAL_BACKEND } from "../../config";
 import { cemeteries, pageable } from "../../mock-data";
 
 /**
@@ -14,7 +14,12 @@ export async function GET(req: Request) {
     const u = new URL(req.url);
     const hasMun = Boolean(u.searchParams.get("municipalityId"));
     if (!hasMun && MUNICIPALITY_ID) {
-      return proxyFetch(req, `/cemeteries?municipalityId=${encodeURIComponent(MUNICIPALITY_ID)}`);
+      u.searchParams.set("municipalityId", MUNICIPALITY_ID);
+      const updatedReq = new Request(u.toString(), {
+        method: req.method,
+        headers: req.headers,
+      });
+      return proxyFetch(updatedReq, "/cemeteries");
     }
     return proxyFetch(req, "/cemeteries");
   }
@@ -23,7 +28,12 @@ export async function GET(req: Request) {
   const size = Number(url.searchParams.get("size") ?? 10);
   const status = url.searchParams.get("status");
   const name = url.searchParams.get("name");
+  const municipalityId = url.searchParams.get("municipalityId");
   let list = cemeteries;
+  if (municipalityId)
+    list = list.filter(
+      (c) => String(c.municipalityId) === String(municipalityId),
+    );
   if (status) list = list.filter((c) => c.status === status);
   if (name)
     list = list.filter((c) =>

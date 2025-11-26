@@ -17,8 +17,11 @@ import {
   IGRPDataTableRowAction,
   IGRPIcon,
   IGRPInputText,
+  IGRPLabel,
+  IGRPSelect,
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import { CemeteryService } from "@/app/(myapp)/services/cemeteryService";
@@ -26,6 +29,8 @@ import type { Cemetery, CemeteryFilters } from "@/app/(myapp)/types/cemetery";
 
 interface CemeteryListProps {
   className?: string;
+  municipalityId?: string;
+  onMunicipalityChange?: (id: string) => void;
   onCemeterySelect?: (cemetery: Cemetery) => void;
   onCemeteryEdit?: (cemetery: Cemetery) => void;
   onCemeteryDelete?: (cemetery: Cemetery) => void;
@@ -33,13 +38,15 @@ interface CemeteryListProps {
 
 export function CemeteryList({
   className,
+  municipalityId,
+  onMunicipalityChange: _onMunicipalityChange,
   onCemeterySelect,
   onCemeteryEdit,
   onCemeteryDelete: _onCemeteryDelete,
 }: CemeteryListProps) {
   /**
-   * CemeteryList renders a paginated table of cemeteries.
-   * Provides search, status/occupancy badges, and row actions.
+   * CemeteryList
+   * Renders list and requires municipalityId filter to fetch data.
    */
   const { cemeteries, isLoading, error, fetchCemeteries, deleteCemetery } =
     useCemetery();
@@ -49,6 +56,7 @@ export function CemeteryList({
     Record<string, { blocks: number; sections: number; plots: number }>
   >({});
   const { igrpToast } = useIGRPToast();
+  const router = useRouter();
   const perms = String(process.env.NEXT_PUBLIC_PERMISSIONS || "")
     .split(",")
     .map((p) => p.trim().toUpperCase());
@@ -81,6 +89,18 @@ export function CemeteryList({
         return { label: status, badgeClassName: "" };
     }
   };
+
+  useEffect(() => {
+    _setFilters((prev) => {
+      const next = { ...prev } as CemeteryFilters;
+      if (municipalityId) {
+        next.municipalityId = municipalityId;
+      } else {
+        delete next.municipalityId;
+      }
+      return next;
+    });
+  }, [municipalityId]);
 
   useEffect(() => {
     fetchCemeteries(filters);
@@ -127,10 +147,13 @@ export function CemeteryList({
    */
   const filteredCemeteries = cemeteries.filter((cemetery) => {
     const term = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       cemetery.name.toLowerCase().includes(term) ||
-      (cemetery.address?.toLowerCase?.().includes(term) ?? false)
-    );
+      (cemetery.address?.toLowerCase?.().includes(term) ?? false);
+    const matchesMunicipality = municipalityId
+      ? String(cemetery.municipalityId ?? "") === String(municipalityId)
+      : true;
+    return matchesSearch && matchesMunicipality;
   });
 
   // Paginação
@@ -251,6 +274,7 @@ export function CemeteryList({
                   showIcon={true}
                 />
               </div>
+
               <IGRPButton
                 variant={"outline"}
                 size={"sm"}
@@ -315,13 +339,14 @@ export function CemeteryList({
                 cell: ({ row }) => row.getValue("address") as string,
               },
               {
+                id: "blocksCount",
                 header: ({ column }) => (
                   <IGRPDataTableHeaderSortToggle
                     column={column}
                     title={`Blocos`}
                   />
                 ),
-                accessorKey: "blocksCount",
+                accessorKey: "id", // blocksCount not in DTO
                 cell: ({ row }) => {
                   const id = (row.original as Cemetery).id;
                   const v = countsById[id]?.blocks ?? 0;
@@ -329,13 +354,14 @@ export function CemeteryList({
                 },
               },
               {
+                id: "sectionsCount",
                 header: ({ column }) => (
                   <IGRPDataTableHeaderSortToggle
                     column={column}
                     title={`Seções`}
                   />
                 ),
-                accessorKey: "sectionsCount",
+                accessorKey: "id", // sectionsCount not in DTO
                 cell: ({ row }) => {
                   const id = (row.original as Cemetery).id;
                   const v = countsById[id]?.sections ?? 0;
@@ -343,13 +369,14 @@ export function CemeteryList({
                 },
               },
               {
+                id: "plotsCount",
                 header: ({ column }) => (
                   <IGRPDataTableHeaderSortToggle
                     column={column}
                     title={`Sepulturas`}
                   />
                 ),
-                accessorKey: "plotsCount",
+                accessorKey: "id", // plotsCount not in DTO
                 cell: ({ row }) => {
                   const id = (row.original as Cemetery).id;
                   const v = countsById[id]?.plots ?? 0;
@@ -416,37 +443,6 @@ export function CemeteryList({
                   const rowData = row.original as Cemetery;
                   const items: IGRPDataTableActionDropdown[] = [
                     {
-                      component: IGRPDataTableDropdownMenuAlert,
-                      props: {
-                        modalTitle: `Definir Contexto`,
-                        labelTrigger: `Definir Contexto`,
-                        icon: `MapPin`,
-                        showIcon: true,
-                        showCancel: true,
-                        labelCancel: `Cancelar`,
-                        variantCancel: `default` as const,
-                        showConfirm: true,
-                        labelConfirm: `Confirmar`,
-                        variantConfirm: `secondary` as const,
-                        onClickConfirm: () => {
-                          try {
-                            localStorage.setItem(
-                              "activeCemeteryId",
-                              String(rowData.id),
-                            );
-                            igrpToast({
-                              title: "Contexto definido",
-                              description: `Cemitério ativo: ${rowData.name}`,
-                              type: "success",
-                            });
-                          } catch {}
-                        },
-                        children: (
-                          <>Definir este cemitério como contexto ativo?</>
-                        ),
-                      },
-                    },
-                    {
                       component: IGRPDataTableDropdownMenuLink,
                       props: {
                         labelTrigger: `Editar`,
@@ -456,32 +452,76 @@ export function CemeteryList({
                       },
                     },
                   ];
-                  // Navegação de gestão respeitando hierarquia
+                  // Navegação de gestão respeitando hierarquia com persistência de contexto
                   items.push({
-                    component: IGRPDataTableDropdownMenuLink,
+                    component: IGRPDataTableDropdownMenuAlert,
                     props: {
+                      modalTitle: `Gerir Blocos`,
                       labelTrigger: `Gerir Blocos`,
                       icon: `Blocks`,
-                      href: `/blocks?cemeteryId=${rowData.id}`,
                       showIcon: true,
+                      showCancel: true,
+                      labelCancel: `Cancelar`,
+                      variantCancel: `default` as const,
+                      showConfirm: true,
+                      labelConfirm: `Confirmar`,
+                      variantConfirm: `secondary` as const,
+                      onClickConfirm: () => {
+                        try {
+                          localStorage.setItem(
+                            "activeCemeteryId",
+                            String(rowData.id),
+                          );
+                          router.push(`/blocks?cemeteryId=${rowData.id}`);
+                        } catch {}
+                      },
+                      children: <></>,
                     },
                   });
                   items.push({
-                    component: IGRPDataTableDropdownMenuLink,
+                    component: IGRPDataTableDropdownMenuAlert,
                     props: {
+                      modalTitle: `Gerir Seções`,
                       labelTrigger: `Gerir Seções`,
                       icon: `ListTree`,
-                      href: `/sections?cemeteryId=${rowData.id}`,
                       showIcon: true,
+                      showCancel: true,
+                      labelCancel: `Cancelar`,
+                      variantCancel: `default` as const,
+                      showConfirm: true,
+                      labelConfirm: `Confirmar`,
+                      variantConfirm: `secondary` as const,
+                      onClickConfirm: () => {
+                        try {
+                          localStorage.setItem(
+                            "activeCemeteryId",
+                            String(rowData.id),
+                          );
+                          router.push(`/sections?cemeteryId=${rowData.id}`);
+                        } catch {}
+                      },
+                      children: <></>,
                     },
                   });
                   items.push({
-                    component: IGRPDataTableDropdownMenuLink,
+                    component: IGRPDataTableDropdownMenuAlert,
                     props: {
+                      modalTitle: `Gerir Sepulturas`,
                       labelTrigger: `Gerir Sepulturas`,
                       icon: `Crosshair`,
-                      href: `/plots?cemeteryId=${rowData.id}`,
                       showIcon: true,
+                      showCancel: false,
+                      showConfirm: false,
+                      onClickConfirm: () => {
+                        try {
+                          localStorage.setItem(
+                            "activeCemeteryId",
+                            String(rowData.id),
+                          );
+                          router.push(`/plots?cemeteryId=${rowData.id}`);
+                        } catch {}
+                      },
+                      children: <></>,
                     },
                   });
                   items.push({

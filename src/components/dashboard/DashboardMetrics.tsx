@@ -17,17 +17,23 @@ import { usePlot } from "@/app/(myapp)/hooks/usePlot";
 
 interface DashboardMetricsProps {
   className?: string;
+  municipalityId?: string;
 }
 
 /**
  * DashboardMetrics
- * Renders statistics cards using IGRPStatsCard with data from cemeteries and plots.
+ * Computes and renders statistics, honoring municipality filter when provided.
  */
-export function DashboardMetrics({ className }: DashboardMetricsProps) {
+export function DashboardMetrics({
+  className,
+  municipalityId,
+}: DashboardMetricsProps) {
   const { cemeteries, isLoading: cemeteriesLoading } = useCemetery();
   const { plots, plotStatistics, isLoading: plotsLoading } = usePlot();
 
   const isLoading = cemeteriesLoading || plotsLoading;
+
+  // When municipalityId is not provided, compute metrics across all cemeteries
 
   if (isLoading) {
     return (
@@ -114,10 +120,26 @@ export function DashboardMetrics({ className }: DashboardMetricsProps) {
     );
   }
 
-  const totalCemeteries = cemeteries.length;
-  const totalPlots = plotStatistics?.totalPlots ?? plots.length;
-  const occupiedPlots = plotStatistics?.occupiedPlots || 0;
-  const availablePlots = plotStatistics?.availablePlots || 0;
+  const filteredCemeteries = municipalityId
+    ? cemeteries.filter(
+        (c) => String(c.municipalityId ?? "") === String(municipalityId),
+      )
+    : cemeteries;
+  const cemeteryIds = new Set(filteredCemeteries.map((c) => String(c.id)));
+  const filteredPlots = municipalityId
+    ? plots.filter((p) => cemeteryIds.has(String(p.cemeteryId)))
+    : plots;
+
+  const totalCemeteries = filteredCemeteries.length;
+  const totalPlots = filteredPlots.length || plotStatistics?.totalPlots || 0;
+  const occupiedPlots =
+    filteredPlots.filter((p) => p.occupationStatus === "OCCUPIED").length ||
+    plotStatistics?.occupiedPlots ||
+    0;
+  const availablePlots =
+    filteredPlots.filter((p) => p.occupationStatus === "AVAILABLE").length ||
+    plotStatistics?.availablePlots ||
+    0;
   const occupancyRate = totalPlots > 0 ? (occupiedPlots / totalPlots) * 100 : 0;
 
   const occupancyVariant =

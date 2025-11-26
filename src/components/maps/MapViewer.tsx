@@ -13,6 +13,7 @@ import {
   IGRPLabel,
   IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
+import maplibregl from "maplibre-gl";
 import { useCallback, useEffect, useState } from "react";
 import { useMap } from "@/app/(myapp)/hooks/useMap";
 import type {
@@ -20,7 +21,6 @@ import type {
   LayerType,
   MapViewport,
 } from "@/app/(myapp)/types/Map";
-import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 // Available map layers used for UI toggling only (not full MapLayer objects)

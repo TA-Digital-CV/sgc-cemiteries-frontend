@@ -1,4 +1,4 @@
-import type { ApiResponse } from "@/app/(myapp)/types/Common";
+import type { ActionResult } from "@/app/(myapp)/types/Common";
 import type {
   PaginationInfo,
   Plot,
@@ -197,7 +197,7 @@ export class PlotService {
   // Deletar sepultura
   async deletePlot(id: string): Promise<void> {
     const url = `${this.baseUrl}/plots/${id}`;
-    await this.fetchWithErrorHandling<ApiResponse<void>>(url, {
+    await this.fetchWithErrorHandling<ActionResult<void>>(url, {
       method: "DELETE",
     });
   }

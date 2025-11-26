@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { USE_REAL_BACKEND, proxyFetch } from "../../config";
+import { proxyFetch, USE_REAL_BACKEND } from "../../config";
 import { blocks } from "../../mock-data";
 
 /**
@@ -20,11 +20,27 @@ export async function POST(request: NextRequest) {
     maxCapacity: payload.maxCapacity ?? 0,
     currentOccupancy: 0,
     occupancyRate: 0,
-    status: "ACTIVE",
     geoPolygon: payload.geoPolygon ?? { type: "Polygon", coordinates: [] },
-    createdDate: new Date().toISOString(),
-    lastModifiedDate: new Date().toISOString(),
   };
   blocks.push(item as (typeof blocks)[number]);
   return Response.json(item, { status: 201 });
+}
+
+/**
+ * GET /api/v1/cemetery-blocks
+ * Returns list of blocks filtered by cemeterieId/cemeteryId.
+ */
+export async function GET(request: NextRequest) {
+  if (USE_REAL_BACKEND) {
+    return proxyFetch(request, "/cemetery-blocks");
+  }
+  const url = new URL(request.url);
+  const cid =
+    url.searchParams.get("cemeterieId") ??
+    url.searchParams.get("cemeteryId") ??
+    "";
+  const list = cid
+    ? blocks.filter((b) => String(b.cemeteryId) === String(cid))
+    : blocks;
+  return Response.json({ content: list });
 }

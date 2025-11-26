@@ -1,12 +1,17 @@
 "use client";
 
-import { cn, IGRPButton } from "@igrp/igrp-framework-react-design-system";
+import {
+  cn,
+  IGRPButton,
+  IGRPBadge,
+} from "@igrp/igrp-framework-react-design-system";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { CemeteryList } from "@/components/cemeteries/CemeteryList";
 import { DashboardMetrics } from "@/components/dashboard/DashboardMetrics";
 /**
- * CemeteriesPage shows overview metrics and the cemetery list.
- * Uses IGRP components for layout and actions and removes lucide-react.
+ * CemeteriesPage
+ * Passes municipalityId to child components; municipality is required for filters.
  */
 
 export default function CemeteriesPage() {
@@ -15,6 +20,11 @@ export default function CemeteriesPage() {
     .split(",")
     .map((p) => p.trim().toUpperCase());
   const canWriteCemetery = perms.includes("CEMETERY_WRITE");
+
+  const [selectedMunicipalityId, setSelectedMunicipalityId] =
+    useState<string>("");
+  const [selectedMunicipalityName, setSelectedMunicipalityName] =
+    useState<string>("");
 
   function goToCemeteries(_row?: unknown): void {
     router.push(`/cemeteries`);
@@ -28,6 +38,21 @@ export default function CemeteriesPage() {
     router.push(`/maps`);
   }
 
+  /**
+   * restoreActiveMunicipality
+   * Restores the active municipality id from localStorage on mount.
+   */
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem("activeMunicipalityId") ?? "";
+      const storedName =
+        window.localStorage.getItem("activeMunicipalityName") ?? "";
+      if (stored) setSelectedMunicipalityId(stored);
+      if (storedName) setSelectedMunicipalityName(storedName);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -39,6 +64,13 @@ export default function CemeteriesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <div className="flex items-center gap-2"></div>
+          {/* Badge do nome do município */}
+          {selectedMunicipalityId && (
+            <IGRPBadge color="primary" variant="soft" size="sm">
+              Município: {selectedMunicipalityName || selectedMunicipalityId}
+            </IGRPBadge>
+          )}
           {canWriteCemetery && (
             <IGRPButton
               variant={"default"}
@@ -75,12 +107,10 @@ export default function CemeteriesPage() {
       </div>
 
       {/* Dashboard Overview */}
-      <DashboardMetrics />
-
-      {/* Quick Stats removidos: sem números hardcoded */}
+      <DashboardMetrics municipalityId={selectedMunicipalityId} />
 
       {/* Cemetery List */}
-      <CemeteryList />
+      <CemeteryList municipalityId={selectedMunicipalityId} />
     </div>
   );
 }

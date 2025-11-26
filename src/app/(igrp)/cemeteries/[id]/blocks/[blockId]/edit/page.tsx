@@ -15,10 +15,10 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
-import { BlockFields } from "@/components/forms/BlockFields";
-import { FormActions } from "@/components/forms/FormActions";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type { CemeteryBlock } from "@/app/(myapp)/types/cemetery";
+import { BlockFields } from "@/components/forms/BlockFields";
+import { FormActions } from "@/components/forms/FormActions";
 
 /**
  * BlockEditPage
@@ -40,12 +40,12 @@ export default function BlockEditPage() {
   );
   const [initial, setInitial] = useState<{
     name: string;
-    code: string;
-    totalPlots: number;
+    description: string;
+    maxCapacity: number;
   }>({
     name: "",
-    code: "",
-    totalPlots: 0,
+    description: "",
+    maxCapacity: 0,
   });
 
   useEffect(() => {
@@ -58,33 +58,21 @@ export default function BlockEditPage() {
     if (currentBlock) {
       setInitial({
         name: currentBlock.name,
-        code: currentBlock.code,
-        totalPlots: Number(currentBlock.totalPlots),
+        description: currentBlock.description || "",
+        maxCapacity: Number(currentBlock.maxCapacity),
       });
     }
   }, [currentBlock]);
-
-  const isCodeDuplicate = useMemo(() => {
-    return (code: string) => {
-      const codeNorm = String(code).trim().toLowerCase();
-      return blocks.some(
-        (b: CemeteryBlock) =>
-          b.cemeteryId === cemeteryId &&
-          b.id !== blockId &&
-          String(b.code).toLowerCase() === codeNorm,
-      );
-    };
-  }, [blocks, cemeteryId, blockId]);
 
   /**
    * Validates block edit form using Zod and DS form components.
    */
   const formSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    code: z.string().min(1, "Code is required"),
-    totalPlots: z
-      .number({ message: "Max capacity must be a number" })
-      .gt(0, "Max capacity must be greater than 0"),
+    name: z.string().min(1, "Nome é obrigatório"),
+    description: z.string().optional(),
+    maxCapacity: z
+      .number({ message: "Capacidade deve ser um número" })
+      .gt(0, "Capacidade deve ser maior que 0"),
   });
 
   /**
@@ -105,23 +93,16 @@ export default function BlockEditPage() {
     if (!cemeteryId || !blockId) {
       igrpToast({
         title: "Erro",
-        description: "Invalid route parameters",
-        type: "error",
-      });
-      return;
-    }
-    if (isCodeDuplicate(data.code)) {
-      igrpToast({
-        title: "Erro",
-        description: "Code must be unique in this cemetery",
+        description: "Parâmetros inválidos",
         type: "error",
       });
       return;
     }
     const res = await updateBlock(blockId, {
+      cemeteryId,
       name: data.name.trim(),
-      code: data.code.trim(),
-      totalPlots: Number(data.totalPlots),
+      description: data.description?.trim(),
+      maxCapacity: Number(data.maxCapacity),
     });
     if (res.success) {
       igrpToast({
@@ -131,7 +112,7 @@ export default function BlockEditPage() {
       });
       router.push(`/cemeteries/${cemeteryId}`);
     } else {
-      const err = res.errors?.[0] || "Failed to update block";
+      const err = res.errors?.[0] || "Falha ao atualizar bloco";
       igrpToast({ title: "Erro", description: err, type: "error" });
     }
   };
@@ -172,10 +153,7 @@ export default function BlockEditPage() {
             <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
           </IGRPCardHeader>
           <IGRPCardContent>
-            <BlockFields
-              capacityFieldName="totalPlots"
-              capacityLabel="Capacidade Máxima "
-            />
+            <BlockFields showDescription={true} />
             <FormActions
               onCancel={() => router.push(`/cemeteries/${cemeteryId}`)}
               onSubmit={() => formRef.current?.submit()}

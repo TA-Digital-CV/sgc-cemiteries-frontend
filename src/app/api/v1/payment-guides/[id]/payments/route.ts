@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 import {
+  errorResponse,
   proxyFetch,
   USE_REAL_BACKEND,
-  errorResponse,
 } from "../../../../config";
 
 export async function GET(

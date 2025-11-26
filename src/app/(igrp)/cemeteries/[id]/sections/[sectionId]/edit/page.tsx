@@ -14,10 +14,10 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { FormActions } from "@/components/forms/FormActions";
-import { SectionFields } from "@/components/forms/SectionFields";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type { CemeteryBlock } from "@/app/(myapp)/types/cemetery";
+import { FormActions } from "@/components/forms/FormActions";
+import { SectionFields } from "@/components/forms/SectionFields";
 
 /**
  * SectionEditPage
@@ -60,13 +60,13 @@ export default function SectionEditPage() {
       if (section) {
         setInitial({
           name: section.name,
-          code: section.code,
+          code: section.code ?? "",
           plotType: section.plotType as
             | "GROUND"
             | "MAUSOLEUM"
             | "NICHE"
             | "OSSUARY",
-          totalPlots: Number(section.totalPlots),
+          totalPlots: Number(section.totalPlots ?? 0),
           blockId: section.blockId,
         });
       }
@@ -119,7 +119,7 @@ export default function SectionEditPage() {
     if (res.success) {
       igrpToast({
         title: "Sucesso",
-        description: "Sector atualizado com sucesso",
+        description: "Secção atualizado com sucesso",
         type: "success",
       });
       router.push(`/cemeteries/${cemeteryId}`);
@@ -137,7 +137,7 @@ export default function SectionEditPage() {
         showBackButton={true}
         urlBackButton={`/cemeteries/${cemeteryId}`}
         variant={`h3`}
-        title={"Editar Setor"}
+        title={"Editar Secção"}
         description={"Atualize os dados do setor"}
       >
         <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ export default function SectionEditPage() {
       >
         <IGRPCard>
           <IGRPCardHeader>
-            <IGRPCardTitle>Dados do Setor</IGRPCardTitle>
+            <IGRPCardTitle>Dados do Secção</IGRPCardTitle>
           </IGRPCardHeader>
           <IGRPCardContent>
             <SectionFields

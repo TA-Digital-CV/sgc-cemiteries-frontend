@@ -15,10 +15,10 @@ import {
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import { z } from "zod";
-import { BlockFields } from "@/components/forms/BlockFields";
-import { FormActions } from "@/components/forms/FormActions";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type { CemeteryBlock } from "@/app/(myapp)/types/cemetery";
+import { BlockFields } from "@/components/forms/BlockFields";
+import { FormActions } from "@/components/forms/FormActions";
 
 /**
  * BlocksCreatePage
@@ -40,26 +40,15 @@ export default function BlocksCreatePage() {
     }
   }, [cemeteryId, fetchBlocks]);
 
-  const isCodeDuplicate = useMemo(() => {
-    return (code: string) => {
-      const codeNorm = String(code).trim().toLowerCase();
-      return blocks.some(
-        (b: CemeteryBlock) =>
-          b.cemeteryId === cemeteryId &&
-          String(b.code).toLowerCase() === codeNorm,
-      );
-    };
-  }, [blocks, cemeteryId]);
-
   /**
    * Validates block create form using Zod and DS form components.
    */
   const formSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    code: z.string().min(1, "Code is required"),
+    name: z.string().min(1, "Nome é obrigatório"),
+    description: z.string().optional(),
     maxCapacity: z
-      .number({ message: "Max capacity must be a number" })
-      .gt(0, "Max capacity must be greater than 0"),
+      .number({ message: "Capacidade deve ser um número" })
+      .gt(0, "Capacidade deve ser maior que 0"),
   });
 
   /**
@@ -80,15 +69,7 @@ export default function BlocksCreatePage() {
     if (!cemeteryId) {
       igrpToast({
         title: "Erro",
-        description: "Cemetery is required",
-        type: "error",
-      });
-      return;
-    }
-    if (isCodeDuplicate(data.code)) {
-      igrpToast({
-        title: "Erro",
-        description: "Code must be unique in this cemetery",
+        description: "Cemitério é obrigatório",
         type: "error",
       });
       return;
@@ -96,8 +77,8 @@ export default function BlocksCreatePage() {
     const res = await createBlock({
       cemeteryId,
       name: data.name.trim(),
+      description: data.description?.trim(),
       maxCapacity: Number(data.maxCapacity),
-      code: data.code.trim(),
     });
     if (res.success) {
       igrpToast({
@@ -107,7 +88,7 @@ export default function BlocksCreatePage() {
       });
       router.push(`/cemeteries/${cemeteryId}`);
     } else {
-      const err = res.errors?.[0] || "Failed to create block";
+      const err = res.errors?.[0] || "Falha ao criar bloco";
       igrpToast({ title: "Erro", description: err, type: "error" });
     }
   };
@@ -141,17 +122,14 @@ export default function BlocksCreatePage() {
         validationMode={"onBlur"}
         formRef={formRef}
         onSubmit={onSubmit}
-        defaultValues={{ name: "", code: "", maxCapacity: 0 }}
+        defaultValues={{ name: "", description: "", maxCapacity: 0 }}
       >
         <IGRPCard>
           <IGRPCardHeader>
             <IGRPCardTitle>Dados do Bloco</IGRPCardTitle>
           </IGRPCardHeader>
           <IGRPCardContent>
-            <BlockFields
-              capacityFieldName="maxCapacity"
-              capacityLabel="Capacidade Máxima "
-            />
+            <BlockFields showDescription={true} />
             <FormActions
               onCancel={() => router.push(`/cemeteries/${cemeteryId}`)}
               onSubmit={() => formRef.current?.submit()}

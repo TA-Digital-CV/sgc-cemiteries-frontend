@@ -1,9 +1,9 @@
 import type { NextRequest } from "next/server";
 import {
+  errorResponse,
   proxyFetchToBase,
   REAL_API_BASE,
   USE_REAL_BACKEND,
-  errorResponse,
 } from "../../config";
 
 /**

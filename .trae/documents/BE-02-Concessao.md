@@ -582,7 +582,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/concessions/550e8400-e29b-41d4-a716-4
     },
     "location": {
       "blockName": "Bloco A",
-      "sectionName": "Setor A1",
+      "sectionName": "Secção A1",
       "coordinates": {
         "latitude": 14.9176,
         "longitude": -23.5091

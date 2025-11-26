@@ -654,7 +654,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/cemeteries/550e8400-e29b-41d4-a716-44
         "sections": [
           {
             "id": "880e8400-e29b-41d4-a716-446655440002",
-            "name": "Setor A1",
+            "name": "Secção A1",
             "description": "Sepulturas tradicionais",
             "maxCapacity": 100,
             "currentOccupancy": 78,
@@ -757,7 +757,7 @@ curl -X POST "https://api.sgc.gov.cv/api/v1/cemetery-blocks" \
 
 * Status INACTIVE impede criação de novos setores
 
-#### 5.2.4 Criar Novo Setor
+#### 5.2.4 Criar Novo Secção
 
 **Endpoint:** `POST /api/v1/cemetery-sections`
 
@@ -779,7 +779,7 @@ curl -X POST "https://api.sgc.gov.cv/api/v1/cemetery-blocks" \
 
 * Bloco deve estar ativo
 
-#### 5.2.5 Atualizar Setor
+#### 5.2.5 Atualizar Secção
 
 **Endpoint:** `PUT /api/v1/cemetery-sections/{id}`
 
@@ -832,7 +832,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/plots?cemeteryId=550e8400-e29b-41d4-a
       "blockId": "770e8400-e29b-41d4-a716-446655440001",
       "blockName": "Bloco A",
       "sectionId": "880e8400-e29b-41d4-a716-446655440002",
-      "sectionName": "Setor A1",
+      "sectionName": "Secção A1",
       "plotNumber": "A1-001",
       "plotType": "GROUND",
       "occupationStatus": "AVAILABLE",
@@ -883,7 +883,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/plots?cemeteryId=550e8400-e29b-41d4-a
 
 * Dimensões obrigatórias para tipo GROUND
 
-* Setor deve estar ativo
+* Secção deve estar ativo
 
 **Exemplo de Request:**
 
@@ -1090,7 +1090,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/plots/aa0e8400-e29b-41d4-a716-4466554
     "plotId": "aa0e8400-e29b-41d4-a716-446655440004",
     "plotNumber": "A1-001",
     "cemeteryName": "Cemitério Municipal da Praia",
-    "location": "Bloco A - Setor A1",
+    "location": "Bloco A - Secção A1",
     "coordinates": "14.917634,-23.509123",
     "verificationUrl": "https://sgc.gov.cv/verify/aa0e8400-e29b-41d4-a716-446655440004"
   },
@@ -1499,7 +1499,7 @@ curl -X GET "https://api.sgc.gov.cv/api/v1/cemeteries/550e8400-e29b-41d4-a716-44
       "plotNumber": "A1-025",
       "location": {
         "blockName": "Bloco A",
-        "sectionName": "Setor A1",
+        "sectionName": "Secção A1",
         "coordinates": {
           "latitude": 14.9175,
           "longitude": -23.5090

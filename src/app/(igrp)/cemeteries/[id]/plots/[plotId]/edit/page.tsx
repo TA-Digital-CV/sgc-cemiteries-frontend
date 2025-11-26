@@ -15,7 +15,6 @@ import {
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { PlotForm } from "@/components/forms/PlotForm";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import { usePlot } from "@/app/(myapp)/hooks/usePlot";
 import { PlotService } from "@/app/(myapp)/services/plotService";
@@ -25,6 +24,7 @@ import type {
   CemeterySection,
 } from "@/app/(myapp)/types/cemetery";
 import type { PlotFormData } from "@/app/(myapp)/types/Plot";
+import { PlotForm } from "@/components/forms/PlotForm";
 
 /**
  * PlotEditPage

@@ -264,9 +264,20 @@ export function useCemetery(): UseCemeteryReturn {
       setError(null);
 
       try {
+        /**
+         * Fetches hierarchical structure and maps blocks/sections to local state
+         * to ensure UI tables render using hook-managed collections.
+         */
         const structures =
           await cemeteryService.getCemeteryStructures(cemeteryId);
         setCemeteryStructures(structures);
+        const s = structures?.[0];
+        if (s && Array.isArray((s as any).blocks)) {
+          setBlocks((s as any).blocks as CemeteryBlock[]);
+        }
+        if (s && Array.isArray((s as any).sections)) {
+          setSections((s as any).sections as CemeterySection[]);
+        }
       } catch (error) {
         handleError(error, "fetchCemeteryStructures");
       } finally {

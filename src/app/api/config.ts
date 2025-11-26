@@ -1,4 +1,4 @@
-export const USE_REAL_BACKEND = process.env.USE_REAL_BACKEND === "true";
+export const USE_REAL_BACKEND = process.env.USE_REAL_BACKEND !== "false";
 export const REAL_API_URL =
   process.env.REAL_API_URL || "https://api.sgc.gov.cv/api/v1";
 export const REAL_API_BASE =
@@ -7,7 +7,8 @@ export const REAL_API_BASE =
 export const MUNICIPALITY_ID =
   process.env.NEXT_PUBLIC_MUNICIPALITY_ID ||
   process.env.APP_MUNICIPALITY_DEFAULT ||
-  process.env.APP_MUCIPALITY_DEFAULT || "";
+  process.env.APP_MUCIPALITY_DEFAULT ||
+  "";
 
 /**
  * proxyFetch
@@ -26,9 +27,6 @@ export async function proxyFetch(
   const target = `${REAL_API_URL}${path}${query}`;
 
   const token = await getAccessToken().catch(() => undefined);
-  const authHeader = token?.accessToken
-    ? { Authorization: `Bearer ${token.accessToken}` }
-    : {};
 
   const contentTypeHeader =
     (init?.headers as Record<string, string> | undefined)?.["content-type"] ||
@@ -38,17 +36,32 @@ export async function proxyFetch(
 
   const headers = new Headers(init?.headers as HeadersInit);
   if (contentTypeHeader) headers.set("content-type", contentTypeHeader);
-  headers.set("Accept", "*/*");
+  const acceptFromInit =
+    (init?.headers as Record<string, string> | undefined)?.["Accept"] ||
+    (init?.headers as Record<string, string> | undefined)?.["accept"];
+  const acceptFromReq = req.headers.get("accept") || undefined;
+  const acceptHeader = acceptFromInit || acceptFromReq || "application/json";
+  headers.set("Accept", acceptHeader);
   headers.set("X-Request-ID", requestId);
   if (token?.accessToken)
     headers.set("Authorization", `Bearer ${token.accessToken}`);
 
-  const res = await fetch(target, {
-    method: init?.method ?? req.method,
-    headers,
-    body: init?.body,
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(target, {
+      method: init?.method ?? req.method,
+      headers,
+      body: init?.body,
+      cache: "no-store",
+    });
+  } catch (_err) {
+    return errorResponse(
+      "UPSTREAM_UNAVAILABLE",
+      "Real backend unavailable",
+      503,
+      { target },
+    );
+  }
 
   const responseContentType = res.headers.get("content-type") || "";
   if (responseContentType.toLowerCase().includes("application/json")) {
@@ -77,9 +90,6 @@ export async function proxyFetchToBase(
   const target = `${baseUrl}${path}${query}`;
 
   const token = await getAccessToken().catch(() => undefined);
-  const authHeader = token?.accessToken
-    ? { Authorization: `Bearer ${token.accessToken}` }
-    : {};
 
   const contentTypeHeader =
     (init?.headers as Record<string, string> | undefined)?.["content-type"] ||
@@ -89,17 +99,32 @@ export async function proxyFetchToBase(
 
   const headers = new Headers(init?.headers as HeadersInit);
   if (contentTypeHeader) headers.set("content-type", contentTypeHeader);
-  headers.set("Accept", "*/*");
+  const acceptFromInit =
+    (init?.headers as Record<string, string> | undefined)?.["Accept"] ||
+    (init?.headers as Record<string, string> | undefined)?.["accept"];
+  const acceptFromReq = req.headers.get("accept") || undefined;
+  const acceptHeader = acceptFromInit || acceptFromReq || "application/json";
+  headers.set("Accept", acceptHeader);
   headers.set("X-Request-ID", requestId);
   if (token?.accessToken)
     headers.set("Authorization", `Bearer ${token.accessToken}`);
 
-  const res = await fetch(target, {
-    method: init?.method ?? req.method,
-    headers,
-    body: init?.body,
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(target, {
+      method: init?.method ?? req.method,
+      headers,
+      body: init?.body,
+      cache: "no-store",
+    });
+  } catch (_err) {
+    return errorResponse(
+      "UPSTREAM_UNAVAILABLE",
+      "Real backend unavailable",
+      503,
+      { target },
+    );
+  }
 
   const responseContentType = res.headers.get("content-type") || "";
   if (responseContentType.toLowerCase().includes("application/json")) {

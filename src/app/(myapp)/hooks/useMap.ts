@@ -4,7 +4,6 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   type ActionResult,
-  ApiResponse,
   PaginatedResponse,
 } from "@/app/(myapp)/types/Common";
 import type {

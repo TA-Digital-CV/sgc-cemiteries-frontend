@@ -11,8 +11,8 @@ import {
   IGRPIcon,
   IGRPInputText,
   IGRPLabel,
-  IGRPSelect,
   IGRPPageHeader,
+  IGRPSelect,
 } from "@igrp/igrp-framework-react-design-system";
 import { useState } from "react";
 import { MapLayers } from "@/components/maps/MapLayers";

@@ -14,7 +14,6 @@ import {
   IGRPIcon,
   IGRPInputText,
   IGRPPageHeader,
-  IGRPSelect,
   useIGRPToast,
 } from "@igrp/igrp-framework-react-design-system";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -60,20 +59,9 @@ export default function BlocksPage() {
   };
 
   /**
-   * Validates and applies cemetery selection for block listing filters.
+   * applyActiveCemeteryContext
+   * Uses activeCemeteryId context from localStorage; no manual selector UI.
    */
-  const handleCemeteryChange = (id: string) => {
-    const exists = cemeteries.some((c) => String(c.id) === String(id));
-    if (!exists) {
-      igrpToast({
-        title: "Erro",
-        description: "Cemitério inválido",
-        type: "error",
-      });
-      return;
-    }
-    setSelectedCemeteryId(id);
-  };
 
   useEffect(() => {
     void fetchCemeteries();
@@ -141,7 +129,7 @@ export default function BlocksPage() {
         <div className="flex items-center gap-2">
           {selectedCemeteryId &&
             cemeteries.find((x) => x.id === selectedCemeteryId)?.name && (
-              <IGRPBadge color="info" variant="soft" size="sm">
+              <IGRPBadge color="primary" variant="soft" size="sm">
                 {cemeteries.find((x) => x.id === selectedCemeteryId)?.name}
               </IGRPBadge>
             )}
@@ -198,18 +186,7 @@ export default function BlocksPage() {
                 showIcon={true}
               />
             </div>
-            <div>
-              <IGRPSelect
-                label=""
-                options={cemeteries.map((c: Cemetery) => ({
-                  value: c.id,
-                  label: c.name,
-                }))}
-                placeholder="Selecione o Cemitério"
-                value={selectedCemeteryId}
-                onValueChange={(v) => handleCemeteryChange(String(v))}
-              />
-            </div>
+            {/* Cemetery selection UI removed: relies on activeCemeteryId context */}
             <IGRPButton
               variant={"outline"}
               size={"sm"}
@@ -257,10 +234,10 @@ export default function BlocksPage() {
                       title={`Capacidade`}
                     />
                   ),
-                  accessorKey: "totalPlots",
+                  accessorKey: "maxCapacity",
                   cell: ({ row }) =>
                     new Intl.NumberFormat("pt-CV").format(
-                      Number(row.getValue("totalPlots") ?? 0),
+                      Number(row.getValue("maxCapacity") ?? 0),
                     ),
                 },
                 {
@@ -270,13 +247,9 @@ export default function BlocksPage() {
                       title={`Ocupação`}
                     />
                   ),
-                  accessorKey: "occupiedPlots",
+                  accessorKey: "occupancyRate",
                   cell: ({ row }) => {
-                    const b = row.original as CemeteryBlock;
-                    const rate =
-                      b.totalPlots > 0
-                        ? (b.occupiedPlots / b.totalPlots) * 100
-                        : 0;
+                    const rate = Number(row.getValue("occupancyRate") ?? 0);
                     return `${rate.toFixed(1)}%`;
                   },
                 },

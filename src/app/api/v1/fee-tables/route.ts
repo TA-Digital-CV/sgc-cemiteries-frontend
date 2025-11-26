@@ -1,5 +1,10 @@
 import type { NextRequest } from "next/server";
-import { proxyFetch, USE_REAL_BACKEND, errorResponse, MUNICIPALITY_ID } from "../../config";
+import {
+  errorResponse,
+  MUNICIPALITY_ID,
+  proxyFetch,
+  USE_REAL_BACKEND,
+} from "../../config";
 
 /**
  * GET /api/v1/fee-tables
@@ -10,7 +15,10 @@ export async function GET(request: NextRequest) {
     return errorResponse("SERVICE_UNAVAILABLE", "Real backend disabled", 503);
   const hasMun = Boolean(request.nextUrl.searchParams.get("municipalityId"));
   if (!hasMun && MUNICIPALITY_ID) {
-    return proxyFetch(request, `/fee-tables?municipalityId=${encodeURIComponent(MUNICIPALITY_ID)}`);
+    return proxyFetch(
+      request,
+      `/fee-tables?municipalityId=${encodeURIComponent(MUNICIPALITY_ID)}`,
+    );
   }
   return proxyFetch(request, "/fee-tables");
 }

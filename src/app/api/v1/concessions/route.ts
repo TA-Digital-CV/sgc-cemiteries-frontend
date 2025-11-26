@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { proxyFetch, USE_REAL_BACKEND, errorResponse } from "../../config";
 import { z } from "zod";
+import { errorResponse, proxyFetch, USE_REAL_BACKEND } from "../../config";
 
 /**
  * GET /api/v1/concessions

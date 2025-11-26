@@ -1,0 +1,16 @@
+VM1288:63 :: Session DEBUG ::
+VM1288:63 {props: {…}}
+VM1288:63 :: Session DEBUG ::
+VM1288:63 [object Object]
+VM1288:63 [SystemSettings] load: start
+VM1288:63 [SystemSettings] state: value  options []
+VM1288:63 [SystemSettings] load: status 200
+VM1288:63 [SystemSettings] load: municipalities 3
+VM1288:63 [SystemSettings] localStorage available
+VM1288:63 [SystemSettings] stored activeMunicipalityId c6ad4601-a83a-40c5-b32a-46eb912e19ae
+VM1288:63 [SystemSettings] selectedMunicipalityId set from storage c6ad4601-a83a-40c5-b32a-46eb912e19ae
+VM1288:63 [SystemSettings] load: end
+VM1288:63 [SystemSettings] validate: selectedMunicipalityId c6ad4601-a83a-40c5-b32a-46eb912e19ae exists: true
+VM1288:63 [SystemSettings] state: value c6ad4601-a83a-40c5-b32a-46eb912e19ae options (3) ['cc5836fd-c9fb-4f75-a80f-f31d8df3f946', 'c6ad4601-a83a-40c5-b32a-46eb912e19ae', 'd323cab5-5c87-4cc0-8057-95deded11dcd']
+VM1288:63 [Fast Refresh] rebuilding
+VM1288:63 [Fast Refresh] done in 1506ms

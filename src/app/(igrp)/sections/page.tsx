@@ -313,28 +313,11 @@ export default function SectionsPage() {
                       title={`Capacidade`}
                     />
                   ),
-                  accessorKey: "totalPlots",
+                  accessorKey: "maxCapacity",
                   cell: ({ row }) =>
                     new Intl.NumberFormat("pt-CV").format(
-                      Number(row.getValue("totalPlots") ?? 0),
+                      Number(row.getValue("maxCapacity") ?? 0),
                     ),
-                },
-                {
-                  header: ({ column }) => (
-                    <IGRPDataTableHeaderSortToggle
-                      column={column}
-                      title={`Ocupação`}
-                    />
-                  ),
-                  accessorKey: "occupiedPlots",
-                  cell: ({ row }) => {
-                    const s = row.original as CemeterySection;
-                    const rate =
-                      s.totalPlots > 0
-                        ? (s.occupiedPlots / s.totalPlots) * 100
-                        : 0;
-                    return `${rate.toFixed(1)}%`;
-                  },
                 },
                 {
                   id: "actions",

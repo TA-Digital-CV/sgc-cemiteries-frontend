@@ -852,6 +852,18 @@ Ao implementar esta arquitetura em seu projeto:
 - [TypeScript Best Practices](https://www.typescriptlang.org/docs/handbook/declaration-files/do-s-and-don-ts.html)
 - [React Hook Form](https://react-hook-form.com/)
 
+## 🔌 Integração com Backend Real (Blocos, Setores e Sepulturas)
+
+- Todas as rotas `api/v1` foram configuradas para encaminhar requisições ao backend real via proxy.
+- Chave de controle: `USE_REAL_BACKEND` em `src/app/api/config.ts` (padrão: ativo, desative com `USE_REAL_BACKEND=false`).
+- Base URL real: `REAL_API_URL` (padrão: `https://api.sgc.gov.cv/api/v1`).
+- Páginas afetadas e serviços utilizados:
+  - `cemeteries/[id]/blocks/create|edit` → `CemeteryService.createBlock`/`updateBlock`
+  - `cemeteries/[id]/sections/create|edit` → `CemeteryService.createSection`/`updateSection`
+  - `cemeteries/[id]/plots/create` → `CemeteryService.createPlot` via `usePlot`
+- Tratamento de erros segue o padrão do DS com `useIGRPToast`, sem mascarar erros.
+- Requisitos do payload seguem o Swagger (campos para `cemetery-blocks`, `cemetery-sections`, `plots`).
+
 ---
 
 **Guia Genérico de Implementação** - Adaptável a qualquer domínio de negócio

@@ -1,97 +1,156 @@
+import { z } from "zod";
+/**
+ * Domain constants: Cemetery
+ * Source of truth for cemetery-related status and configuration values.
+ */
+export const CEMETERY_STATUS = ["ACTIVE", "INACTIVE", "MAINTENANCE"] as const;
+export type CemeteryStatus = (typeof CEMETERY_STATUS)[number];
+
+/**
+ * Domain constants: Plot types supported in the system.
+ */
+export const PLOT_TYPE = ["GROUND", "MAUSOLEUM", "NICHE", "OSSUARY"] as const;
+export type PlotType = (typeof PLOT_TYPE)[number];
+
+/**
+ * Domain constants: Plot occupation statuses.
+ */
+export const PLOT_STATUS = [
+  "AVAILABLE",
+  "OCCUPIED",
+  "RESERVED",
+  "MAINTENANCE",
+] as const;
+export type PlotStatus = (typeof PLOT_STATUS)[number];
+
+/**
+ * Domain constants: Growth scenario options used for projections.
+ */
+export const GROWTH_SCENARIO = [
+  "CONSERVATIVE",
+  "MODERATE",
+  "AGGRESSIVE",
+] as const;
+export type GrowthScenario = (typeof GROWTH_SCENARIO)[number];
 // Tipos principais para Cemitérios
+// Tipos principais para Cemitérios (alinhados com Backend DTOs)
 export interface Cemetery {
   id: string;
   municipalityId: string;
+  municipalityName: string;
   name: string;
   address: string;
-  geoPoint: {
-    latitude: number;
-    longitude: number;
-  };
+  geoPoint?: GeoPoint;
   totalArea: number;
   maxCapacity: number;
+  status: string;
+  statusDesc: string;
   currentOccupancy: number;
   occupancyRate: number;
-  status: CemeteryStatus;
-  createdDate: string;
-  lastModifiedDate: string;
-  metadata?: CemeteryMetadata;
 }
 
 export interface CemeteryFormData {
   municipalityId: string;
   name: string;
   address: string;
-  geoPoint: {
-    latitude: number;
-    longitude: number;
-  };
+  geoPoint?: GeoPoint;
   totalArea: number;
   maxCapacity: number;
-  metadata?: CemeteryMetadata;
+  status: string;
 }
 
-export interface CemeteryMetadata {
-  contact?: {
-    phone?: string;
-    email?: string;
-    responsible?: string;
-  };
-  operatingHours?: {
-    weekday: string;
-    weekend: string;
-  };
-  facilities?: string[];
-  notes?: string;
-}
+/**
+ * CemeteryFormSchema
+ * Shared validation schema for cemetery create/edit payload.
+ */
+export const CemeteryFormSchema = z.object({
+  municipalityId: z.string().min(1, "Municipality ID is required"),
+  name: z.string().min(1, "Name is required"),
+  address: z.string().min(1, "Address is required"),
+  geoPoint: z.object({
+    latitude: z
+      .number({ message: "Latitude must be a number" })
+      .min(-90, "Latitude must be between -90 and 90")
+      .max(90, "Latitude must be between -90 and 90"),
+    longitude: z
+      .number({ message: "Longitude must be a number" })
+      .min(-180, "Longitude must be between -180 and 180")
+      .max(180, "Longitude must be between -180 and 180"),
+  }), // GeoPoint é obrigatório no backend
+  totalArea: z
+    .number({ message: "Total area must be a number" })
+    .gt(0, "Total area must be greater than 0"),
+  maxCapacity: z
+    .number({ message: "Max capacity must be a number" })
+    .gt(0, "Max capacity must be greater than 0"),
+  status: z.enum(CEMETERY_STATUS),
+});
 
 export interface CemeteryStructure {
-  cemetery: Cemetery;
-  blocks: CemeteryBlock[];
-  sections: CemeterySection[];
+  id: string;
+  municipalityId: string;
+  municipalityName: string;
+  name: string;
+  address: string;
+  geoPoint?: GeoPoint;
+  totalArea: number;
+  maxCapacity: number;
+  status: string;
+  statusDesc: string;
+  currentOccupancy: number;
+  occupancyRate: number;
+  availablePlots: number;
+  blocksCount: number;
+  sectionsCount: number;
+  plotsCount: number;
   plots: CemeteryPlot[];
+  sections: CemeterySection[];
+  blocks: CemeteryBlock[];
 }
 
 export interface CemeteryBlock {
-  currentOccupancy: number;
-  maxCapacity: number;
   id: string;
   cemeteryId: string;
+  cemeteryName: string;
   name: string;
-  code: string;
   description?: string;
-  totalPlots: number;
-  occupiedPlots: number;
-  geoBounds?: GeoBounds;
+  maxCapacity: number;
+  geoPolygon?: Record<string, any>;
+  currentOccupancy: number;
+  occupancyRate: number;
 }
 
 export interface CemeterySection {
-  currentOccupancy: number;
-  maxCapacity: number;
   id: string;
-  blockId: string;
-  cemeteryId: string;
   name: string;
-  code: string;
   description?: string;
-  totalPlots: number;
-  occupiedPlots: number;
-  plotType: PlotType;
-  geoBounds?: GeoBounds;
+  geoPolygnon?: Record<string, any>; // Typo no backend mantido para compatibilidade
+  maxCapacity: number;
+  blockId: string;
+  blockName: string;
+  cemeteryId: string;
+  cemeteryName: string;
+  code?: string;
+  plotType?: PlotType;
+  totalPlots?: number;
 }
 
 export interface CemeteryPlot {
   id: string;
-  sectionId: string;
-  blockId: string;
   cemeteryId: string;
+  cemeteryName: string;
+  blockId: string;
+  blockName: string;
+  sectionId: string;
+  sectionName: string;
   plotNumber: string;
-  plotType: PlotType;
-  status: PlotStatus;
-  dimensions?: PlotDimensions;
+  plotType: string;
   geoPoint?: GeoPoint;
   qrCode?: string;
+  dimensions?: PlotDimensions;
   notes?: string;
+  occupationStatus: string;
+  occupationStatusDesc: string;
 }
 
 export interface CemeteryStatistics {
@@ -134,12 +193,6 @@ export interface CemeterySearchParams {
   filters?: CemeteryFilters;
   includeInactive?: boolean;
 }
-
-// Enums
-export type CemeteryStatus = "ACTIVE" | "INACTIVE" | "MAINTENANCE";
-export type PlotType = "GROUND" | "MAUSOLEUM" | "NICHE" | "OSSUARY";
-export type PlotStatus = "AVAILABLE" | "OCCUPIED" | "RESERVED" | "MAINTENANCE";
-export type GrowthScenario = "CONSERVATIVE" | "MODERATE" | "AGGRESSIVE";
 
 // Tipos auxiliares
 export interface GeoPoint {

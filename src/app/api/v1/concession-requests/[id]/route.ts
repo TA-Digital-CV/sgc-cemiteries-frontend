@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { proxyFetch, USE_REAL_BACKEND, errorResponse } from "../../../config";
+import { errorResponse, proxyFetch, USE_REAL_BACKEND } from "../../../config";
 
 /**
  * GET/PUT /api/v1/concession-requests/{id}

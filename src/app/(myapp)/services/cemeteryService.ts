@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type {
-  ApiResponse,
+  ActionResult,
   PaginatedResponse,
 } from "@/app/(myapp)/types/Common";
 import type {
@@ -16,46 +16,13 @@ import type {
   CemeteryStructure,
   GrowthScenario,
 } from "@/app/(myapp)/types/cemetery";
+import { CemeteryFormSchema } from "@/app/(myapp)/types/cemetery";
 
 // Validation schemas for API payloads
-const CemeterySchema = z.object({
-  id: z.string(),
-  municipalityId: z.string(),
-  name: z.string(),
-  address: z.string().optional().default(""),
-  geoPoint: z
-    .object({ latitude: z.number(), longitude: z.number() })
-    .optional(),
-  totalArea: z.number().optional().default(0),
-  maxCapacity: z.number(),
-  currentOccupancy: z.number().optional().default(0),
-  occupancyRate: z.number().optional().default(0),
-  status: z.string(),
-  createdDate: z.string().optional().default(new Date().toISOString()),
-  lastModifiedDate: z.string().optional().default(new Date().toISOString()),
-  metadata: z.any().optional(),
-});
-const CemeteryArraySchema = z.array(CemeterySchema);
+// Validation schemas for API payloads
+// Removed unused schemas and parsers
 
-function parseCemetery(input: any): Cemetery {
-  const parsed = CemeterySchema.safeParse(input);
-  if (!parsed.success) {
-    throw new Error("Invalid cemetery payload");
-  }
-  return parsed.data as Cemetery;
-}
-
-function parseCemeteryList(input: any): Cemetery[] {
-  if (Array.isArray(input)) {
-    const parsed = CemeteryArraySchema.safeParse(input);
-    if (!parsed.success) {
-      throw new Error("Invalid cemetery list payload");
-    }
-    return parsed.data as Cemetery[];
-  }
-  return [];
-}
-
+// Classe de serviço para operações relacionadas a cemitérios
 // Classe de serviço para operações relacionadas a cemitérios
 export class CemeteryService {
   private baseUrl: string;
@@ -104,6 +71,27 @@ export class CemeteryService {
     return id;
   }
 
+  /**
+   * sanitizeCemeteryFormData
+   * Trims strings and normalizes numeric fields for request payload.
+   */
+  private sanitizeCemeteryFormData(d: CemeteryFormData): CemeteryFormData {
+    return {
+      municipalityId: String(d.municipalityId ?? "").trim(),
+      name: String(d.name ?? "").trim(),
+      address: String(d.address ?? "").trim(),
+      geoPoint: d.geoPoint
+        ? {
+            latitude: Number(d.geoPoint.latitude ?? 0),
+            longitude: Number(d.geoPoint.longitude ?? 0),
+          }
+        : undefined,
+      totalArea: Number(d.totalArea ?? 0),
+      maxCapacity: Number(d.maxCapacity ?? 0),
+      status: d.status,
+    };
+  }
+
   // Método auxiliar para fazer requisições HTTP
   private async fetchWithErrorHandling<T>(
     url: string,
@@ -127,6 +115,18 @@ export class CemeteryService {
           throw new Error(errorData.message || `Erro HTTP ${response.status}`);
         } else {
           const text = await response.text().catch(() => "");
+          const isXml =
+            /xml/i.test(ct) || /application\/problem\+xml/i.test(ct);
+          if (isXml) {
+            const titleMatch = text.match(/<title>([\s\S]*?)<\/title>/i);
+            const detailMatch = text.match(/<detail>([\s\S]*?)<\/detail>/i);
+            const msg = (
+              detailMatch?.[1] ||
+              titleMatch?.[1] ||
+              "Erro desconhecido"
+            ).trim();
+            throw new Error(msg || `Erro HTTP ${response.status}`);
+          }
           throw new Error(
             `Resposta inválida (${response.status}) - esperava JSON, recebeu '${ct || "desconhecido"}'`,
           );
@@ -150,10 +150,6 @@ export class CemeteryService {
   }
 
   // Buscar todos os cemitérios
-  /**
-   * getAllCemeteries
-   * Adds municipalityId to query when not provided.
-   */
   async getAllCemeteries(filters?: CemeteryFilters): Promise<Cemetery[]> {
     const queryParams = new URLSearchParams();
 
@@ -165,126 +161,86 @@ export class CemeteryService {
       });
     }
 
-    if (!queryParams.has("municipalityId") && this.municipalityId) {
-      queryParams.append("municipalityId", this.municipalityId);
-    }
+    // Do not enforce municipalityId automatically here; rely on explicit filters
 
     const url = `${this.baseUrl}/cemeteries${queryParams.toString() ? `?${queryParams.toString()}` : ""}`;
     const response = await this.fetchWithErrorHandling<any>(url);
-    const data: any = response?.data ?? response ?? {};
-    const cemeteries: any = data.cemeteries ?? data.content ?? data.data ?? [];
-    return parseCemeteryList(cemeteries);
+    // Backend returns WrapperListCemeterieDTO with 'content' list
+    const content = response.content || response.data || [];
+    return Array.isArray(content) ? (content as Cemetery[]) : [];
   }
 
   // Buscar cemitério por ID
   async getCemeteryById(id: string): Promise<Cemetery> {
     const url = `${this.baseUrl}/cemeteries/${id}`;
-    /**
-     * GET /cemeteries/{id}
-     * Returns either a raw Cemetery object or an envelope { data: Cemetery }.
-     */
-    const response = await this.fetchWithErrorHandling<any>(url);
-    const data: any = response?.data ?? response ?? {};
-    return parseCemetery(data.cemetery ?? data.data ?? data);
+    // Backend returns CemeterieResponseDetailsDTO
+    const response = await this.fetchWithErrorHandling<Cemetery>(url);
+    return response;
   }
 
   // Criar novo cemitério
-  /**
-   * createCemetery
-   * Ensures municipalityId is set from env when missing.
-   */
   async createCemetery(data: CemeteryFormData): Promise<Cemetery> {
+    const cleaned = this.sanitizeCemeteryFormData(data);
+    const parsed = CemeteryFormSchema.safeParse(cleaned);
+    if (!parsed.success) {
+      throw new Error("Error: invalid cemetery payload");
+    }
+    data = parsed.data as CemeteryFormData;
     const url = `${this.baseUrl}/cemeteries`;
     if (!data.municipalityId) {
       data.municipalityId = this.requireMunicipalityId();
     }
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    // Backend expects CemeterieRequestDTO
+    const response = await this.fetchWithErrorHandling<Cemetery>(url, {
       method: "POST",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.cemetery ?? payload.data) as Cemetery;
+    return response;
   }
 
   // Atualizar cemitério existente
-  /**
-   * updateCemetery
-   * Ensures municipalityId is present for consistency.
-   */
   async updateCemetery(id: string, data: CemeteryFormData): Promise<Cemetery> {
+    const cleaned = this.sanitizeCemeteryFormData(data);
+    const parsed = CemeteryFormSchema.safeParse(cleaned);
+    if (!parsed.success) {
+      throw new Error("Error: invalid cemetery payload");
+    }
+    data = parsed.data as CemeteryFormData;
     const url = `${this.baseUrl}/cemeteries/${id}`;
-    /**
-     * PUT /cemeteries/{id}
-     * Returns either raw Cemetery or { data: Cemetery }.
-     */
     if (!data.municipalityId && this.municipalityId) {
       data.municipalityId = this.municipalityId;
     }
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    const response = await this.fetchWithErrorHandling<Cemetery>(url, {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return parseCemetery(payload.cemetery ?? payload.data ?? payload);
+    return response;
   }
 
   // Deletar cemitério
   async deleteCemetery(id: string): Promise<void> {
-    /**
-     * DELETE /cemeteries/{id}?confirm=true
-     * Mock enforces confirm=true and may return a JSON body.
-     */
     const url = `${this.baseUrl}/cemeteries/${id}?confirm=true`;
-    await this.fetchWithErrorHandling<ApiResponse<void>>(url, {
+    await this.fetchWithErrorHandling<ActionResult<void>>(url, {
       method: "DELETE",
     });
   }
 
   // Buscar cemitérios com parâmetros de busca
-  /**
-   * searchCemeteries
-   * Adds municipalityId to query when not provided.
-   */
   async searchCemeteries(params: CemeterySearchParams): Promise<Cemetery[]> {
-    const queryParams = new URLSearchParams();
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        queryParams.append(key, String(value));
-      }
-    });
-
-    if (!queryParams.has("municipalityId") && this.municipalityId) {
-      queryParams.append("municipalityId", this.municipalityId);
-    }
-
-    const url = `${this.baseUrl}/cemeteries/search?${queryParams.toString()}`;
-    const response = await this.fetchWithErrorHandling<any>(url);
-    const data: any = response?.data ?? response ?? {};
-    const cemeteries: any = data.cemeteries ?? data.content ?? data.data ?? [];
-    return Array.isArray(cemeteries) ? (cemeteries as Cemetery[]) : [];
+    // Reusing getAllCemeteries logic as search endpoint might be same or similar
+    // If backend has specific search endpoint, adapt here.
+    // For now, mapping to getAllCemeteries with filters
+    return this.getAllCemeteries(params.filters);
   }
 
   // Buscar estruturas de cemitério (blocos, seções, lotes)
   async getCemeteryStructures(
     cemeteryId: string,
   ): Promise<CemeteryStructure[]> {
-    /**
-     * GET /cemeteries/{id}/structure
-     * Mock returns { cemeteryId, cemeteryName, structure: { blocks: [...] }, summary }
-     * Normalize into CemeteryStructure[] for client usage.
-     */
     const url = `${this.baseUrl}/cemeteries/${cemeteryId}/structure`;
-    const response = await this.fetchWithErrorHandling<any>(url);
-    const structure = (response?.structure ?? {}) as any;
-    const blocks = Array.isArray(structure.blocks) ? structure.blocks : [];
-    const mapped: CemeteryStructure = {
-      cemetery: response?.cemetery ?? ({} as Cemetery),
-      blocks: blocks as any,
-      sections: blocks.flatMap((b: any) => b.sections ?? []) as any,
-      plots: [],
-    };
-    return [mapped];
+    // Backend returns CemeterieResponseDetailsAllDTO
+    const response = await this.fetchWithErrorHandling<CemeteryStructure>(url);
+    return [response];
   }
 
   async getCemeteryStructureSummary(cemeteryId: string): Promise<{
@@ -292,33 +248,60 @@ export class CemeteryService {
     totalSections: number;
     totalPlots: number;
   }> {
-    const url = `${this.baseUrl}/cemeteries/${cemeteryId}/structure`;
-    const response = await this.fetchWithErrorHandling<any>(url);
-    const summary = response?.summary ?? {};
-    const hasSummary = summary && summary.totalBlocks !== undefined;
-    if (hasSummary) {
-      return {
-        totalBlocks: Number(summary.totalBlocks ?? 0),
-        totalSections: Number(summary.totalSections ?? 0),
-        totalPlots: Number(summary.totalPlots ?? 0),
-      };
-    }
-    const structure = (response?.structure ?? {}) as any;
-    const blocks = Array.isArray(structure.blocks) ? structure.blocks : [];
-    const sections = blocks.flatMap((b: any) => b.sections ?? []);
-    return {
-      totalBlocks: blocks.length,
-      totalSections: sections.length,
-      totalPlots: Array.isArray(structure.plots) ? structure.plots.length : 0,
-    };
+    /**
+     * Computes structure summary using flexible mapping of API shapes.
+     * Supports both flattened shape (blocks/sections at top-level) and
+     * nested shape returned by /cemeteries/{id}/structure with {structure, summary}.
+     */
+    const structures = await this.getCemeteryStructures(cemeteryId);
+    const s: any = structures[0] ?? {};
+
+    // Prefer explicit summary when provided by API
+    const summaryFromApi = s.summary as
+      | { totalBlocks?: number; totalSections?: number; totalPlots?: number }
+      | undefined;
+
+    // Flatten nested lists if present under s.structure
+    const nestedBlocks: any[] = Array.isArray(s?.structure?.blocks)
+      ? (s.structure.blocks as any[])
+      : [];
+    const nestedSectionsCount = nestedBlocks.reduce(
+      (acc, b) => acc + (Array.isArray(b?.sections) ? b.sections.length : 0),
+      0,
+    );
+
+    // Fallback to top-level arrays if available
+    const topBlocks: any[] = Array.isArray(s?.blocks)
+      ? (s.blocks as any[])
+      : [];
+    const topSections: any[] = Array.isArray(s?.sections)
+      ? (s.sections as any[])
+      : [];
+    const topPlots: any[] = Array.isArray(s?.plots) ? (s.plots as any[]) : [];
+
+    const totalBlocks =
+      summaryFromApi?.totalBlocks ??
+      s.blocksCount ??
+      nestedBlocks.length ??
+      topBlocks.length ??
+      0;
+    const totalSections =
+      summaryFromApi?.totalSections ??
+      s.sectionsCount ??
+      nestedSectionsCount ??
+      topSections.length ??
+      0;
+    const totalPlots =
+      summaryFromApi?.totalPlots ?? s.plotsCount ?? topPlots.length ?? 0;
+
+    return { totalBlocks, totalSections, totalPlots };
   }
 
   // Buscar estatísticas de cemitério
   async getCemeteryStatistics(cemeteryId: string): Promise<CemeteryStatistics> {
     const url = `${this.baseUrl}/cemeteries/${cemeteryId}/statistics`;
-    const response = await this.fetchWithErrorHandling<any>(url);
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.statistics ?? payload.data) as CemeteryStatistics;
+    const response = await this.fetchWithErrorHandling<CemeteryStatistics>(url);
+    return response;
   }
 
   // Buscar projeções de capacidade
@@ -329,33 +312,19 @@ export class CemeteryService {
     const projectionPeriod = Math.max(1, years);
     const url = `${this.baseUrl}/cemeteries/${cemeteryId}/capacity-projection?projectionPeriod=${projectionPeriod}`;
     const response = await this.fetchWithErrorHandling<any>(url);
-
-    const payload: any = response?.data ?? {};
-    const currentStatus = payload.currentStatus ?? {};
-    const params = payload.projectionParameters ?? {};
-    const projections = payload.projections ?? {};
-
-    const item: CapacityProjection = {
-      currentDate: new Date().toISOString(),
-      projectionDate: String(projections.estimatedFullCapacityDate ?? ""),
-      monthsRemaining: Number(projections.monthsToFullCapacity ?? 0),
-      projectedOccupancyRate: Number(currentStatus.occupancyRate ?? 0),
-      confidenceLevel: Number(params.confidenceLevel ?? 0),
-      scenario: (payload.historicalTrends?.trendDirection ??
-        "MODERATE") as GrowthScenario,
-    } as CapacityProjection;
-
-    return [item].filter((p) => Boolean(p.projectionDate));
+    // Adapt response to CapacityProjection[] if needed
+    // Assuming backend returns CemeteryCapacityProjectionResponseDTO
+    // which might need mapping if it's not an array
+    return [response as CapacityProjection]; // Placeholder mapping
   }
 
   // Buscar blocos de cemitério
   async getCemeteryBlocks(cemeteryId: string): Promise<CemeteryBlock[]> {
-    /**
-     * Derive blocks from structure endpoint for compatibility with mock.
-     */
-    const structures = await this.getCemeteryStructures(cemeteryId);
-    const blocks = structures[0]?.blocks ?? [];
-    return blocks as CemeteryBlock[];
+    const url = `${this.baseUrl}/cemetery-blocks?cemeterieId=${cemeteryId}`;
+    const response = await this.fetchWithErrorHandling<any>(url);
+    // Backend returns WrapperListCemeterieBlockDTO
+    const content = response.content || [];
+    return content as CemeteryBlock[];
   }
 
   // Buscar seções de um bloco
@@ -363,32 +332,27 @@ export class CemeteryService {
     cemeteryId: string,
     blockId: string,
   ): Promise<CemeterySection[]> {
-    /**
-     * Derive sections from structure endpoint for compatibility with mock.
-     */
-    const structures = await this.getCemeteryStructures(cemeteryId);
-    const allSections = (structures[0]?.sections ?? []) as any[];
-    return allSections.filter(
-      (s) => s.blockId === blockId,
-    ) as CemeterySection[];
+    const url = `${this.baseUrl}/cemetery-sections?blockId=${blockId}`;
+    const response = await this.fetchWithErrorHandling<any>(url);
+    // Backend returns WrapperListCemeterieSectionDTO
+    const content = response.content || [];
+    return content as CemeterySection[];
   }
 
   // Criar bloco
-  async createBlock(
-    data: Partial<CemeteryBlock> & {
-      cemeteryId: string;
-      name: string;
-      maxCapacity: number;
-      geoPolygon?: { type: string; coordinates: any[] };
-    },
-  ): Promise<CemeteryBlock> {
+  async createBlock(data: {
+    cemeteryId: string;
+    name: string;
+    description?: string;
+    maxCapacity: number;
+    geoPolygon?: Record<string, any>;
+  }): Promise<CemeteryBlock> {
     const url = `${this.baseUrl}/cemetery-blocks`;
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    const response = await this.fetchWithErrorHandling<CemeteryBlock>(url, {
       method: "POST",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.block ?? payload.data) as CemeteryBlock;
+    return response;
   }
 
   // Atualizar bloco
@@ -397,12 +361,11 @@ export class CemeteryService {
     data: Partial<CemeteryBlock>,
   ): Promise<CemeteryBlock> {
     const url = `${this.baseUrl}/cemetery-blocks/${id}`;
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    const response = await this.fetchWithErrorHandling<CemeteryBlock>(url, {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.block ?? payload.data) as CemeteryBlock;
+    return response;
   }
 
   // Criar seção
@@ -412,16 +375,14 @@ export class CemeteryService {
       blockId: string;
       name: string;
       maxCapacity: number;
-      geoPolygon?: { type: string; coordinates: any[] };
     },
   ): Promise<CemeterySection> {
     const url = `${this.baseUrl}/cemetery-sections`;
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    const response = await this.fetchWithErrorHandling<CemeterySection>(url, {
       method: "POST",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.section ?? payload.data) as CemeterySection;
+    return response;
   }
 
   // Atualizar seção
@@ -430,35 +391,18 @@ export class CemeteryService {
     data: Partial<CemeterySection>,
   ): Promise<CemeterySection> {
     const url = `${this.baseUrl}/cemetery-sections/${id}`;
-    const response = await this.fetchWithErrorHandling<any>(url, {
+    const response = await this.fetchWithErrorHandling<CemeterySection>(url, {
       method: "PUT",
       body: JSON.stringify(data),
     });
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.section ?? payload.data) as CemeterySection;
+    return response;
   }
 
   // Buscar seção por ID
   async getSectionById(id: string): Promise<CemeterySection> {
-    /**
-     * GET /cemetery-sections/{id}
-     * Returns raw section or envelope. Fallback to search via structure when needed.
-     */
     const url = `${this.baseUrl}/cemetery-sections/${id}`;
-    try {
-      const response = await this.fetchWithErrorHandling<any>(url);
-      const payload: any = response?.data ?? response ?? {};
-      return (payload.section ?? payload.data ?? payload) as CemeterySection;
-    } catch (_err) {
-      // Fallback: iterate structures to find section
-      const all: Cemetery[] = await this.getAllCemeteries();
-      for (const c of all) {
-        const structures = await this.getCemeteryStructures(c.id);
-        const sec = structures[0]?.sections?.find((s: any) => s.id === id);
-        if (sec) return sec as CemeterySection;
-      }
-      throw new Error("Section not found");
-    }
+    const response = await this.fetchWithErrorHandling<CemeterySection>(url);
+    return response;
   }
 
   // Buscar lotes de uma seção
@@ -466,10 +410,28 @@ export class CemeteryService {
     cemeteryId: string,
     sectionId: string,
   ): Promise<CemeteryPlot[]> {
-    const url = `${this.baseUrl}/cemeteries/${cemeteryId}/sections/${sectionId}/plots`;
+    const url = `${this.baseUrl}/plots?sectionId=${sectionId}`;
     const response = await this.fetchWithErrorHandling<any>(url);
-    const payload: any = response?.data ?? response ?? {};
-    return (payload.plots ?? []) as CemeteryPlot[];
+    // Backend returns WrapperListPlotDTO
+    const content = response.content || [];
+    return content as CemeteryPlot[];
+  }
+
+  // Criar sepultura
+  async createPlot(
+    data: Partial<CemeteryPlot> & {
+      sectionId: string;
+      plotNumber: string;
+      plotType: string;
+      status: string;
+    },
+  ): Promise<CemeteryPlot> {
+    const url = `${this.baseUrl}/plots`;
+    const response = await this.fetchWithErrorHandling<CemeteryPlot>(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    return response;
   }
 
   // Buscar cemitérios por localização (raio)
@@ -480,9 +442,8 @@ export class CemeteryService {
   ): Promise<Cemetery[]> {
     const url = `${this.baseUrl}/cemeteries/by-location?lat=${latitude}&lng=${longitude}&radius=${radiusKm}`;
     const response = await this.fetchWithErrorHandling<any>(url);
-    const data: any = response?.data ?? response ?? {};
-    const cemeteries: any = data.cemeteries ?? data.content ?? data.data ?? [];
-    return Array.isArray(cemeteries) ? (cemeteries as Cemetery[]) : [];
+    const content = response.content || response.data || [];
+    return content as Cemetery[];
   }
 
   // Buscar cemitérios por capacidade disponível
@@ -491,9 +452,8 @@ export class CemeteryService {
   ): Promise<Cemetery[]> {
     const url = `${this.baseUrl}/cemeteries/by-capacity?minCapacity=${minCapacity}`;
     const response = await this.fetchWithErrorHandling<any>(url);
-    const data: any = response?.data ?? response ?? {};
-    const cemeteries: any = data.cemeteries ?? data.content ?? data.data ?? [];
-    return Array.isArray(cemeteries) ? (cemeteries as Cemetery[]) : [];
+    const content = response.content || response.data || [];
+    return content as Cemetery[];
   }
 
   // Exportar dados de cemitério

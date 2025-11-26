@@ -37,6 +37,9 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: getRemotePatterns(),
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;

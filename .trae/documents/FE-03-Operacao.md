@@ -1,2670 +1,986 @@
-// Sistema hierárquico de configurações com herança e override
-interface HierarchicalConfigurationSystem {
-// Estrutura hierárquica
-configurationHierarchy: {
-// Nível global (sistema)
-systemLevel: {
-scope: 'entire-application';
-priority: 1; // Mais baixa
+# FE-03-Operacao - Documento de Operações Cemiteriais
+
+## Índice de Navegação
+
+1. [Visão Geral das Operações](#1-visão-geral-das-operações)
+2. [Gestão de Equipes Operacionais](#2-gestão-de-equipes-operacionais)
+3. [Processos de Sepultamento](#3-processos-de-sepultamento)
+4. [Processos de Exumação](#4-processos-de-exumação)
+5. [Processos de Trasladação](#5-processos-de-trasladação)
+6. [Ordens de Serviço](#6-ordens-de-serviço)
+7. [Agendamento e Coordenação](#7-agendamento-e-coordenação)
+8. [Controle de Qualidade](#8-controle-de-qualidade)
+9. [Procedimentos de Segurança](#9-procedimentos-de-segurança)
+10. [Integrações e Comunicação](#10-integrações-e-comunicação)
+11. [Fluxogramas e Diagramas](#11-fluxogramas-e-diagramas)
+12. [Referências Cruzadas](#12-referências-cruzadas)
+
+---
+
+## 1. Visão Geral das Operações
+
+### 1.1 Objetivo do Documento
+
+Este documento define os procedimentos operacionais padrão para todas as atividades realizadas nos cemitérios, garantindo eficiência, segurança e conformidade legal. A estrutura segue a arquitetura IGRP 3.0 e integra-se com os módulos BE-01-Cemiterio, BE-02-Concessao e BE-04-Financeiro.
+
+### 1.2 Escopo das Operações
+
+As operações cemiteriais abrangem:
+- **Sepultamentos**: Inumações em sepulturas novas ou existentes
+- **Exumações**: Remoção de restos mortais por diversos motivos
+- **Trasladações**: Transferência de restos entre sepulturas
+- **Manutenções**: Conservação e limpeza de sepulturas
+- **Operações Administrativas**: Gestão de documentos e registros
+
+### 1.3 Sistema de Hierarquia Operacional
 
 ```
-  configurations: {
-    applicationSettings: {
-      appName: 'SGC - Sistema de Gestão Cemiterial';
-      version: 'dynamic-from-package-json';
-      environment: 'production' | 'staging' | 'development';
-      
-      globalDefaults: {
-        language: 'pt-CV';
-        timezone: 'America/Sao_Paulo';
-        dateFormat: 'DD/MM/YYYY';
-        timeFormat: '24h';
-        currency: 'BRL';
-      };
-    };
-    
-    securitySettings: {
-      sessionTimeout: 3600000; // 1 hora em ms
-      maxLoginAttempts: 3;
-      passwordPolicy: {
-        minLength: 8;
-        requireUppercase: true;
-        requireLowercase: true;
-        requireNumbers: true;
-        requireSpecialChars: true;
-        expirationDays: 90;
-      };
-      
-      encryptionSettings: {
-        algorithm: 'AES-256-GCM';
-        keyRotationDays: 30;
-        dataAtRestEncryption: true;
-        dataInTransitEncryption: true;
-      };
-    };
-    
-    performanceSettings: {
-      cacheSettings: {
-        defaultTTL: 300000; // 5 minutos
-        maxCacheSize: '100MB';
-        compressionEnabled: true;
-      };
-      
-      apiSettings: {
-        timeout: 30000; // 30 segundos
-        retryAttempts: 3;
-        retryDelay: 1000; // 1 segundo
-        rateLimiting: {
-          requestsPerMinute: 100;
-          burstLimit: 20;
-        };
-      };
-    };
-  };
-};
-
-// Nível organizacional
-organizationLevel: {
-  scope: 'organization-wide';
-  priority: 2;
-  
-  configurations: {
-    organizationProfile: {
-      name: 'configurable-organization-name';
-      logo: 'organization-logo-url';
-      primaryColor: '#1e40af'; // azul padrão
-      secondaryColor: '#64748b'; // cinza
-      
-      contactInfo: {
-        address: 'organization-address';
-        phone: 'organization-phone';
-        email: 'organization-email';
-        website: 'organization-website';
-      };
-    };
-    
-    operationalStandards: {
-      workingHours: {
-        monday: { start: '08:00', end: '17:00' };
-        tuesday: { start: '08:00', end: '17:00' };
-        wednesday: { start: '08:00', end: '17:00' };
-        thursday: { start: '08:00', end: '17:00' };
-        friday: { start: '08:00', end: '17:00' };
-        saturday: { start: '08:00', end: '12:00' };
-        sunday: { start: null, end: null }; // Fechado
-      };
-      
-      operationTypes: {
-        inhumation: {
-          enabled: true;
-          defaultDuration: 120; // minutos
-          requiredTeamSize: 3;
-          qualityThreshold: 85; // percentual
-        };
-        
-        exhumation: {
-          enabled: true;
-          defaultDuration: 180; // minutos
-          requiredTeamSize: 4;
-          qualityThreshold: 90; // percentual
-        };
-        
-        transfer: {
-          enabled: true;
-          defaultDuration: 90; // minutos
-          requiredTeamSize: 2;
-          qualityThreshold: 80; // percentual
-        };
-      };
-      
-      qualityStandards: {
-        minimumQualityScore: 75;
-        evidenceRequirements: {
-          photosRequired: true;
-          minimumPhotos: 3;
-          gpsAccuracyRequired: 10; // metros
-          documentationRequired: true;
-        };
-        
-        complianceRequirements: {
-          regulatoryCompliance: true;
-          safetyProtocols: true;
-          environmentalStandards: true;
-        };
-      };
-    };
-    
-    integrationSettings: {
-      externalSystems: {
-        googleMaps: {
-          enabled: true;
-          apiKey: 'encrypted-api-key';
-          features: ['geocoding', 'routing', 'places'];
-        };
-        
-        notifications: {
-          email: {
-            enabled: true;
-            provider: 'smtp';
-            settings: 'encrypted-smtp-settings';
-          };
-          
-          sms: {
-            enabled: false;
-            provider: null;
-            settings: null;
-          };
-          
-          push: {
-            enabled: true;
-            provider: 'firebase';
-            settings: 'encrypted-firebase-settings';
-          };
-        };
-      };
-    };
-  };
-};
-
-// Nível de cemitério
-cemeteryLevel: {
-  scope: 'per-cemetery';
-  priority: 3;
-  
-  configurations: {
-    cemeteryProfile: {
-      name: 'cemetery-specific-name';
-      location: 'cemetery-coordinates';
-      capacity: 'total-burial-capacity';
-      
-      operatingHours: {
-        // Pode sobrescrever horários organizacionais
-        customHours: 'inherit-or-override';
-        seasonalAdjustments: 'seasonal-hour-variations';
-        holidaySchedule: 'holiday-operating-hours';
-      };
-      
-      specialRequirements: {
-        environmentalRestrictions: 'cemetery-specific-restrictions';
-        accessibilityFeatures: 'accessibility-accommodations';
-        culturalConsiderations: 'cultural-religious-requirements';
-      };
-    };
-    
-    operationalConfiguration: {
-      sectionConfiguration: {
-        sections: 'cemetery-section-definitions';
-        plotNumbering: 'plot-numbering-system';
-        capacityManagement: 'capacity-tracking-rules';
-      };
-      
-      equipmentConfiguration: {
-        availableEquipment: 'cemetery-specific-equipment';
-        maintenanceSchedule: 'equipment-maintenance-rules';
-        replacementThresholds: 'equipment-replacement-criteria';
-      };
-    };
-  };
-};
-
-// Nível de equipe
-teamLevel: {
-  scope: 'per-team';
-  priority: 4;
-  
-  configurations: {
-    teamProfile: {
-      teamName: 'team-identifier';
-      teamType: 'operational' | 'maintenance' | 'administrative';
-      specializations: 'team-specialization-areas';
-      
-      workingPreferences: {
-        preferredShifts: 'preferred-working-hours';
-        operationTypePreferences: 'preferred-operation-types';
-        locationPreferences: 'preferred-cemetery-locations';
-      };
-    };
-    
-    teamStandards: {
-      qualityTargets: {
-        // Pode ser mais rigoroso que padrões organizacionais
-        minimumQualityScore: 'team-specific-threshold';
-        specialQualityRequirements: 'additional-quality-criteria';
-      };
-      
-      procedureCustomizations: {
-        customChecklists: 'team-specific-checklists';
-        additionalSteps: 'team-additional-procedures';
-        toolPreferences: 'preferred-tools-and-equipment';
-      };
-    };
-  };
-};
-
-// Nível de usuário
-userLevel: {
-  scope: 'per-user';
-  priority: 5; // Mais alta
-  
-  configurations: {
-    userProfile: {
-      personalInfo: {
-        name: 'user-full-name';
-        role: 'user-role-in-system';
-        permissions: 'user-specific-permissions';
-        
-        contactPreferences: {
-          preferredEmail: 'user-email';
-          preferredPhone: 'user-phone';
-          emergencyContact: 'emergency-contact-info';
-        };
-      };
-      
-      workPreferences: {
-        preferredLanguage: 'user-language-preference';
-        preferredTimezone: 'user-timezone';
-        workingHours: 'user-preferred-hours';
-        
-        operationalPreferences: {
-          preferredOperationTypes: 'user-operation-preferences';
-          preferredLocations: 'user-location-preferences';
-          preferredTeammates: 'preferred-team-members';
-        };
-      };
-    };
-    
-    interfaceCustomization: {
-      uiPreferences: {
-        theme: 'light' | 'dark' | 'auto';
-        colorScheme: 'user-color-preferences';
-        fontSize: 'small' | 'medium' | 'large';
-        compactMode: boolean;
-        
-        dashboardLayout: {
-          widgetPreferences: 'preferred-dashboard-widgets';
-          layoutConfiguration: 'custom-dashboard-layout';
-          defaultFilters: 'default-filter-settings';
-        };
-      };
-      
-      notificationPreferences: {
-        channels: {
-          email: {
-            enabled: boolean;
-            frequency: 'immediate' | 'hourly' | 'daily';
-            types: 'notification-type-preferences';
-          };
-          
-          push: {
-            enabled: boolean;
-            sound: boolean;
-            vibration: boolean;
-            types: 'push-notification-preferences';
-          };
-          
-          inApp: {
-            enabled: boolean;
-            position: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
-            duration: 'notification-display-duration';
-          };
-        };
-        
-        schedulePreferences: {
-          quietHours: {
-            enabled: boolean;
-            startTime: 'quiet-hours-start';
-            endTime: 'quiet-hours-end';
-          };
-          
-          weekendNotifications: boolean;
-          holidayNotifications: boolean;
-        };
-      };
-    };
-  };
-};
+Administrador Municipal
+    ↓
+Gestor de Cemitério
+    ↓
+Supervisor de Equipe
+    ↓
+Operadores de Campo
 ```
 
-};
+### 1.4 Horários de Operação
 
-// Sistema de herança e override
-inheritanceSystem: {
-// Resolução de configurações
-configurationResolution: {
-resolutionOrder: \[
-'user-level',      // Prioridade mais alta
-'team-level',
-'cemetery-level',
-'organization-level',
-'system-level'     // Prioridade mais baixa
-];
+- **Horário Comercial**: 08:00 às 17:00 (segunda a sexta)
+- **Horário Especial**: 08:00 às 12:00 (sábados)
+- **Plantão**: 24 horas para emergências
+- **Feriados**: Conforme calendário municipal
 
+---
+
+## 2. Gestão de Equipes Operacionais
+
+### 2.1 Estrutura das Equipes
+
+#### 2.1.1 Tipos de Equipes
+
+**Equipe de Sepultamento (Tipo-A)**
+- Supervisor (1)
+- Operadores de escavação (2)
+- Auxiliar de cerimônia (1)
+- Especializações: Inumação, cerimônias religiosas
+
+**Equipe de Exumação (Tipo-B)**
+- Supervisor especializado (1)
+- Operadores experientes (3)
+- Auxiliar de documentação (1)
+- Especializações: Exumação, manuseio de restos mortais
+
+**Equipe de Trasladação (Tipo-C)**
+- Supervisor (1)
+- Operadores (2)
+- Motorista (1)
+- Especializações: Transporte, logística
+
+**Equipe de Manutenção (Tipo-D)**
+- Supervisor (1)
+- Operadores de manutenção (2)
+- Jardineiro (1)
+- Especializações: Conservação, paisagismo
+
+### 2.2 Capacidade Operacional
+
+| Tipo de Equipe | Operações Simultâneas | Tempo Médio por Operação |
+|----------------|----------------------|-------------------------|
+| Equipe A (Sepultamento) | 1 | 120 minutos |
+| Equipe B (Exumação) | 1 | 180 minutos |
+| Equipe C (Trasladação) | 1 | 90 minutos |
+| Equipe D (Manutenção) | 3 | 60 minutos |
+
+### 2.3 Responsabilidades por Função
+
+#### 2.3.1 Supervisor de Equipe
+- Coordenar todas as operações da equipe
+- Validar documentação antes das operações
+- Garantir segurança e qualidade
+- Reportar incidentes ao gestor
+- Treinar novos operadores
+
+#### 2.3.2 Operador de Campo
+- Executar operações conforme procedimentos
+- Coletar evidências fotográficas
+- Preencher checklists digitais
+- Manter equipamentos em bom estado
+- Comunicar problemas ao supervisor
+
+#### 2.3.3 Auxiliar Operacional
+- Apoiar operadores nas tarefas
+- Preparar materiais e equipamentos
+- Auxiliar na documentação
+- Manter área de trabalho organizada
+
+### 2.4 Escala de Trabalho
+
+#### 2.4.1 Turnos Diários
+- **Manhã**: 08:00 às 12:00
+- **Tarde**: 13:00 às 17:00
+- **Disponibilidade**: Segunda a sábado
+
+#### 2.4.2 Escala Semanal
 ```
-  mergeStrategy: {
-    primitiveValues: 'override'; // Valores simples são sobrescritos
-    objectValues: 'deep-merge'; // Objetos são mesclados profundamente
-    arrayValues: 'replace'; // Arrays são substituídos completamente
-  };
-  
-  validationRules: {
-    typeConsistency: 'ensure-type-consistency-across-levels';
-    constraintValidation: 'validate-business-rule-constraints';
-    dependencyChecking: 'check-configuration-dependencies';
-  };
-};
-
-// Cache de configurações resolvidas
-configurationCache: {
-  cacheStrategy: 'per-user-resolved-configuration';
-  invalidationTriggers: [
-    'user-configuration-change',
-    'team-configuration-change',
-    'cemetery-configuration-change',
-    'organization-configuration-change',
-    'system-configuration-change'
-  ];
-  
-  cacheRefresh: {
-    automatic: 'on-configuration-change';
-    manual: 'user-triggered-refresh';
-    scheduled: 'periodic-cache-refresh';
-  };
-};
-```
-
-};
-}
-
-// Interface unificada para gerenciamento de configurações
-interface UnifiedConfigurationInterface {
-// Painel de configurações principal
-configurationPanel: {
-// Navegação hierárquica
-navigationStructure: {
-sidebar: {
-sections: \[
-{
-id: 'personal';
-title: 'Configurações Pessoais';
-icon: 'user-settings';
-subsections: \[
-'profile',
-'preferences',
-'notifications',
-'security'
-];
-},
-{
-id: 'team';
-title: 'Configurações da Equipe';
-icon: 'team-settings';
-subsections: \[
-'team-profile',
-'team-standards',
-'team-procedures'
-];
-requiredPermission: 'team-configuration';
-},
-{
-id: 'cemetery';
-title: 'Configurações do Cemitério';
-icon: 'location-settings';
-subsections: \[
-'cemetery-profile',
-'operational-config',
-'equipment-config'
-];
-requiredPermission: 'cemetery-configuration';
-},
-{
-id: 'organization';
-title: 'Configurações Organizacionais';
-icon: 'organization-settings';
-subsections: \[
-'organization-profile',
-'operational-standards',
-'integration-settings'
-];
-requiredPermission: 'organization-configuration';
-},
-{
-id: 'system';
-title: 'Configurações do Sistema';
-icon: 'system-settings';
-subsections: \[
-'application-settings',
-'security-settings',
-'performance-settings'
-];
-requiredPermission: 'system-administration';
-}
-];
-};
-
-```
-  breadcrumb: {
-    enabled: true;
-    showHierarchy: true;
-    clickableNavigation: true;
-  };
-};
-
-// Formulários de configuração
-configurationForms: {
-  // Configurações pessoais
-  personalConfiguration: {
-    profileForm: {
-      fields: [
-        {
-          name: 'displayName';
-          type: 'text';
-          label: 'Nome de Exibição';
-          required: true;
-          validation: 'min-length-2-max-length-50';
-        },
-        {
-          name: 'preferredLanguage';
-          type: 'select';
-          label: 'Idioma Preferido';
-          options: [
-            { value: 'pt-CV', label: 'Português (Brasil)' },
-            { value: 'en-US', label: 'English (US)' },
-            { value: 'es-ES', label: 'Español' }
-          ];
-          default: 'pt-CV';
-        },
-        {
-          name: 'timezone';
-          type: 'timezone-select';
-          label: 'Fuso Horário';
-          default: 'America/Sao_Paulo';
-        },
-        {
-          name: 'avatar';
-          type: 'image-upload';
-          label: 'Foto do Perfil';
-          accept: 'image/*';
-          maxSize: '2MB';
-        }
-      ];
-    };
-    
-    preferencesForm: {
-      sections: [
-        {
-          title: 'Interface';
-          fields: [
-            {
-              name: 'theme';
-              type: 'radio-group';
-              label: 'Tema';
-              options: [
-                { value: 'light', label: 'Claro' },
-                { value: 'dark', label: 'Escuro' },
-                { value: 'auto', label: 'Automático' }
-              ];
-              default: 'light';
-            },
-            {
-              name: 'fontSize';
-              type: 'slider';
-              label: 'Tamanho da Fonte';
-              min: 12;
-              max: 20;
-              step: 1;
-              default: 14;
-              unit: 'px';
-            },
-            {
-              name: 'compactMode';
-              type: 'toggle';
-              label: 'Modo Compacto';
-              description: 'Reduz espaçamentos para mostrar mais informações';
-              default: false;
-            }
-          ];
-        },
-        {
-          title: 'Operacional';
-          fields: [
-            {
-              name: 'defaultOperationView';
-              type: 'select';
-              label: 'Visualização Padrão de Operações';
-              options: [
-                { value: 'list', label: 'Lista' },
-                { value: 'grid', label: 'Grade' },
-                { value: 'map', label: 'Mapa' }
-              ];
-              default: 'list';
-            },
-            {
-              name: 'autoRefreshInterval';
-              type: 'select';
-              label: 'Intervalo de Atualização Automática';
-              options: [
-                { value: 0, label: 'Desabilitado' },
-                { value: 30000, label: '30 segundos' },
-                { value: 60000, label: '1 minuto' },
-                { value: 300000, label: '5 minutos' }
-              ];
-              default: 60000;
-            }
-          ];
-        }
-      ];
-    };
-    
-    notificationForm: {
-      sections: [
-        {
-          title: 'Canais de Notificação';
-          fields: [
-            {
-              name: 'emailNotifications';
-              type: 'toggle-group';
-              label: 'Notificações por Email';
-              options: [
-                { key: 'operationAssigned', label: 'Operação Atribuída' },
-                { key: 'operationCompleted', label: 'Operação Concluída' },
-                { key: 'qualityAlert', label: 'Alerta de Qualidade' },
-                { key: 'scheduleChange', label: 'Mudança de Agenda' }
-              ];
-            },
-            {
-              name: 'pushNotifications';
-              type: 'toggle-group';
-              label: 'Notificações Push';
-              options: [
-                { key: 'operationReminder', label: 'Lembrete de Operação' },
-                { key: 'emergencyAlert', label: 'Alerta de Emergência' },
-                { key: 'teamMessage', label: 'Mensagem da Equipe' },
-                { key: 'systemUpdate', label: 'Atualização do Sistema' }
-              ];
-            }
-          ];
-        },
-        {
-          title: 'Horários de Silêncio';
-          fields: [
-            {
-              name: 'quietHoursEnabled';
-              type: 'toggle';
-              label: 'Ativar Horários de Silêncio';
-              default: false;
-            },
-            {
-              name: 'quietHoursStart';
-              type: 'time';
-              label: 'Início do Silêncio';
-              default: '22:00';
-              dependsOn: 'quietHoursEnabled';
-            },
-            {
-              name: 'quietHoursEnd';
-              type: 'time';
-              label: 'Fim do Silêncio';
-              default: '07:00';
-              dependsOn: 'quietHoursEnabled';
-            }
-          ];
-        }
-      ];
-    };
-  };
-  
-  // Configurações de equipe
-  teamConfiguration: {
-    teamProfileForm: {
-      fields: [
-        {
-          name: 'teamName';
-          type: 'text';
-          label: 'Nome da Equipe';
-          required: true;
-        },
-        {
-          name: 'teamType';
-          type: 'select';
-          label: 'Tipo de Equipe';
-          options: [
-            { value: 'operational', label: 'Operacional' },
-            { value: 'maintenance', label: 'Manutenção' },
-            { value: 'administrative', label: 'Administrativa' }
-          ];
-        },
-        {
-          name: 'specializations';
-          type: 'multi-select';
-          label: 'Especializações';
-          options: [
-            { value: 'inhumation', label: 'Inumação' },
-            { value: 'exhumation', label: 'Exumação' },
-            { value: 'transfer', label: 'Trasladação' },
-            { value: 'maintenance', label: 'Manutenção' },
-            { value: 'emergency', label: 'Emergência' }
-          ];
-        }
-      ];
-    };
-    
-    teamStandardsForm: {
-      sections: [
-        {
-          title: 'Metas de Qualidade';
-          fields: [
-            {
-              name: 'minimumQualityScore';
-              type: 'slider';
-              label: 'Score Mínimo de Qualidade (%)';
-              min: 70;
-              max: 100;
-              step: 5;
-              default: 85;
-            },
-            {
-              name: 'targetCompletionTime';
-              type: 'duration';
-              label: 'Tempo Alvo de Conclusão';
-              unit: 'minutes';
-            }
-          ];
-        },
-        {
-          title: 'Procedimentos Customizados';
-          fields: [
-            {
-              name: 'customChecklists';
-              type: 'checklist-builder';
-              label: 'Checklists Personalizados';
-              allowCustomItems: true;
-            },
-            {
-              name: 'additionalSteps';
-              type: 'step-builder';
-              label: 'Etapas Adicionais';
-              allowReordering: true;
-            }
-          ];
-        }
-      ];
-    };
-  };
-};
-
-// Sistema de validação
-validationSystem: {
-  clientSideValidation: {
-    realTimeValidation: true;
-    validationRules: [
-      'required-field-validation',
-      'data-type-validation',
-      'format-validation',
-      'range-validation',
-      'dependency-validation'
-    ];
-    
-    errorDisplay: {
-      inline: 'show-errors-below-fields';
-      summary: 'show-error-summary-at-top';
-      highlighting: 'highlight-invalid-fields';
-    };
-  };
-  
-  serverSideValidation: {
-    businessRuleValidation: true;
-    constraintValidation: true;
-    securityValidation: true;
-    
-    validationResponse: {
-      fieldErrors: 'field-specific-error-messages';
-      globalErrors: 'form-level-error-messages';
-      warnings: 'non-blocking-warning-messages';
-    };
-  };
-};
-
-// Sistema de preview e confirmação
-previewSystem: {
-  configurationPreview: {
-    enabled: true;
-    previewModes: [
-      'side-by-side-comparison',
-      'overlay-preview',
-      'live-preview'
-    ];
-    
-    previewScope: {
-      affectedAreas: 'show-areas-affected-by-changes';
-      impactAnalysis: 'analyze-impact-of-changes';
-      dependencyVisualization: 'show-configuration-dependencies';
-    };
-  };
-  
-  confirmationWorkflow: {
-    requireConfirmation: [
-      'security-setting-changes',
-      'system-wide-changes',
-      'irreversible-changes'
-    ];
-    
-    confirmationDialog: {
-      showImpactSummary: true;
-      requireExplicitConfirmation: true;
-      allowComments: true;
-    };
-  };
-};
+Semana Tipo 1: Equipes A e B (sepultamento e exumação)
+Semana Tipo 2: Equipes C e D (trasladação e manutenção)
+Rotação quinzenal para equalizar carga de trabalho
 ```
 
-};
-}
+---
 
-// Sistema avançado de personalização de interface
-interface AdvancedUICustomizationSystem {
-// Personalização de dashboard
-dashboardCustomization: {
-// Layout personalizável
-layoutCustomization: {
-gridSystem: {
-columns: 12;
-rows: 'dynamic';
-minWidgetSize: { width: 2, height: 2 };
-maxWidgetSize: { width: 12, height: 8 };
-};
+## 3. Processos de Sepultamento
 
-```
-  widgetLibrary: {
-    availableWidgets: [
-      {
-        id: 'operations-summary';
-        name: 'Resumo de Operações';
-        category: 'operational';
-        defaultSize: { width: 4, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          timeRange: 'selectable-time-range';
-          operationTypes: 'filterable-operation-types';
-          displayMode: 'chart-or-table';
-          refreshInterval: 'configurable-refresh';
-        };
-      },
-      {
-        id: 'team-status';
-        name: 'Status da Equipe';
-        category: 'team';
-        defaultSize: { width: 3, height: 4 };
-        configurable: true;
-        
-        configuration: {
-          teamFilter: 'specific-teams-or-all';
-          statusDisplay: 'list-or-map-view';
-          showDetails: 'detailed-or-summary';
-        };
-      },
-      {
-        id: 'quality-metrics';
-        name: 'Métricas de Qualidade';
-        category: 'quality';
-        defaultSize: { width: 5, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          metricsSelection: 'selectable-quality-metrics';
-          visualizationType: 'gauge-chart-or-trend';
-          thresholdDisplay: 'show-quality-thresholds';
-        };
-      },
-      {
-        id: 'recent-operations';
-        name: 'Operações Recentes';
-        category: 'operational';
-        defaultSize: { width: 6, height: 4 };
-        configurable: true;
-        
-        configuration: {
-          itemCount: 'number-of-items-to-show';
-          sortOrder: 'sort-by-date-or-priority';
-          showDetails: 'detail-level-configuration';
-        };
-      },
-      {
-        id: 'alerts-panel';
-        name: 'Painel de Alertas';
-        category: 'alerts';
-        defaultSize: { width: 4, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          alertTypes: 'filterable-alert-types';
-          severityFilter: 'filter-by-severity';
-          autoRefresh: 'automatic-refresh-settings';
-        };
-      }
-    ];
-    
-    customWidgets: {
-      allowCustomWidgets: true;
-      widgetBuilder: {
-        dataSourceSelection: 'select-data-sources';
-        visualizationOptions: 'choose-visualization-type';
-        filterConfiguration: 'configure-data-filters';
-        stylingOptions: 'customize-widget-appearance';
-      };
-    };
-  };
-  
-  layoutTemplates: {
-    predefinedLayouts: [
-      {
-        id: 'executive-overview';
-        name: 'Visão Executiva';
-        description: 'Layout focado em KPIs e métricas estratégicas';
-        widgets: [
-          { id: 'operations-summary', position: { x: 0, y: 0, w: 6, h: 3 } },
-          { id: 'quality-metrics', position: { x: 6, y: 0, w: 6, h: 3 } },
-          { id: 'team-performance', position: { x: 0, y: 3, w: 12, h: 4 } }
-        ];
-      },
-      {
-        id: 'operational-control';
-        name: 'Controle Operacional';
-        description: 'Layout para coordenação e monitoramento operacional';
-        widgets: [
-          { id: 'team-status', position: { x: 0, y: 0, w: 4, h: 4 } },
-          { id: 'operations-queue', position: { x: 4, y: 0, w: 4, h: 4 } },
-          { id: 'alerts-panel', position: { x: 8, y: 0, w: 4, h: 4 } },
-          { id: 'recent-operations', position: { x: 0, y: 4, w: 12, h: 3 } }
-        ];
-      },
-      {
-        id: 'quality-focus';
-        name: 'Foco em Qualidade';
-        description: 'Layout especializado em monitoramento de qualidade';
-        widgets: [
-          { id: 'quality-metrics', position: { x: 0, y: 0, w: 8, h: 4 } },
-          { id: 'quality-alerts', position: { x: 8, y: 0, w: 4, h: 4 } },
-          { id: 'quality-trends', position: { x: 0, y: 4, w: 12, h: 3 } }
-        ];
-      }
-    ];
-    
-    customLayouts: {
-      allowCustomLayouts: true;
-      layoutSaving: 'save-custom-layouts';
-      layoutSharing: 'share-layouts-with-team';
-      layoutImportExport: 'import-export-layout-configurations';
-    };
-  };
-};
+### 3.1 Fluxo de Sepultamento
 
-// Personalização de tema
-themeCustomization: {
-  colorSchemes: {
-    predefinedSchemes: [
-      {
-        id: 'default-blue';
-        name: 'Azul Padrão';
-        colors: {
-          primary: '#1e40af';
-          secondary: '#64748b';
-          success: '#22c55e';
-          warning: '#f59e0b';
-          error: '#ef4444';
-          info: '#3b82f6';
-        };
-      },
-      {
-        id: 'forest-green';
-        name: 'Verde Floresta';
-        colors: {
-          primary: '#166534';
-          secondary: '#6b7280';
-          success: '#22c55e';
-          warning: '#f59e0b';
-          error: '#dc2626';
-          info: '#0ea5e9';
-        };
-      },
-      {
-        id: 'corporate-gray';
-        name: 'Cinza Corporativo';
-        colors: {
-          primary: '#374151';
-          secondary: '#9ca3af';
-          success: '#10b981';
-          warning: '#f59e0b';
-          error: '#f87171';
-          info: '#60a5fa';
-        };
-      }
-    ];
-    
-    customColorScheme: {
-      allowCustomColors: true;
-      colorPicker: 'advanced-color-picker';
-      previewMode: 'real-time-preview';
-      colorHarmony: 'suggest-harmonious-colors';
-      
-      colorCategories: [
-        'primary-colors',
-        'secondary-colors',
-        'status-colors',
-        'background-colors',
-        'text-colors',
-        'border-colors'
-      ];
-    };
-  };
-  
-  typographyCustomization: {
-    fontFamilies: [
-      'Inter', // Padrão
-      'Roboto',
-      'Open Sans',
-      'Lato',
-      'Source Sans Pro'
-    ];
-    
-    fontSizes: {
-      base: 'configurable-base-font-size';
-      scale: 'typographic-scale-ratio';
-      customSizes: 'custom-size-definitions';
-    };
-    
-    fontWeights: {
-      light: 300;
-      normal: 400;
-      medium: 500;
-      semibold: 600;
-      bold: 700;
-    };
-  };
-  
-  spacingCustomization: {
-    spacingScale: [4, 8, 12, 16, 20, 24, 32, 40, 48, 64];
-    customSpacing: 'allow-custom-spacing-values';
-    compactMode: 'reduce-spacing-for-compact-view';
-  };
-};
-
-// Personalização de componentes
-componentCustomization: {
-  buttonStyles: {
-    variants: ['solid', 'outline', 'ghost', 'link'];
-    sizes: ['sm', 'md', 'lg', 'xl'];
-    shapes: ['square', 'rounded', 'pill'];
-    customStyles: 'allow-custom-button-styles';
-  };
-  
-  tableCustomization: {
-    density: ['compact', 'normal', 'comfortable'];
-    columnWidths: 'configurable-column-widths';
-    rowHeight: 'configurable-row-height';
-    alternatingRows: 'zebra-striping-option';
-    
-    headerCustomization: {
-      stickyHeader: 'sticky-header-option';
-      sortingIndicators: 'custom-sorting-icons';
-      filterControls: 'inline-filter-controls';
-    };
-  };
-  
-  formCustomization: {
-    fieldSpacing: 'configurable-field-spacing';
-    labelPosition: 'top-left-inline';
-    validationDisplay: 'inline-tooltip-summary';
-    requiredIndicator: 'asterisk-color-text';
-  };
-};
+```mermaid
+graph TD
+    A[Solicitação de Sepultamento] --> B{Validação Documental}
+    B -->|Documentos OK| C[Verificação de Concessão]
+    B -->|Documentos Inválidos| D[Solicitar Correção]
+    C --> E[Verificação de Disponibilidade]
+    E --> F[Agendamento]
+    F --> G[Atribuição de Equipe]
+    G --> H[Execução da Inumação]
+    H --> I[Coleta de Evidências]
+    I --> J[Conclusão e Registro]
 ```
 
-};
+### 3.2 Requisitos Documentais
 
-// Personalização de fluxos de trabalho
-workflowCustomization: {
-// Personalização de checklists
-checklistCustomization: {
-checklistBuilder: {
-templateLibrary: {
-predefinedTemplates: \[
-{
-id: 'inhumation-standard';
-name: 'Inumação Padrão';
-operationType: 'INHUMATION';
-items: \[
-{
-id: 'verify-documentation';
-text: 'Verificar documentação completa';
-required: true;
-category: 'documentation';
-},
-{
-id: 'prepare-site';
-text: 'Preparar local da inumação';
-required: true;
-category: 'preparation';
-},
-{
-id: 'safety-check';
-text: 'Verificar equipamentos de segurança';
-required: true;
-category: 'safety';
-}
-];
-}
-];
+#### 3.2.1 Documentos Obrigatórios
+- **Certidão de Óbito** (original)
+- **Autorização de Sepultamento** (municipal)
+- **Documento de Identificação** do falecido
+- **Comprovante de Concessão** (se aplicável)
+- **Autorização Familiar** (quando necessário)
 
-```
-  loggedEvents: [
-    'authentication-attempts',
-    'authorization-failures',
-    'privilege-escalations',
-    'data-access-events',
-    'configuration-changes',
-    'security-violations'
-  ];
-  
-  logFormat: {
-    structured: true;
-    format: 'JSON';
-    includeContext: true;
-    includeUserAgent: true;
-    includeIPAddress: true;
-    includeTimestamp: true;
-  };
-  
-  logRetention: {
-    retentionPeriod: 31536000000; // 1 ano
-    archiveAfter: 7776000000; // 90 dias
-    compressionEnabled: true;
-    encryptionEnabled: true;
-  };
-};
+#### 3.2.2 Validação de Documentos
+- Verificar autenticidade com Registro Civil
+- Validar prazo de validade (72 horas)
+- Confirmar identidade do falecido
+- Verificar autorização municipal
 
-// Detecção de ameaças
-threatDetection: {
-  anomalyDetection: {
-    enabled: true;
-    
-    detectionRules: [
-      {
-        name: 'unusual-login-patterns';
-        description: 'Detecta padrões de login incomuns';
-        severity: 'medium';
-        actions: ['log', 'alert'];
-      },
-      {
-        name: 'multiple-failed-logins';
-        description: 'Múltiplas tentativas de login falhadas';
-        severity: 'high';
-        actions: ['log', 'alert', 'temporary-block'];
-      },
-      {
-        name: 'privilege-escalation-attempt';
-        description: 'Tentativa de escalação de privilégios';
-        severity: 'critical';
-        actions: ['log', 'alert', 'immediate-block'];
-      },
-      {
-        name: 'unusual-data-access';
-        description: 'Acesso incomum a dados sensíveis';
-        severity: 'high';
-        actions: ['log', 'alert', 'require-additional-auth'];
-      }
-    ];
-    
-    machineLearning: {
-      enabled: false; // Configurável
-      modelTraining: 'continuous-learning';
-      falsePositiveReduction: 'adaptive-thresholds';
-    };
-  };
-  
-  realTimeMonitoring: {
-    enabled: true;
-    monitoringInterval: 60000; // 1 minuto
-    
-    alerting: {
-      immediateAlerts: ['critical-security-events'];
-      batchedAlerts: ['medium-severity-events'];
-      suppressDuplicates: true;
-      alertCooldown: 300000; // 5 minutos
-    };
-    
-    responseActions: {
-      automaticBlocking: 'for-critical-threats';
-      userNotification: 'for-account-security-events';
-      adminNotification: 'for-system-security-events';
-      incidentCreation: 'for-security-incidents';
-    };
-  };
-};
+### 3.3 Procedimentos de Sepultamento
 
-// Compliance e auditoria
-complianceConfiguration: {
-  auditTrail: {
-    enabled: true;
-    comprehensiveLogging: true;
-    
-    auditedActions: [
-      'user-authentication',
-      'data-access',
-      'data-modification',
-      'configuration-changes',
-      'privilege-changes',
-      'system-administration'
-    ];
-    
-    auditDataIntegrity: {
-      digitalSignatures: true;
-      tamperDetection: true;
-      immutableStorage: true;
-    };
-  };
-  
-  complianceReporting: {
-    enabled: true;
-    
-    reportTypes: [
-      'security-compliance-report',
-      'data-protection-report',
-      'access-control-report',
-      'incident-response-report'
-    ];
-    
-    scheduledReports: {
-      daily: 'security-summary';
-      weekly: 'detailed-security-report';
-      monthly: 'compliance-assessment';
-      quarterly: 'comprehensive-audit-report';
-    };
-  };
-};
+#### 3.3.1 Preparação Pré-Operação
+1. **Verificação de Concessão**
+   - Validar vigência da concessão
+   - Verificar tipo de concessão (temporária/perpétua)
+   - Confirmar titularidade
+
+2. **Inspeção da Sepultura**
+   - Verificar estado físico da sepultura
+   - Confirmar localização exata (GPS)
+   - Avaliar necessidade de preparação especial
+
+3. **Preparação de Equipamentos**
+   - Escavadeira manual/mecânica
+   - Equipamentos de segurança (EPIs)
+   - Ferramentas de medição
+   - Material para revestimento
+
+#### 3.3.2 Execução da Inumação
+1. **Abertura da Cova**
+   - Medir dimensões conforme padrão
+   - Escavar com profundidade adequada
+   - Preparar base com brita/cal
+
+2. **Posicionamento do Caixão**
+   - Verificar identificação do caixão
+   - Posicionar com auxílio de tiras
+   - Alinhar corretamente na cova
+
+3. **Cerimônia Religiosa** (se solicitada)
+   - Respeitar tradições religiosas
+   - Permitir presença de familiares
+   - Manter decoro e respeito
+
+4. **Fechamento da Cova**
+   - Colocar laje de concreto (quando aplicável)
+   - Revestir com terra compactada
+   - Nivelar superfície
+
+#### 3.3.3 Pós-Operação
+1. **Limpeza da Área**
+   - Remover excesso de terra
+   - Limpar equipamentos
+   - Organizar materiais
+
+2. **Registro da Operação**
+   - Preencher formulário digital
+   - Anexar evidências fotográficas
+   - Atualizar status no sistema
+
+### 3.4 Checklist de Sepultamento
+
+#### 3.4.1 Antes da Operação
+- [ ] Documentação validada
+- [ ] Concessão verificada
+- [ ] Sepultura inspecionada
+- [ ] Equipamentos preparados
+- [ ] Equipe briefada
+
+#### 3.4.2 Durante a Operação
+- [ ] Procedimentos de segurança seguidos
+- [ ] Evidências fotográficas coletadas
+- [ ] GPS validado
+- [ ] Cerimônia respeitada
+- [ ] Operação documentada
+
+#### 3.4.3 Após a Operação
+- [ ] Área limpa e organizada
+- [ ] Formulário preenchido
+- [ ] Fotos anexadas ao sistema
+- [ ] Status atualizado
+- [ ] Família notificada (se aplicável)
+
+---
+
+## 4. Processos de Exumação
+
+### 4.1 Tipos de Exumação
+
+#### 4.1.1 Exumação Automática
+- Por vencimento de concessão temporária
+- Programada automaticamente pelo sistema
+- Notificação prévia à família (30 dias)
+
+#### 4.1.2 Exumação Solicitada
+- Por solicitação da família
+- Com autorização judicial (quando necessário)
+- Para trasladação ou cremação
+
+#### 4.1.3 Exumação Judicial
+- Por ordem judicial
+- Para investigação policial
+- Com supervisão de autoridades
+
+### 4.2 Fluxo de Exumação
+
+```mermaid
+graph TD
+    A[Identificação da Necessidade] --> B{Tipo de Exumação}
+    B -->|Automática| C[Notificação Familiar]
+    B -->|Solicitada| D[Análise de Solicitação]
+    B -->|Judicial| E[Verificação de Ordem Judicial]
+    C --> F[Aguardamento do Prazo]
+    D --> G[Validação Documental]
+    E --> H[Coordenação com Autoridades]
+    F --> I[Agendamento]
+    G --> I
+    H --> I
+    I --> J[Execução da Exumação]
+    J --> K[Destinação dos Restos]
+    K --> L[Liberação da Sepultura]
 ```
 
-};
-}
+### 4.3 Requisitos Legais
 
-// Sistema avançado de configurações de segurança
-interface AdvancedSecurityConfigurationSystem {
-// Autenticação e autorização
-authenticationConfiguration: {
-// Métodos de autenticação
-authenticationMethods: {
-passwordAuthentication: {
-enabled: true;
+#### 4.3.1 Prazos Legais
+- **Concessão Temporária**: 3, 5 ou 7 anos
+- **Notificação Prévia**: 30 dias antes do vencimento
+- **Prazo para Exumação**: 60 dias após vencimento
+- **Guarda de Ossos**: 2 anos em ossário municipal
 
-```
-    encryptedFields: [
-      'user-personal-data',
-      'sensitive-operation-data',
-      'authentication-credentials',
-      'api-keys-and-tokens'
-    ];
-    
-    keyRotation: {
-      enabled: true;
-      rotationInterval: 2592000000; // 30 dias
-      automaticRotation: true;
-      gracePeriod: 604800000; // 7 dias
-    };
-  };
-  
-  dataInTransit: {
-    enabled: true;
-    tlsVersion: 'TLS 1.3';
-    certificateValidation: 'strict';
-    
-    httpSecurityHeaders: {
-      strictTransportSecurity: 'max-age=31536000; includeSubDomains';
-      contentSecurityPolicy: 'strict-csp-policy';
-      xFrameOptions: 'DENY';
-      xContentTypeOptions: 'nosniff';
-      referrerPolicy: 'strict-origin-when-cross-origin';
-    };
-    
-    certificateManagement: {
-      autoRenewal: true;
-      renewalThreshold: 2592000000; // 30 dias antes do vencimento
-      certificateMonitoring: true;
-    };
-  };
-};
+#### 4.3.2 Documentação Necessária
+- **Requerimento de Exumação** (modelo padrão)
+- **Autorização Sanitária** (SMS municipal)
+- **Termo de Responsabilidade** (família/requerente)
+- **Documento de Identidade** do requerente
+- **Comprovante de Parentesco** (quando aplicável)
 
-// Proteção de dados pessoais
-privacyConfiguration: {
-  dataMinimization: {
-    enabled: true;
-    collectOnlyNecessary: true;
-    regularDataReview: true;
-    automaticDataPurging: true;
-  };
-  
-  consentManagement: {
-    enabled: true;
-    granularConsent: true;
-    consentWithdrawal: true;
-    consentAuditing: true;
-    
-    consentTypes: [
-      'data-processing',
-      'marketing-communications',
-      'analytics-tracking',
-      'third-party-sharing'
-    ];
-  };
-  
-  dataSubjectRights: {
-    dataAccess: 'provide-data-access-mechanism';
-    dataPortability: 'enable-data-export';
-    dataRectification: 'allow-data-correction';
-    dataErasure: 'implement-right-to-be-forgotten';
-    
-    requestProcessing: {
-      automaticProcessing: 'where-possible';
-      manualReview: 'for-complex-requests';
-      responseTimeLimit: 2592000000; // 30 dias
-    };
-  };
-};
-```
+### 4.4 Procedimentos de Exumação
 
-};
+#### 4.4.1 Preparação e Segurança
+1. **Vistoria Prévia**
+   - Avaliar estado da sepultura
+   - Verificar profundidade do túmulo
+   - Identificar possíveis dificuldades
 
-// Criptografia e proteção de dados
-dataProtectionConfiguration: {
-// Criptografia
-encryptionConfiguration: {
-dataAtRest: {
-enabled: true;
-algorithm: 'AES-256-GCM';
-keyManagement: 'key-management-service';
+2. **Equipamentos de Proteção**
+   - Máscaras PFF2/N95
+   - Luvas cirúrgicas duplas
+   - Aventais descartáveis
+   - Óculos de proteção
 
-```
-    passwordPolicy: {
-      minLength: 8;
-      maxLength: 128;
-      requireUppercase: true;
-      requireLowercase: true;
-      requireNumbers: true;
-      requireSpecialChars: true;
-      
-      forbiddenPatterns: [
-        'sequential-characters',
-        'repeated-characters',
-        'common-passwords',
-        'personal-information'
-      ];
-      
-      expirationPolicy: {
-        enabled: true;
-        expirationDays: 90;
-        warningDays: 14;
-        gracePeriodDays: 7;
-      };
-      
-      historyPolicy: {
-        enabled: true;
-        rememberPasswords: 12;
-        preventReuse: true;
-      };
-    };
-    
-    accountLockout: {
-      enabled: true;
-      maxFailedAttempts: 3;
-      lockoutDuration: 1800000; // 30 minutos
-      progressiveLockout: true; // Aumenta duração a cada bloqueio
-    };
-  };
-  
-  biometricAuthentication: {
-    enabled: true; // Para PWA
-    supportedMethods: [
-      'fingerprint',
-      'face-recognition',
-      'voice-recognition'
-    ];
-    
-    fallbackMethods: [
-      'password',
-      'pin',
-      'security-questions'
-    ];
-    
-    biometricPolicy: {
-      requireEnrollment: false;
-      allowFallback: true;
-      maxFailedAttempts: 3;
-      temporaryDisableOnFailure: true;
-    };
-  };
-  
-  twoFactorAuthentication: {
-    enabled: false; // Configurável
-    requiredForRoles: ['admin', 'supervisor'];
-    
-    methods: [
-      {
-        type: 'totp';
-        name: 'Aplicativo Autenticador';
-        enabled: true;
-        apps: ['Google Authenticator', 'Microsoft Authenticator'];
-      },
-      {
-        type: 'sms';
-        name: 'SMS';
-        enabled: false; // Requer configuração de provedor
-      },
-      {
-        type: 'email';
-        name: 'Email';
-        enabled: true;
-      }
-    ];
-    
-    backupCodes: {
-      enabled: true;
-      codeCount: 10;
-      singleUse: true;
-      regenerateOnUse: true;
-    };
-  };
-  
-  singleSignOn: {
-    enabled: false; // Configurável
-    providers: [
-      {
-        type: 'saml';
-        name: 'SAML 2.0';
-        enabled: false;
-        configuration: 'saml-provider-configuration';
-      },
-      {
-        type: 'oauth2';
-        name: 'OAuth 2.0';
-        enabled: false;
-        providers: ['Google', 'Microsoft', 'Azure AD'];
-      },
-      {
-        type: 'ldap';
-        name: 'LDAP/Active Directory';
-        enabled: false;
-        configuration: 'ldap-server-configuration';
-      }
-    ];
-  };
-};
+3. **Delimitação da Área**
+   - Isolar espaço de trabalho
+   - Sinalizar área de risco
+   - Controlar acesso de público
 
-// Sessões e tokens
-sessionManagement: {
-  sessionConfiguration: {
-    sessionTimeout: 3600000; // 1 hora
-    idleTimeout: 1800000; // 30 minutos
-    absoluteTimeout: 28800000; // 8 horas
-    
-    sessionExtension: {
-      allowExtension: true;
-      maxExtensions: 3;
-      extensionDuration: 1800000; // 30 minutos
-    };
-    
-    concurrentSessions: {
-      allowMultipleSessions: true;
-      maxConcurrentSessions: 3;
-      sessionConflictResolution: 'newest-wins';
-    };
-  };
-  
-  tokenConfiguration: {
-    jwtConfiguration: {
-      algorithm: 'RS256';
-      issuer: 'sgc-system';
-      audience: 'sgc-users';
-      
-      accessToken: {
-        expirationTime: 900000; // 15 minutos
-        includeUserInfo: false;
-        includePermissions: true;
-      };
-      
-      refreshToken: {
-        expirationTime: 604800000; // 7 dias
-        rotateOnUse: true;
-        reuseDetection: true;
-      };
-    };
-    
-    apiKeyConfiguration: {
-      enabled: true;
-      keyFormat: 'sgc_' + 'random-32-chars';
-      expirationPolicy: 'configurable-expiration';
-      
-      rateLimiting: {
-        requestsPerMinute: 100;
-        burstLimit: 20;
-        quotaReset: 'sliding-window';
-      };
-    };
-  };
-};
+#### 4.4.2 Execução da Exumação
+1. **Abertura Superficial**
+   - Remover camada superior de terra
+   - Identificar laje ou revestimento
+   - Documentar estado com fotos
+
+2. **Remoção de Restos**
+   - Escavar com cuidado e respeito
+   - Separar ossos de tecidos
+   - Identificar peças anatômicas
+
+3. **Acondicionamento**
+   - Colocar restos em sacos apropriados
+   - Identificar com etiquetas
+   - Preparar para transporte
+
+#### 4.4.3 Destinação dos Restos
+1. **Para Ossário Municipal**
+   - Transportar em veículo apropriado
+   - Entregar ao responsável do ossário
+   - Registrar entrada no sistema
+
+2. **Para Trasladação**
+   - Coordenar com equipe de trasladação
+   - Preparar documentação de transporte
+   - Acompanhar até novo local
+
+3. **Para Cremação**
+   - Agendar com crematório credenciado
+   - Preparar autorizações necessárias
+   - Coordenar logística de transporte
+
+### 4.5 Checklist de Exumação
+
+#### 4.5.1 Documentação
+- [ ] Requerimento de exumação
+- [ ] Autorização sanitária
+- [ ] Notificação familiar (exumações automáticas)
+- [ ] Documentação de destinação
+
+#### 4.5.2 Segurança
+- [ ] EPIs utilizados corretamente
+- [ ] Área isolada e sinalizada
+- [ ] Equipe treinada e briefada
+- [ ] Materiais de contenção preparados
+
+#### 4.5.3 Execução
+- [ ] Sepultura corretamente identificada
+- [ ] Procedimento executado com respeito
+- [ ] Evidências fotográficas coletadas
+- [ ] GPS validado
+- [ ] Restos acondicionados adequadamente
+
+---
+
+## 5. Processos de Trasladação
+
+### 5.1 Tipos de Trasladação
+
+#### 5.1.1 Intra-Cemiterial
+- Dentro do mesmo cemitério
+- Entre sepulturas diferentes
+- Sem necessidade de transporte externo
+
+#### 5.1.2 Inter-Cemiterial
+- Entre cemitérios diferentes
+- Requer transporte especializado
+- Necessita coordenação entre municípios
+
+### 5.2 Fluxo de Trasladação
+
+```mermaid
+graph TD
+    A[Solicitação de Trasladação] --> B{Tipo de Trasladação}
+    B -->|Intra-Cemiterial| C[Verificação Documental]
+    B -->|Inter-Cemiterial| D[Coordenação Inter-Municipal]
+    C --> E[Validação de Concessões]
+    D --> F[Autorização de Transporte]
+    E --> G[Agendamento]
+    F --> G
+    G --> H[Preparação dos Restos]
+    H --> I[Transporte]
+    I --> J[Sepultura de Destino]
+    J --> K[Conclusão e Registro]
 ```
 
-};
+### 5.3 Requisitos para Trasladação
 
-// Monitoramento e auditoria de segurança
-securityMonitoringConfiguration: {
-// Logging de segurança
-securityLogging: {
-logLevel: 'INFO'; // DEBUG, INFO, WARN, ERROR
+#### 5.3.1 Documentação
+- **Requerimento formal** do interessado
+- **Autorização da família** (quando aplicável)
+- **Comprovante de concessão** da sepultura de destino
+- **Autorização sanitária** para transporte
+- **Termo de responsabilidade** do transporte
 
+#### 5.3.2 Condiições da Sepultura de Destino
+- Disponibilidade confirmada
+- Concessão ativa e regularizada
+- Compatibilidade de tamanho
+- Acessibilidade verificada
+
+### 5.4 Procedimentos de Trasladação
+
+#### 5.4.1 Preparação
+1. **Verificação de Origem**
+   - Confirmar identidade da sepultura
+   - Verificar estado dos restos
+   - Avaliar necessidade de preparação especial
+
+2. **Preparação para Transporte**
+   - Acondicionar em caixa apropriada
+   - Identificar com etiquetas
+   - Preparar documentação de transporte
+
+#### 5.4.2 Transporte
+1. **Veículo Especializado**
+   - Veículo adaptado para transporte de restos
+   - Compartimento fechado e seguro
+   - Sistema de fixação do caixão/urna
+
+2. **Rota e Logística**
+   - Planejar rota mais curta e segura
+   - Evitar estradas em mau estado
+   - Coordenar horários com destino
+
+#### 5.4.3 Sepultamento no Destino
+1. **Preparação da Nova Sepultura
+   - Verificar conformidade
+   - Preparar conforme procedimento padrão
+   - Documentar com fotos
+
+2. **Cerimônia** (se solicitada)
+   - Respeitar desejos da família
+   - Manter decoro e respeito
+   - Permitir presença familiar
+
+---
+
+## 6. Ordens de Serviço
+
+### 6.1 Geração de Ordens
+
+#### 6.1.1 Origem das Ordens
+- **Agendamentos confirmados**
+- **Solicitações de emergência**
+- **Exumações automáticas**
+- **Manutenções programadas**
+
+#### 6.1.2 Número de Ordem
+Formato padrão: `OS-{YYYY}-{MM}-{SEQUENCIAL}`
+Exemplo: `OS-2024-01-001`
+
+### 6.2 Priorização
+
+#### 6.2.1 Níveis de Prioridade
+- **URGENTE**: Emergências (24 horas)
+- **ALTA**: Sepultamentos do dia (48 horas)
+- **NORMAL**: Operações programadas (7 dias)
+- **BAIXA**: Manutenções preventivas (30 dias)
+
+#### 6.2.2 Critérios de Priorização
+- Data do falecimento
+- Condições de conservação
+- Disponibilidade de equipes
+- Condições climáticas
+
+### 6.3 Atribuição de Ordens
+
+#### 6.3.1 Algoritmo de Atribuição
 ```
-      customTemplates: {
-        allowCustomTemplates: true;
-        templateSharing: 'share-templates-across-teams';
-        templateVersioning: 'version-control-for-templates';
-      };
-    };
+1. Verificar especialização necessária
+2. Verificar disponibilidade de equipe
+3. Verificar proximidade geográfica
+4. Verificar carga de trabalho atual
+5. Atribuir à equipe mais adequada
+```
+
+#### 6.3.2 Confirmação de Atendimento
+- Notificação via aplicativo móvel
+- Confirmação em até 30 minutos
+- Início da operação no horário agendado
+
+### 6.4 Execução e Acompanhamento
+
+#### 6.4.1 Início da Operação
+- Check-in no local (GPS)
+- Validação de presença da equipe
+- Confirmação de condições
+- Início do cronômetro de duração
+
+#### 6.4.2 Durante a Operação
+- Atualização de status em tempo real
+- Coleta de evidências
+- Registro de incidentes
+- Comunicação com central
+
+#### 6.4.3 Conclusão
+- Check-out no local (GPS)
+- Preenchimento de checklist
+- Upload de evidências
+- Atualização de status final
+
+---
+
+## 7. Agendamento e Coordenação
+
+### 7.1 Sistema de Agendamento
+
+#### 7.1.1 Slots de Tempo
+- **Manhã**: 08:00, 10:00, 12:00
+- **Tarde**: 14:00, 16:00
+- **Duração padrão**: 2 horas por operação
+- **Buffer entre operações**: 30 minutos
+
+#### 7.1.2 Disponibilidade por Cemitério
+```
+Capacidade máxima simultânea:
+- Cemitério Central: 3 operações
+- Cemitério Norte: 2 operações
+- Cemitério Sul: 2 operações
+```
+
+### 7.2 Coordenação com Partes Interessadas
+
+#### 7.2.1 Funerárias
+- Confirmação de horário 24h antes
+- Comunicação de mudanças
+- Coordenação de logística
+- Compartilhamento de documentos
+
+#### 7.2.2 Familiares
+- Notificação de agendamento
+- Orientação sobre procedimentos
+- Confirmação de presença
+- Atendimento de necessidades especiais
+
+#### 7.2.3 Autoridades
+- Notificação de exumações
+- Coordenação de inspeções
+- Comunicação de irregularidades
+- Solicitação de autorizações
+
+### 7.3 Gestão de Conflitos
+
+#### 7.3.1 Detecção de Conflitos
+- Sistema automático de verificação
+- Alertas de sobreposição
+- Verificação de recursos compartilhados
+- Validação de disponibilidade
+
+#### 7.3.2 Resolução de Conflitos
+```
+1. Identificar conflito
+2. Avaliar prioridades
+3. Propor alternativas
+4. Comunicar partes envolvidas
+5. Reagendar conforme necessário
+6. Confirmar novo agendamento
+```
+
+---
+
+## 8. Controle de Qualidade
+
+### 8.1 Métricas de Qualidade
+
+#### 8.1.1 KPIs Principais
+- **Taxa de Conclusão no Prazo**: ≥ 95%
+- **Taxa de Reclamações**: ≤ 2%
+- **Pontualidade das Equipes**: ≥ 90%
+- **Qualidade das Evidências**: ≥ 85%
+
+#### 8.1.2 Indicadores de Processo
+- Tempo médio de operação por tipo
+- Taxa de retrabalho
+- Incidentes por 100 operações
+- Satisfação do cliente interno
+
+### 8.2 Checklists de Qualidade
+
+#### 8.2.1 Checklist de Sepultamento
+**Pré-Operação:**
+- [ ] Documentação completa e válida
+- [ ] Sepultura identificada corretamente
+- [ ] Equipamentos em bom estado
+- [ ] Equipe treinada e capacitada
+
+**Durante Operação:**
+- [ ] Procedimentos seguidos corretamente
+- [ ] Segurança garantida
+- [ ] Evidências coletadas
+- [ ] GPS validado
+
+**Pós-Operação:**
+- [ ] Área limpa e organizada
+- [ ] Documentação preenchida
+- [ ] Fotos anexadas ao sistema
+- [ ] Status atualizado
+
+#### 8.2.2 Checklist de Exumação
+**Documentação:**
+- [ ] Autorização sanitária
+- [ ] Notificação familiar (quando aplicável)
+- [ ] Requerimento formal
+- [ ] Documentação de destinação
+
+**Segurança:**
+- [ ] EPIs utilizados
+- [ ] Área isolada
+- [ ] Procedimentos de biossegurança
+- [ ] Equipe especializada
+
+**Execução:**
+- [ ] Sepultura correta
+- [ ] Procedimento respeitoso
+- [ ] Restos acondicionados
+- [ ] Transporte adequado
+
+### 8.3 Auditoria de Qualidade
+
+#### 8.3.1 Auditoria Interna
+- **Frequência**: Mensal
+- **Amostragem**: 10% das operações
+- **Critérios**: Documentação, procedimentos, evidências
+- **Responsável**: Gestor de qualidade
+
+#### 8.3.2 Auditoria Externa
+- **Frequência**: Semestral
+- **Realizada por**: Empresa certificada
+- **Escopo**: Sistema completo de gestão
+- **Certificação**: ISO 9001
+
+---
+
+## 9. Procedimentos de Segurança
+
+### 9.1 Segurança Operacional
+
+#### 9.1.1 EPIs Obrigatórios
+- Capacete de segurança
+- Luvas de borracha/procedimento
+- Botas de segurança
+- Máscara PFF2 (exumações)
+- Avental descartável
+
+#### 9.1.2 Procedimentos de Segurança
+```
+Antes da Operação:
+1. Briefing de segurança
+2. Inspeção de equipamentos
+3. Verificação de EPIs
+4. Delimitação da área
+
+Durante a Operação:
+1. Manter comunicação constante
+2. Seguir procedimentos estabelecidos
+3. Reportar incidentes imediatamente
+4. Manter área isolada
+
+Após a Operação:
+1. Limpeza de equipamentos
+2. Descarte adequado de materiais
+3. Lavagem das mãos
+4. Descontaminação se necessário
+```
+
+### 9.2 Segurança de Documentos
+
+#### 9.2.1 Proteção de Dados
+- Criptografia de documentos digitais
+- Controle de acesso por perfil
+- Backup automático dos dados
+- Auditoria de acessos
+
+#### 9.2.2 Confidencialidade
+- Dados pessoais protegidos (LGPD)
+- Informações médicas sigilosas
+- Restrição de acesso por necessidade
+- Termo de confidencialidade assinado
+
+### 9.3 Emergências e Incidentes
+
+#### 9.3.1 Tipos de Emergência
+- Acidentes com equipe
+- Desabamento de terra
+- Interferência de terceiros
+- Condições climáticas extremas
+
+#### 9.3.2 Procedimentos de Emergência
+```
+1. Avaliar gravidade da situação
+2. Garantir segurança da equipe
+3. Acionar serviços de emergência (se necessário)
+4. Isolar área de risco
+5. Notificar gestor imediatamente
+6. Documentar incidente
+7. Investigar causas
+8. Implementar correções
+```
+
+---
+
+## 10. Integrações e Comunicação
+
+### 10.1 Integrações de Sistema
+
+#### 10.1.1 Integrações Internas (RabbitMQ)
+**BE-01-Cemiterio**
+- Validação de disponibilidade de sepulturas
+- Atualização de mapas e localização
+- Controle de capacidade por cemitério
+
+**BE-02-Concessao**
+- Verificação de validade de concessões
+- Atualização de status após operações
+- Notificações de vencimento
+
+**BE-04-Financeiro**
+- Validação de pagamentos
+- Geração de taxas operacionais
+- Controle de inadimplência
+
+#### 10.1.2 Integrações Externas
+**Registro Civil**
+- Validação de certidões de óbito
+- Confirmação de identidade
+- Verificação de registro
+
+**Autoridades Sanitárias**
+- Notificações de exumação obrigatórias
+- Solicitações de autorização
+- Relatórios periódicos
+
+**Funerárias**
+- Coordenação de horários
+- Compartilhamento de documentos
+- Atualização de status
+
+### 10.2 Comunicação com Stakeholders
+
+#### 10.2.1 Canais de Comunicação
+- **Portal do Cidadão**: Para familiares
+- **Aplicativo Móvel**: Para equipes
+- **Sistema de Notificações**: Para alertas
+- **Email**: Para comunicações formais
+- **SMS**: Para urgências
+
+#### 10.2.2 Protocolo de Comunicação
+```
+1. Identificar tipo de mensagem
+2. Selecionar canal apropriado
+3. Personalizar conteúdo
+4. Validar destinatário
+5. Enviar com confirmação
+6. Registrar comunicação
+7. Acompanhar resposta
+```
+
+### 10.3 Notificações Automáticas
+
+#### 10.3.1 Tipos de Notificação
+- **Confirmação de Agendamento**: Para familiares
+- **Lembrete de Operação**: Para equipes
+- **Alerta de Vencimento**: Para concessões
+- **Conclusão de Operação**: Para solicitantes
+- **Incidentes**: Para gestores
+
+#### 10.3.2 Templates de Mensagem
+**Confirmação de Sepultamento:**
+```
+Prezado(a) [Nome],
+
+O sepultamento de [Nome do Falecido] está confirmado para:
+Data: [Data]
+Hora: [Hora]
+Local: [Cemitério] - Sepultura [Número]
+
+Equipe responsável: [Nome da Equipe]
+Contato: [Telefone]
+
+Por favor, chegar com 15 minutos de antecedência.
+```
+
+---
+
+## 11. Fluxogramas e Diagramas
+
+### 11.1 Diagrama de Sequência - Sepultamento
+
+```mermaid
+sequenceDiagram
+    participant F as Família
+    participant S as Sistema
+    participant G as Gestor
+    participant E as Equipe
+    participant C as Cemitério
     
-    itemTypes: {
-      simpleCheck: {
-        type: 'boolean';
-        display: 'checkbox';
-        validation: 'required-or-optional';
-      };
-      
-      textInput: {
-        type: 'text';
-        display: 'text-field';
-        validation: 'min-max-length-pattern';
-      };
-      
-      numericInput: {
-        type: 'number';
-        display: 'number-field';
-        validation: 'min-max-value-precision';
-      };
-      
-      photoEvidence: {
-        type: 'image';
-        display: 'camera-upload';
-        validation: 'required-count-quality';
-      };
-      
-      gpsLocation: {
-        type: 'coordinates';
-        display: 'location-capture';
-        validation: 'accuracy-requirements';
-      };
-      
-      signature: {
-        type: 'signature';
-        display: 'signature-pad';
-        validation: 'required-validation';
-      };
-    };
+    F->>S: Solicita sepultamento
+    S->>S: Valida documentos
+    S->>G: Solicita agendamento
+    G->>C: Verifica disponibilidade
+    C-->>G: Confirma disponibilidade
+    G->>S: Confirma agendamento
+    S-->>F: Envia confirmação
+    G->>E: Atribui ordem de serviço
+    E->>C: Executa sepultamento
+    E->>S: Registra conclusão
+    S-->>F: Notifica conclusão
+```
+
+### 11.2 Diagrama de Estado - Ordem de Serviço
+
+```mermaid
+stateDiagram-v2
+    [*] --> PENDENTE
+    PENDENTE --> ATRIBUIDA: Equipe designada
+    ATRIBUIDA --> EM_EXECUCAO: Início da operação
+    EM_EXECUCAO --> CONCLUIDA: Operação finalizada
+    EM_EXECUCAO --> CANCELADA: Intercorrência
+    PENDENTE --> CANCELADA: Cancelamento
+    ATRIBUIDA --> CANCELADA: Impossibilidade
+    CONCLUIDA --> [*]
+    CANCELADA --> [*]
+```
+
+### 11.3 Mapa de Processos - Operações Cemiteriais
+
+```mermaid
+graph TB
+    subgraph "Planejamento"
+        A1[Análise de Demanda]
+        A2[Alocação de Recursos]
+        A3[Programação de Equipes]
+    end
     
-    conditionalLogic: {
-      showHideRules: 'conditional-item-visibility';
-      requiredRules: 'conditional-required-fields';
-      validationRules: 'conditional-validation-logic';
-    };
-  };
-  
-  checklistExecution: {
-    progressTracking: {
-      visualProgress: 'progress-bar-percentage';
-      sectionProgress: 'section-by-section-progress';
-      timeTracking: 'time-spent-per-section';
-    };
+    subgraph "Preparação"
+        B1[Verificação Documental]
+        B2[Confirmação de Recursos]
+        B3[Notificação de Partes]
+    end
     
-    offlineSupport: {
-      offlineExecution: 'complete-checklists-offline';
-      syncOnReconnect: 'sync-when-connection-restored';
-      conflictResolution: 'handle-sync-conflicts';
-    };
+    subgraph "Execução"
+        C1[Início da Operação]
+        C2[Coleta de Evidências]
+        C3[Controle de Qualidade]
+    end
     
-    qualityValidation: {
-      realTimeValidation: 'validate-as-user-progresses';
-      photoQualityCheck: 'automatic-photo-quality-assessment';
-      gpsAccuracyCheck: 'validate-gps-accuracy';
-    };
-  };
-};
-
-// Personalização de aprovações
-approvalWorkflowCustomization: {
-  workflowBuilder: {
-    approvalSteps: {
-      singleApprover: 'single-person-approval';
-      multipleApprovers: 'multiple-people-approval';
-      hierarchicalApproval: 'approval-hierarchy';
-      parallelApproval: 'parallel-approval-process';
-    };
+    subgraph "Conclusão"
+        D1[Finalização da Operação]
+        D2[Registro de Dados]
+        D3[Feedback e Melhoria]
+    end
     
-    approvalCriteria: {
-      qualityThreshold: 'minimum-quality-score-required';
-      roleBasedApproval: 'approval-based-on-user-role';
-      valueBasedApproval: 'approval-based-on-operation-value';
-      riskBasedApproval: 'approval-based-on-risk-assessment';
-    };
-    
-    escalationRules: {
-      timeBasedEscalation: 'escalate-after-time-limit';
-      qualityBasedEscalation: 'escalate-for-quality-issues';
-      exceptionEscalation: 'escalate-for-exceptions';
-    };
-  };
-  
-  approvalInterface: {
-    approvalDashboard: 'dedicated-approval-dashboard';
-    batchApproval: 'approve-multiple-items-at-once';
-    mobileApproval: 'mobile-friendly-approval-interface';
-    
-    approvalDetails: {
-      operationSummary: 'summary-of-operation-details';
-      qualityMetrics: 'quality-scores-and-metrics';
-      evidenceReview: 'review-photos-and-evidence';
-      historyTracking: 'approval-history-and-comments';
-    };
-  };
-};
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
 ```
 
-};
-}
+---
 
-## 4. Tipos e Interfaces TypeScript
+## 12. Referências Cruzadas
 
-### 4.1 Interfaces Principais
+### 12.1 Documentos Relacionados
 
-```typescript
-  widgetLibrary: {
-    availableWidgets: [
-      {
-        id: 'operations-summary';
-        name: 'Resumo de Operações';
-        category: 'operational';
-        defaultSize: { width: 4, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          timeRange: 'selectable-time-range';
-          operationTypes: 'filterable-operation-types';
-          displayMode: 'chart-or-table';
-          refreshInterval: 'configurable-refresh';
-        };
-      },
-      {
-        id: 'team-status';
-        name: 'Status da Equipe';
-        category: 'team';
-        defaultSize: { width: 3, height: 4 };
-        configurable: true;
-        
-        configuration: {
-          teamFilter: 'specific-teams-or-all';
-          statusDisplay: 'list-or-map-view';
-          showDetails: 'detailed-or-summary';
-        };
-      },
-      {
-        id: 'quality-metrics';
-        name: 'Métricas de Qualidade';
-        category: 'quality';
-        defaultSize: { width: 5, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          metricsSelection: 'selectable-quality-metrics';
-          visualizationType: 'gauge-chart-or-trend';
-          thresholdDisplay: 'show-quality-thresholds';
-        };
-      },
-      {
-        id: 'recent-operations';
-        name: 'Operações Recentes';
-        category: 'operational';
-        defaultSize: { width: 6, height: 4 };
-        configurable: true;
-        
-        configuration: {
-          itemCount: 'number-of-items-to-show';
-          sortOrder: 'sort-by-date-or-priority';
-          showDetails: 'detail-level-configuration';
-        };
-      },
-      {
-        id: 'alerts-panel';
-        name: 'Painel de Alertas';
-        category: 'alerts';
-        defaultSize: { width: 4, height: 3 };
-        configurable: true;
-        
-        configuration: {
-          alertTypes: 'filterable-alert-types';
-          severityFilter: 'filter-by-severity';
-          autoRefresh: 'automatic-refresh-settings';
-        };
-      }
-    ];
-    
-    customWidgets: {
-      allowCustomWidgets: true;
-      widgetBuilder: {
-        dataSourceSelection: 'select-data-sources';
-        visualizationOptions: 'choose-visualization-type';
-        filterConfiguration: 'configure-data-filters';
-        stylingOptions: 'customize-widget-appearance';
-      };
-    };
-  };
-  
-  layoutTemplates: {
-    predefinedLayouts: [
-      {
-        id: 'executive-overview';
-        name: 'Visão Executiva';
-        description: 'Layout focado em KPIs e métricas estratégicas';
-        widgets: [
-          { id: 'operations-summary', position: { x: 0, y: 0, w: 6, h: 3 } },
-          { id: 'quality-metrics', position: { x: 6, y: 0, w: 6, h: 3 } },
-          { id: 'team-performance', position: { x: 0, y: 3, w: 12, h: 4 } }
-        ];
-      },
-      {
-        id: 'operational-control';
-        name: 'Controle Operacional';
-        description: 'Layout para coordenação e monitoramento operacional';
-        widgets: [
-          { id: 'team-status', position: { x: 0, y: 0, w: 4, h: 4 } },
-          { id: 'operations-queue', position: { x: 4, y: 0, w: 4, h: 4 } },
-          { id: 'alerts-panel', position: { x: 8, y: 0, w: 4, h: 4 } },
-          { id: 'recent-operations', position: { x: 0, y: 4, w: 12, h: 3 } }
-        ];
-      },
-      {
-        id: 'quality-focus';
-        name: 'Foco em Qualidade';
-        description: 'Layout especializado em monitoramento de qualidade';
-        widgets: [
-          { id: 'quality-metrics', position: { x: 0, y: 0, w: 8, h: 4 } },
-          { id: 'quality-alerts', position: { x: 8, y: 0, w: 4, h: 4 } },
-          { id: 'quality-trends', position: { x: 0, y: 4, w: 12, h: 3 } }
-        ];
-      }
-    ];
-    
-    customLayouts: {
-      allowCustomLayouts: true;
-      layoutSaving: 'save-custom-layouts';
-      layoutSharing: 'share-layouts-with-team';
-      layoutImportExport: 'import-export-layout-configurations';
-    };
-  };
-};
+#### 12.1.1 Documentos de Backend
+- **[BE-01-Cemiterio](BE-01-Cemiterio.md)**: Gestão de cemitérios e sepulturas
+- **[BE-02-Concessao](BE-02-Concessao.md)**: Gestão de concessões e direitos
+- **[BE-03-Operacao](BE-03-Operacao.md)**: Backend de operações (este documento)
+- **[BE-04-Financeiro](BE-04-Financeiro.md)**: Gestão financeira e pagamentos
 
-// Personalização de tema
-themeCustomization: {
-  colorSchemes: {
-    predefinedSchemes: [
-      {
-        id: 'default-blue';
-        name: 'Azul Padrão';
-        colors: {
-          primary: '#1e40af';
-          secondary: '#64748b';
-          success: '#22c55e';
-          warning: '#f59e0b';
-          error: '#ef4444';
-          info: '#3b82f6';
-        };
-      },
-      {
-        id: 'forest-green';
-        name: 'Verde Floresta';
-        colors: {
-          primary: '#166534';
-          secondary: '#6b7280';
-          success: '#22c55e';
-          warning: '#f59e0b';
-          error: '#dc2626';
-          info: '#0ea5e9';
-        };
-      },
-      {
-        id: 'corporate-gray';
-        name: 'Cinza Corporativo';
-        colors: {
-          primary: '#374151';
-          secondary: '#9ca3af';
-          success: '#10b981';
-          warning: '#f59e0b';
-          error: '#f87171';
-          info: '#60a5fa';
-        };
-      }
-    ];
-    
-    customColorScheme: {
-      allowCustomColors: true;
-      colorPicker: 'advanced-color-picker';
-      previewMode: 'real-time-preview';
-      colorHarmony: 'suggest-harmonious-colors';
-      
-      colorCategories: [
-        'primary-colors',
-        'secondary-colors',
-        'status-colors',
-        'background-colors',
-        'text-colors',
-        'border-colors'
-      ];
-    };
-  };
-  
-  typographyCustomization: {
-    fontFamilies: [
-      'Inter', // Padrão
-      'Roboto',
-      'Open Sans',
-      'Lato',
-      'Source Sans Pro'
-    ];
-    
-    fontSizes: {
-      base: 'configurable-base-font-size';
-      scale: 'typographic-scale-ratio';
-      customSizes: 'custom-size-definitions';
-    };
-    
-    fontWeights: {
-      light: 300;
-      normal: 400;
-      medium: 500;
-      semibold: 600;
-      bold: 700;
-    };
-  };
-  
-  spacingCustomization: {
-    spacingScale: [4, 8, 12, 16, 20, 24, 32, 40, 48, 64];
-    customSpacing: 'allow-custom-spacing-values';
-    compactMode: 'reduce-spacing-for-compact-view';
-  };
-};
+#### 12.1.2 Documentos de Frontend
+- **[FE-01-Cemiterio](FE-01-Cemiterio.md)**: Interface de gestão de cemitérios
+- **[FE-02-Concessao](FE-02-Concessao.md)**: Interface de gestão de concessões
+- **[FE-03-Operacao](FE-03-Operacao.md)**: Interface de operações (este documento)
+- **[FE-04-Financeiro](FE-04-Financeiro.md)**: Interface financeira
 
-// Personalização de componentes
-componentCustomization: {
-  buttonStyles: {
-    variants: ['solid', 'outline', 'ghost', 'link'];
-    sizes: ['sm', 'md', 'lg', 'xl'];
-    shapes: ['square', 'rounded', 'pill'];
-    customStyles: 'allow-custom-button-styles';
-  };
-  
-  tableCustomization: {
-    density: ['compact', 'normal', 'comfortable'];
-    columnWidths: 'configurable-column-widths';
-    rowHeight: 'configurable-row-height';
-    alternatingRows: 'zebra-striping-option';
-    
-    headerCustomization: {
-      stickyHeader: 'sticky-header-option';
-      sortingIndicators: 'custom-sorting-icons';
-      filterControls: 'inline-filter-controls';
-    };
-  };
-  
-  formCustomization: {
-    fieldSpacing: 'configurable-field-spacing';
-    labelPosition: 'top-left-inline';
-    validationDisplay: 'inline-tooltip-summary';
-    requiredIndicator: 'asterisk-color-text';
-  };
-};
+#### 12.1.3 Documentos de Requisitos
+- **[PRD-SGC](PRD-SGC-Sistema-Gestão-Cemitérios.md)**: Requisitos do produto
+- **[implementation_guide](implementation_guide.md)**: Guia de implementação
+- **[project_rules](../rules/project_rules.md)**: Regras do projeto
+
+### 12.2 Integrações Específicas
+
+#### 12.2.1 Integração com BE-01-Cemiterio
+```
+Operação → Validação de Sepultura
+- Verificar disponibilidade
+- Confirmar localização GPS
+- Validar capacidade
+- Atualizar ocupação
 ```
 
-## 5. Endpoints de API
-
-### 5.1 Sepultamentos
-
-#### 5.1.1 Listar Sepultamentos
-
-**Endpoint:** `GET /api/v1/burials`
-
-**Descrição:** Retorna lista paginada de sepultamentos com filtros avançados.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério
-
-* `dateFrom` (date, opcional): Data inicial do período
-
-* `dateTo` (date, opcional): Data final do período
-
-* `status` (string, opcional): SCHEDULED, IN\_PROGRESS, COMPLETED, CANCELLED
-
-* `funeralHomeId` (UUID, opcional): Filtrar por funerária
-
-* `page` (number, padrão: 0): Número da página
-
-* `size` (number, padrão: 20): Tamanho da página
-
-* `sortBy` (string, padrão: burialDate): Campo para ordenação
-
-* `sortDirection` (string, padrão: DESC): ASC ou DESC
-
-**Resposta de Sucesso (200):**
-
-```typescript
-{
-  content: Burial[];
-  pagination: PaginationInfo;
-  summary: {
-    total: number;
-    scheduled: number;
-    inProgress: number;
-    completed: number;
-    cancelled: number;
-  };
-}
+#### 12.2.2 Integração com BE-02-Concessao
+```
+Operação → Validação de Concessão
+- Verificar validade
+- Confirmar titularidade
+- Validar pagamentos
+- Atualizar status
 ```
 
-#### 5.1.2 Criar Novo Sepultamento
-
-**Endpoint:** `POST /api/v1/burials`
-
-**Descrição:** Cria um novo registro de sepultamento com validações.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  deceasedId: string;
-  cemeteryId: string;
-  plotNumber: string;
-  burialDate: string; // ISO date
-  burialTime: string; // HH:mm format
-  funeralHomeId?: string;
-  familyContact: {
-    name: string;
-    phone: string;
-    email?: string;
-  };
-  religiousRite?: string;
-  specialRequirements?: string[];
-}
+#### 12.2.3 Integração com BE-04-Financeiro
+```
+Operação → Validação Financeira
+- Verificar pagamentos pendentes
+- Gerar taxas quando aplicável
+- Confirmar quitação
+- Atualizar financeiro
 ```
 
-**Resposta de Sucesso (201):**
+### 12.3 Mapeamento de Dados
 
-```typescript
-{
-  success: true;
-  data: Burial;
-  message: "Sepultamento criado com sucesso";
-}
+#### 12.3.1 Tabelas Principais
+- **t_burials**: Registro de sepultamentos
+- **t_exhumations**: Registro de exumações
+- **t_transfers**: Registro de trasladações
+- **t_schedules**: Agendamentos
+- **t_work_orders**: Ordens de serviço
+- **t_teams**: Equipes operacionais
+
+#### 12.3.2 Relacionamentos
+```
+Operação → Agendamento → Ordem de Serviço → Equipe
+   ↓
+Evidências → Fotos → GPS → Qualidade
 ```
 
-#### 5.1.3 Atualizar Sepultamento
-
-**Endpoint:** `PUT /api/v1/burials/{id}`
-
-**Descrição:** Atualiza dados de um sepultamento existente.
-
-#### 5.1.4 Obter Detalhes do Sepultamento
-
-**Endpoint:** `GET /api/v1/burials/{id}`
-
-**Descrição:** Retorna detalhes completos de um sepultamento específico.
-
-#### 5.1.5 Upload de Evidências
-
-**Endpoint:** `POST /api/v1/burials/{id}/evidences`
-
-**Descrição:** Upload de evidências fotográficas do sepultamento.
-
-**Tipo de Conteúdo:** `multipart/form-data`
-
-### 5.2 Exumações
-
-#### 5.2.1 Listar Exumações
-
-**Endpoint:** `GET /api/v1/exhumations`
-
-**Descrição:** Retorna lista paginada de exumações com filtros.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério
-
-* `dateFrom` (date, opcional): Data inicial do período
-
-* `dateTo` (date, opcional): Data final do período
-
-* `status` (string, opcional): SCHEDULED, IN\_PROGRESS, COMPLETED, CANCELLED
-
-* `reason` (string, opcional): TRANSFER, REBURIAL, LEGAL\_ORDER, FAMILY\_REQUEST
-
-* `page` (number, padrão: 0): Número da página
-
-* `size` (number, padrão: 20): Tamanho da página
-
-#### 5.2.2 Executar Exumação
-
-**Endpoint:** `POST /api/v1/exhumations/{id}/execute`
-
-**Descrição:** Executa uma exumação programada com validações de segurança.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  teamId: string;
-  startTime: string; // ISO datetime
-  specialInstructions?: string;
-  witnessPresent: boolean;
-  witnessDetails?: {
-    name: string;
-    document: string;
-    relationship: string;
-  };
-}
-```
-
-#### 5.2.3 Definir Destino da Exumação
-
-**Endpoint:** `PUT /api/v1/exhumations/{id}/destination`
-
-**Descrição:** Define ou atualiza o destino dos restos mortais exumados.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  destinationType: 'CEMETERY' | 'CREMATORIUM' | 'FAMILY' | 'OTHER';
-  destinationDetails: string;
-  destinationCemeteryId?: string;
-  destinationPlotNumber?: string;
-  transportDetails?: {
-    company: string;
-    license: string;
-    responsiblePerson: string;
-  };
-}
-```
-
-#### 5.2.4 Obter Evidências da Exumação
-
-**Endpoint:** `GET /api/v1/exhumations/{id}/evidences`
-
-**Descrição:** Retorna todas as evidências associadas a uma exumação.
-
-#### 5.2.5 Upload de Evidências
-
-**Endpoint:** `POST /api/v1/exhumations/{id}/evidences`
-
-**Descrição:** Upload de evidências da exumação.
-
-**Tipo de Conteúdo:** `multipart/form-data`
-
-### 5.3 Transferências
-
-#### 5.3.1 Solicitar Transferência
-
-**Endpoint:** `POST /api/v1/transfers`
-
-**Descrição:** Cria uma nova solicitação de transferência.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  sourceOperationId: string;
-  sourceOperationType: 'BURIAL' | 'EXHUMATION';
-  sourceCemeteryId: string;
-  sourcePlotNumber: string;
-  destinationCemeteryId: string;
-  destinationPlotNumber?: string;
-  transferDate: string; // ISO date
-  transferTime: string; // HH:mm format
-  reason: string;
-  familyContact: {
-    name: string;
-    phone: string;
-    email?: string;
-  };
-  specialRequirements?: string[];
-}
-```
-
-#### 5.3.2 Listar Transferências
-
-**Endpoint:** `GET /api/v1/transfers`
-
-**Descrição:** Retorna lista paginada de transferências com filtros.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério origem ou destino
-
-* `status` (string, opcional): REQUESTED, APPROVED, SCHEDULED, IN\_PROGRESS, COMPLETED, CANCELLED
-
-* `dateFrom` (date, opcional): Data inicial do período
-
-* `dateTo` (date, opcional): Data final do período
-
-* `approvalRequired` (boolean, opcional): Apenas transferências que requerem aprovação
-
-* `page` (number, padrão: 0): Número da página
-
-* `size` (number, padrão: 20): Tamanho da página
-
-#### 5.3.3 Aprovar Transferência
-
-**Endpoint:** `POST /api/v1/transfers/{id}/approve`
-
-**Descrição:** Aprova uma transferência pendente.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  approvedBy: string;
-  approvalNotes?: string;
-  conditions?: string[];
-}
-```
-
-#### 5.3.4 Executar Transferência
-
-**Endpoint:** `POST /api/v1/transfers/{id}/execute`
-
-**Descrição:** Executa uma transferência aprovada.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  teamId: string;
-  startTime: string; // ISO datetime
-  transportDetails?: {
-    vehicle: string;
-    driver: string;
-    license: string;
-  };
-}
-```
-
-#### 5.3.5 Transferência Inter-cemitérios
-
-**Endpoint:** `POST /api/v1/transfers/inter-cemetery`
-
-**Descrição:** Processa transferência entre cemitérios diferentes.
-
-#### 5.3.6 Obter Evidências da Transferência
-
-**Endpoint:** `GET /api/v1/transfers/{id}/evidences`
-
-**Descrição:** Retorna evidências da transferência.
-
-#### 5.3.7 Upload de Evidências
-
-**Endpoint:** `POST /api/v1/transfers/{id}/evidences`
-
-**Descrição:** Upload de evidências da transferência.
-
-### 5.4 Agendamentos
-
-#### 5.4.1 Verificar Disponibilidade
-
-**Endpoint:** `GET /api/v1/schedules/availability`
-
-**Descrição:** Verifica disponibilidade de horários para agendamento.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, obrigatório): ID do cemitério
-
-* `operationType` (string, obrigatório): BURIAL, EXHUMATION, TRANSFER
-
-* `dateFrom` (date, obrigatório): Data inicial
-
-* `dateTo` (date, obrigatório): Data final
-
-* `teamId` (UUID, opcional): Filtrar por equipe específica
-
-**Resposta de Sucesso (200):**
-
-```typescript
-{
-  cemeteryId: string;
-  period: {
-    dateFrom: string;
-    dateTo: string;
-  };
-  availability: Array<{
-    date: string;
-    availableSlots: Array<{
-      startTime: string;
-      endTime: string;
-      capacity: number;
-      teamId?: string;
-    }>;
-    scheduledOperations: Array<{
-      id: string;
-      type: string;
-      startTime: string;
-      endTime: string;
-      teamId: string;
-    }>;
-  }>;
-}
-```
-
-#### 5.4.2 Criar Novo Agendamento
-
-**Endpoint:** `POST /api/v1/schedules`
-
-**Descrição:** Cria um novo agendamento com validação de disponibilidade.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  operationType: 'BURIAL' | 'EXHUMATION' | 'TRANSFER';
-  operationId: string;
-  cemeteryId: string;
-  scheduledDate: string; // ISO date
-  scheduledTime: string; // HH:mm format
-  estimatedDuration: number; // em minutos
-  teamId?: string;
-  resourcesRequired: string[];
-  specialRequirements?: string[];
-}
-```
-
-#### 5.4.3 Listar Agendamentos
-
-**Endpoint:** `GET /api/v1/schedules`
-
-**Descrição:** Retorna lista paginada de agendamentos com filtros.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério
-
-* `operationType` (string, opcional): BURIAL, EXHUMATION, TRANSFER
-
-* `teamId` (UUID, opcional): Filtrar por equipe
-
-* `status` (string, opcional): SCHEDULED, CONFIRMED, IN\_PROGRESS, COMPLETED, CANCELLED
-
-* `dateFrom` (date, opcional): Data inicial do período
-
-* `dateTo` (date, opcional): Data final do período
-
-* `page` (number, padrão: 0): Número da página
-
-* `size` (number, padrão: 20): Tamanho da página
-
-#### 5.4.4 Atualizar Agendamento
-
-**Endpoint:** `PUT /api/v1/schedules/{id}`
-
-**Descrição:** Atualiza um agendamento existente com revalidação de disponibilidade.
-
-#### 5.4.5 Cancelar Agendamento
-
-**Endpoint:** `DELETE /api/v1/schedules/{id}`
-
-**Descrição:** Cancela um agendamento e libera recursos alocados.
-
-#### 5.4.6 Verificar Conflitos
-
-**Endpoint:** `GET /api/v1/schedules/conflicts`
-
-**Descrição:** Identifica conflitos potenciais em agendamentos.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, obrigatório): ID do cemitério
-
-* `dateFrom` (date, obrigatório): Data inicial
-
-* `dateTo` (date, obrigatório): Data final
-
-### 5.5 Ordens de Serviço
-
-#### 5.5.1 Listar Ordens Pendentes
-
-**Endpoint:** `GET /api/v1/work-orders/pending`
-
-**Descrição:** Retorna ordens de serviço pendentes de execução.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério
-
-* `teamId` (UUID, opcional): Filtrar por equipe
-
-* `operationType` (string, opcional): BURIAL, EXHUMATION, TRANSFER
-
-* `priority` (string, opcional): LOW, NORMAL, HIGH, URGENT
-
-* `assignedOnly` (boolean, padrão: false): Apenas ordens atribuídas
-
-**Resposta de Sucesso (200):**
-
-```typescript
-{
-  content: WorkOrder[];
-  summary: {
-    totalPending: number;
-    totalAssigned: number;
-    totalUnassigned: number;
-    urgentOrders: number;
-  };
-}
-```
-
-#### 5.5.2 Atribuir Ordem à Equipe
-
-**Endpoint:** `POST /api/v1/work-orders/{id}/assign`
-
-**Descrição:** Atribui uma ordem de serviço a uma equipe específica.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  teamId: string;
-  assignedBy: string;
-  estimatedStartTime?: string; // ISO datetime
-  specialInstructions?: string;
-}
-```
-
-#### 5.5.3 Iniciar Execução
-
-**Endpoint:** `POST /api/v1/work-orders/{id}/start`
-
-**Descrição:** Inicia a execução de uma ordem de serviço com validação de presença.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  startedBy: string;
-  teamMembers: string[]; // IDs dos membros da equipe presentes
-  actualStartTime: string; // ISO datetime
-  initialNotes?: string;
-}
-```
-
-#### 5.5.4 Concluir Ordem
-
-**Endpoint:** `PUT /api/v1/work-orders/{id}/complete`
-
-**Descrição:** Marca uma ordem de serviço como concluída após validações.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  completedBy: string;
-  completionTime: string; // ISO datetime
-  finalNotes?: string;
-  qualityCheck: {
-    passed: boolean;
-    checkedBy: string;
-    issues?: string[];
-  };
-}
-```
-
-#### 5.5.5 Upload de Evidências
-
-**Endpoint:** `POST /api/v1/work-orders/{id}/evidences`
-
-**Descrição:** Upload de evidências fotográficas da execução da ordem.
-
-**Tipo de Conteúdo:** `multipart/form-data`
-
-#### 5.5.6 Ordens por Equipe
-
-**Endpoint:** `GET /api/v1/work-orders/team/{teamId}`
-
-**Descrição:** Retorna ordens de serviço atribuídas a uma equipe específica.
-
-**Parâmetros Query:**
-
-* `status` (string, opcional): PENDING, ASSIGNED, IN\_PROGRESS, COMPLETED, CANCELLED
-
-* `dateFrom` (date, opcional): Data inicial do período
-
-* `dateTo` (date, opcional): Data final do período
-
-* `priority` (string, opcional): LOW, NORMAL, HIGH, URGENT
-
-### 5.6 Gestão de Equipes
-
-#### 5.6.1 Listar Equipes
-
-**Endpoint:** `GET /api/v1/teams`
-
-**Descrição:** Retorna lista de equipes operacionais com suas especializações.
-
-**Parâmetros Query:**
-
-* `cemeteryId` (UUID, opcional): Filtrar por cemitério
-
-* `specialization` (string, opcional): BURIAL, EXHUMATION, TRANSFER, MAINTENANCE
-
-* `status` (string, opcional): ACTIVE, INACTIVE, ON\_LEAVE
-
-* `availableOnly` (boolean, padrão: false): Apenas equipes disponíveis
-
-**Resposta de Sucesso (200):**
-
-```typescript
-{
-  content: Array<{
-    id: string;
-    name: string;
-    cemeteryId: string;
-    cemeteryName: string;
-    supervisor: {
-      id: string;
-      name: string;
-      phone: string;
-    };
-    members: Array<{
-      id: string;
-      name: string;
-      role: 'OPERATOR' | 'ASSISTANT';
-      specializations: string[];
-    }>;
-    specializations: string[];
-    capacity: {
-      maxSimultaneousOperations: number;
-      currentAssigned: number;
-      availableCapacity: number;
-    };
-    equipment: string[];
-    status: 'ACTIVE' | 'INACTIVE' | 'ON_LEAVE';
-    workingHours: {
-      start: string;
-      end: string;
-      workingDays: string[];
-    };
-    performance: {
-      averageOperationTime: string;
-      completionRate: number;
-      qualityScore: number;
-    };
-  }>;
-}
-```
-
-#### 5.6.2 Criar Nova Equipe
-
-**Endpoint:** `POST /api/v1/teams`
-
-**Descrição:** Cria uma nova equipe operacional.
-
-**Corpo da Requisição:**
-
-```typescript
-{
-  name: string;
-  cemeteryId: string;
-  supervisorId: string;
-  members: Array<{
-    userId: string;
-    role: 'OPERATOR' | 'ASSISTANT';
-    specializations: string[];
-  }>;
-  specializations: string[];
-  equipment: string[];
-  workingHours: {
-    start: string; // HH:mm format
-    end: string; // HH:mm format
-    workingDays: string[]; // ['MON', 'TUE', ...]
-  };
-  maxSimultaneousOperations: number;
-}
-```
-
-#### 5.6.3 Atualizar Equipe
-
-**Endpoint:** `PUT /api/v1/teams/{id}`
-
-**Descrição:** Atualiza dados de uma equipe existente.
-
-#### 5.6.4 Verificar Disponibilidade da Equipe
-
-**Endpoint:** `GET /api/v1/teams/{id}/availability`
-
-**Descrição:** Verifica disponibilidade de uma equipe específica por período.
-
-**Parâmetros Query:**
-
-* `dateFrom` (date, obrigatório): Data inicial do período
-
-* `dateTo` (date, obrigatório): Data final do período
-
-* `operationType` (string, opcional): Tipo de operação específica
-
-**Resposta de Sucesso (200):**
-
-```typescript
-{
-  teamId: string;
-  teamName: string;
-  period: {
-    dateFrom: string;
-    dateTo: string;
-  };
-  availability: Array<{
-    date: string;
-    availableSlots: Array<{
-      startTime: string;
-      endTime: string;
-      capacity: number;
-    }>;
-    scheduledOperations: Array<{
-      id: string;
-      type: string;
-      startTime: string;
-      endTime: string;
-    }>;
-  }>;
-  summary: {
-    totalAvailableHours: number;
-    totalScheduledHours: number;
-    utilizationRate: number;
-  };
-}
-```
-
-## 6. Integrações e Fluxos de Dados
-
-### 6.1 Integrações Internas (RabbitMQ)
-
-#### 6.1.1 Integração com BE-01-Cemiterio
-
-* **Validação de Localização**: Verificação de disponibilidade de sepulturas
-
-* **Dados de Cemitérios**: Informações sobre cemitérios, quadras e sepulturas
-
-* **Capacidade**: Verificação de capacidade e restrições
-
-#### 6.1.2 Integração com BE-02-Concessao
-
-* **Verificação de Direitos**: Validação de direitos de concessão
-
-* **Prazos de Concessão**: Verificação de validade e prazos
-
-* **Transferências de Concessão**: Coordenação de mudanças de titularidade
-
-#### 6.1.3 Integração com BE-04-Financeiro
-
-* **Validação de Pagamentos**: Verificação de taxas operacionais pagas
-
-* **Cobrança de Taxas**: Geração de taxas para operações
-
-* **Status Financeiro**: Verificação de pendências financeiras
-
-#### 6.1.4 Notification Service
-
-* **Notificações para Equipes**: Alertas sobre novas ordens de serviço
-
-* **Notificações para Famílias**: Comunicação sobre agendamentos e conclusões
-
-* **Alertas do Sistema**: Notificações sobre conflitos e problemas
-
-### 6.2 Integrações Externas
-
-#### 6.2.1 GPS/Geolocation Services
-
-* **Validação de Localização**: Confirmação de localização durante operações
-
-* **Rastreamento de Equipes**: Monitoramento de equipes em campo
-
-* **Evidências Georreferenciadas**: Captura de coordenadas em evidências
-
-#### 6.2.2 Autoridades Sanitárias
-
-* **Notificações Obrigatórias**: Comunicação automática de exumações
-
-* **Relatórios Regulatórios**: Envio de relatórios periódicos
-
-* **Conformidade Legal**: Verificação de requisitos legais
-
-#### 6.2.3 Funerárias
-
-* **Coordenação de Agendamentos**: Sincronização de horários
-
-* **Logística de Transporte**: Coordenação de veículos e equipamentos
-
-* **Documentação**: Troca de documentos e autorizações
-
-#### 6.2.4 Document Storage
-
-* **Armazenamento de Evidências**: Upload e armazenamento seguro
-
-* **Backup de Documentos**: Cópias de segurança de documentos importantes
-
-* **Controle de Versão**: Versionamento de documentos e evidências
-
-### 6.3 Fluxos de Dados Principais
-
-#### 6.3.1 Fluxo de Sepultamento
-
-1. **Criação da Solicitação**: Frontend → BE-03-Operacao
-2. **Validação de Concessão**: BE-03-Operacao → BE-02-Concessao
-3. **Verificação de Localização**: BE-03-Operacao → BE-01-Cemiterio
-4. **Validação Financeira**: BE-03-Operacao → BE-04-Financeiro
-5. **Agendamento**: BE-03-Operacao → Sistema de Agendamento
-6. **Notificação**: BE-03-Operacao → Notification Service
-7. **Execução**: Equipe → BE-03-Operacao (via mobile)
-8. **Evidências**: Equipe → Document Storage → BE-03-Operacao
-
-#### 6.3.2 Fluxo de Exumação
-
-1. **Solicitação de Exumação**: Frontend → BE-03-Operacao
-2. **Validação Legal**: BE-03-Operacao → Autoridades Sanitárias
-3. **Verificação de Concessão**: BE-03-Operacao → BE-02-Concessao
-4. **Agendamento**: BE-03-Operacao → Sistema de Agendamento
-5. **Notificação Obrigatória**: BE-03-Operacao → Autoridades Sanitárias
-6. **Execução**: Equipe → BE-03-Operacao
-7. **Definição de Destino**: BE-03-Operacao → Sistema de Destino
-8. **Evidências e Documentação**: Equipe → Document Storage
-
-#### 6.3.3 Fluxo de Transferência
-
-1. **Solicitação**: Frontend → BE-03-Operacao
-2. **Validação de Origem**: BE-03-Operacao → BE-01-Cemiterio
-3. **Validação de Destino**: BE-03-Operacao → BE-01-Cemiterio (destino)
-4. **Aprovação (se necessário)**: BE-03-Operacao → Sistema de Aprovação
-5. **Coordenação Inter-cemitérios**: BE-03-Operacao → BE-03-Operacao (destino)
-6. **Agendamento**: BE-03-Operacao → Sistema de Agendamento
-7. **Execução**: Equipe → BE-03-Operacao
-8. **Atualização de Registros**: BE-03-Operacao → BE-01-Cemiterio
-
-### 6.4 Eventos e Mensageria (RabbitMQ)
-
-#### 6.4.1 Eventos Publicados
-
-* `operation.burial.created`: Nova solicitação de sepultamento
-
-* `operation.burial.scheduled`: Sepultamento agendado
-
-* `operation.burial.completed`: Sepultamento concluído
-
-* `operation.exhumation.created`: Nova solicitação de exumação
-
-* `operation.exhumation.scheduled`: Exumação agendada
-
-* `operation.exhumation.completed`: Exumação concluída
-
-* `operation.transfer.requested`: Solicitação de transferência
-
-* `operation.transfer.approved`: Transferência aprovada
-
-* `operation.transfer.completed`: Transferência concluída
-
-* `schedule.conflict.detected`: Conflito de agendamento detectado
-
-* `workorder.assigned`: Ordem de serviço atribuída
-
-* `workorder.completed`: Ordem de serviço concluída
-
-#### 6.4.2 Eventos Consumidos
-
-* `concession.updated`: Atualização de concessão
-
-* `plot.status.changed`: Mudança de status de sepultura
-
-* `payment.confirmed`: Confirmação de pagamento
-
-* `cemetery.capacity.updated`: Atualização de capacidade do cemitério
-
-* `team.availability.changed`: Mudança de disponibilidade de equipe
-
-### 6.5 Segurança e Auditoria
-
-#### 6.5.1 Logs de Auditoria
-
-* Todas as operações são registradas com timestamp, usuário e detalhes
-
-* Logs de acesso a dados sensíveis
-
-* Rastreamento de mudanças em registros críticos
-
-* Logs de upload e acesso a evidências
-
-#### 6.5.2 Controle de Acesso
-
-* Autenticação via Bearer Token
-
-* Autorização baseada em permissões específicas
-
-* Rate limiting por endpoint e usuário
-
-* Validação de integridade de dados
-
-#### 6.5.3 Proteção de Dados
-
-* Criptografia de dados sensíveis em trânsito e em repouso
-
-* Anonimização de dados pessoais quando apropriado
-
-* Backup automático de evidências e documentos
-
-* Retenção de dados conforme regulamentações
-
+---
+
+## Apêndices
+
+### Apêndice A - Glossário de Termos
+
+**Sepultamento**: Ato de depositar o corpo de uma pessoa falecida em sepultura
+**Exumação**: Ato de remover restos mortais de uma sepultura
+**Trasladação**: Transferência de restos mortais entre sepulturas
+**Concessão**: Direito de uso de sepultura por período determinado
+**OSS**: Ordem de Serviço de Sepultamento
+**OS**: Ordem de Serviço geral
+**PPS**: Plano de Prevenção de Sepultamentos
+**EPI**: Equipamento de Proteção Individual
+
+### Apêndice B - Formulários Padrão
+
+Os formulários digitais estão disponíveis no sistema e incluem:
+- Formulário de Sepultamento
+- Formulário de Exumação
+- Formulário de Trasladação
+- Checklist de Qualidade
+- Relatório de Incidente
+
+### Apêndice C - Contatos Importantes
+
+**Central de Operações**: 0800-XXX-XXXX
+**Registro Civil**: [Vincular ao sistema municipal]
+**Vigilância Sanitária**: [Vincular ao sistema municipal]
+**Defesa Civil**: 199
+**Polícia**: 190
+**Samu**: 192
+
+---
+
+**Documento elaborado conforme arquitetura IGRP 3.0 e padrões do Sistema de Gestão Cemiterial (SGC)**
+
+**Versão**: 2.0 - Reestruturado
+**Data**: Novembro 2025
+**Responsável**: Equipe de Desenvolvimento SGC
+**Aprovação**: Aguardando revisão do gestor do projeto

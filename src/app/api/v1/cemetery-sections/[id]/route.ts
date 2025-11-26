@@ -18,7 +18,7 @@ export async function PUT(
   const idx = sections.findIndex((s) => s.id === id);
   if (idx === -1) {
     return Response.json(
-      { error: "NOT_FOUND", message: "Setor não encontrado" },
+      { error: "NOT_FOUND", message: "Secção não encontrado" },
       { status: 404 },
     );
   }
@@ -47,7 +47,7 @@ export async function GET(
   const section = sections.find((s) => s.id === id);
   if (!section) {
     return Response.json(
-      { error: "NOT_FOUND", message: "Setor não encontrado" },
+      { error: "NOT_FOUND", message: "Secção não encontrado" },
       { status: 404 },
     );
   }

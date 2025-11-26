@@ -28,14 +28,32 @@ export function FormActions({
   return (
     <div className="mt-6 flex gap-2">
       {onClear && (
-        <IGRPButton variant="outline" onClick={onClear} type="button">
+        <IGRPButton
+          iconName="Eraser"
+          showIcon={true}
+          variant="outline"
+          onClick={onClear}
+          type="button"
+        >
           {clearLabel}
         </IGRPButton>
       )}
-      <IGRPButton variant="outline" onClick={onCancel} type="button">
+      <IGRPButton
+        iconName="CircleX"
+        showIcon={true}
+        variant="outline"
+        onClick={onCancel}
+        type="button"
+      >
         {cancelLabel}
       </IGRPButton>
-      <IGRPButton onClick={onSubmit} disabled={disabled}>
+      <IGRPButton
+        iconName="Save"
+        showIcon={true}
+        variant="default"
+        onClick={onSubmit}
+        disabled={disabled}
+      >
         {submitLabel}
       </IGRPButton>
     </div>

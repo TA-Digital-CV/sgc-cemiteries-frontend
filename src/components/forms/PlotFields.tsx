@@ -57,7 +57,7 @@ export function PlotFields({
         <div>
           <IGRPSelect
             name={"sectionId"}
-            label={"Setor"}
+            label={"Secção"}
             options={sectionOptions}
             placeholder="Selecione a Seção"
             onValueChange={(v) => onSectionChange?.(String(v))}

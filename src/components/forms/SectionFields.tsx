@@ -4,7 +4,9 @@ import {
   IGRPInputNumber,
   IGRPInputText,
   IGRPSelect,
+  IGRPTextarea,
 } from "@igrp/igrp-framework-react-design-system";
+import { CEMETERY_STATUS, PLOT_TYPE } from "@/app/(myapp)/types/cemetery";
 
 interface Option {
   value: string;
@@ -35,24 +37,30 @@ export function SectionFields({
             label={"Bloco "}
             options={blockOptions}
             placeholder="Selecione"
+            required={true}
           />
         </div>
         <div>
           <IGRPInputText name={"name"} label={"Nome "} required={true} />
         </div>
         <div>
-          <IGRPInputText name={"code"} label={"Código "} required={true} />
+          <IGRPInputText name={"code"} label={"Código "} />
         </div>
         <div>
           <IGRPSelect
             name={"plotType"}
-            label={"Tipo "}
-            options={[
-              { value: "GROUND", label: "Solo" },
-              { value: "MAUSOLEUM", label: "Mausoléu" },
-              { value: "NICHE", label: "Nicho" },
-              { value: "OSSUARY", label: "Ossário" },
-            ]}
+            label={"Tipo"}
+            options={PLOT_TYPE.map((value) => ({
+              value,
+              label:
+                value === "GROUND"
+                  ? "Solo"
+                  : value === "MAUSOLEUM"
+                    ? "Mausoléu"
+                    : value === "NICHE"
+                      ? "Nicho"
+                      : "Ossário",
+            }))}
             placeholder="Tipo"
           />
         </div>
@@ -66,6 +74,34 @@ export function SectionFields({
             step={1}
           />
         </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <div className="md:col-span-2">
+          <IGRPTextarea name={"description"} label={"Descrição "} />
+        </div>
+        <div>
+          <IGRPSelect
+            name={"status"}
+            label={"Status "}
+            options={CEMETERY_STATUS.map((value) => ({
+              value,
+              label:
+                value === "ACTIVE"
+                  ? "Ativo"
+                  : value === "INACTIVE"
+                    ? "Inativo"
+                    : "Manutenção",
+            }))}
+            placeholder="Selecione"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4 mt-4">
+        <IGRPTextarea
+          name={"geoPolygonText"}
+          label={"GeoPolygon (JSON) "}
+          placeholder={'{ "type": "Polygon", "coordinates": [...] }'}
+        />
       </div>
     </>
   );

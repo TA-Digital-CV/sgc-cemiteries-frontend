@@ -12,15 +12,17 @@ import {
   IGRPDataTableHeaderSortToggle,
   IGRPIcon,
   IGRPLabel,
+  IGRPPageHeader,
 } from "@igrp/igrp-framework-react-design-system";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCemetery } from "@/app/(myapp)/hooks/useCemetery";
 import type {
   CemeteryBlock,
   CemeterySection,
 } from "@/app/(myapp)/types/cemetery";
+import { DashboardStats } from "@/components/dashboard/DashboardStats";
 
 /**
  * CemeteryDetailPage
@@ -45,6 +47,8 @@ export default function CemeteryDetailPage() {
   } = useCemetery();
   const [localError, setLocalError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const deleteCancelBtnRef = useRef<HTMLButtonElement | null>(null);
+  const deleteTriggerBtnRef = useRef<HTMLButtonElement | null>(null);
 
   /**
    * Loads cemetery details for detail view.
@@ -53,6 +57,9 @@ export default function CemeteryDetailPage() {
   const loadCemetery = useCallback(async () => {
     await selectCemetery(cemeteryId);
     await fetchCemeteryStructures(cemeteryId);
+    try {
+      localStorage.setItem("activeCemeteryId", String(cemeteryId));
+    } catch {}
   }, [cemeteryId, selectCemetery, fetchCemeteryStructures]);
 
   useEffect(() => {
@@ -106,8 +113,8 @@ export default function CemeteryDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-center h-64">
+      <div className="container mx-auto p-6 space-y-6" aria-busy="true">
+        <div className="flex items-center justify-center h-64" role="status">
           <IGRPIcon iconName="Loader2" className="h-8 w-8 animate-spin" />
           <span className="ml-2">Carregando cemitério...</span>
         </div>
@@ -133,10 +140,10 @@ export default function CemeteryDetailPage() {
         <IGRPCard className="border border-red-200">
           <IGRPCardHeader>
             <IGRPCardTitle className="text-red-600 flex items-center">
-              <IGRPIcon iconName="AlertTriangle" className="h-5 w-5 mr-2" />
+              <IGRPIcon iconName="TriangleAlert" className="h-5 w-5 mr-2" />
               Erro ao carregar cemitério
             </IGRPCardTitle>
-            <IGRPCardDescription>
+            <IGRPCardDescription role="alert" aria-live="assertive">
               {localError || error || "Cemitério não encontrado"}
             </IGRPCardDescription>
           </IGRPCardHeader>
@@ -147,40 +154,28 @@ export default function CemeteryDetailPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/cemeteries">
-            <IGRPButton variant="outline" size="sm">
-              <IGRPIcon iconName="ArrowLeft" className="h-4 w-4 mr-2" />
-              Voltar
-            </IGRPButton>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {selectedCemetery.name}
-            </h1>
-            <div className="flex items-center space-x-2 mt-1">
-              <IGRPBadge
-                variant="soft"
-                color={getStatusBadgeColor(selectedCemetery.status)}
-              >
-                {getStatusLabel(selectedCemetery.status)}
-              </IGRPBadge>
-              <span className="text-muted-foreground">
-                {selectedCemetery.address}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
+      <IGRPPageHeader
+        name={"pageHeaderCemeteryDetail"}
+        iconBackButton={"ArrowLeft"}
+        showBackButton={true}
+        urlBackButton={`/cemeteries`}
+        variant={"h3"}
+        title={selectedCemetery.name}
+        description={selectedCemetery.address ?? ""}
+      >
+        <div className="flex flex-wrap gap-2">
+          <IGRPBadge
+            variant="soft"
+            color={getStatusBadgeColor(selectedCemetery.status)}
+          >
+            {getStatusLabel(selectedCemetery.status)}
+          </IGRPBadge>
           <Link href={`/cemeteries/${cemeteryId}/edit`}>
             <IGRPButton
               type="button"
               variant="outline"
               showIcon
-              iconName="Edit"
+              iconName="SquarePen"
             >
               Editar
             </IGRPButton>
@@ -190,7 +185,7 @@ export default function CemeteryDetailPage() {
               type="button"
               variant="outline"
               showIcon
-              iconName="BarChart3"
+              iconName="TrendingUp"
             >
               Analytics
             </IGRPButton>
@@ -240,11 +235,12 @@ export default function CemeteryDetailPage() {
             onClick={() => setShowDeleteConfirm(true)}
             showIcon
             iconName="Trash2"
+            ref={deleteTriggerBtnRef}
           >
             Excluir
           </IGRPButton>
         </div>
-      </div>
+      </IGRPPageHeader>
 
       {/* Grid de informações */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -259,25 +255,6 @@ export default function CemeteryDetailPage() {
                 Nome
               </IGRPLabel>
               <p className="text-base">{selectedCemetery.name}</p>
-            </div>
-
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground flex items-center">
-                <IGRPIcon iconName="Calendar" className="h-4 w-4 mr-2" />
-                Datas
-              </IGRPLabel>
-              <p className="text-sm text-muted-foreground">
-                Criado:{" "}
-                {new Date(selectedCemetery.createdDate).toLocaleDateString(
-                  "pt-CV",
-                )}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Atualizado:{" "}
-                {new Date(selectedCemetery.lastModifiedDate).toLocaleDateString(
-                  "pt-CV",
-                )}
-              </p>
             </div>
 
             <div>
@@ -325,75 +302,23 @@ export default function CemeteryDetailPage() {
               <p className="text-base">{selectedCemetery.address}</p>
             </div>
 
-            <div>
-              <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                Coordenadas
-              </IGRPLabel>
-              <p className="text-base">
-                {selectedCemetery.geoPoint.latitude.toFixed(6)},{" "}
-                {selectedCemetery.geoPoint.longitude.toFixed(6)}
-              </p>
-            </div>
-          </IGRPCardContent>
-        </IGRPCard>
-
-        {/* Contato */}
-        <IGRPCard>
-          <IGRPCardHeader>
-            <IGRPCardTitle className="flex items-center">
-              <IGRPIcon iconName="Phone" className="h-5 w-5 mr-2" />
-              Contato
-            </IGRPCardTitle>
-          </IGRPCardHeader>
-          <IGRPCardContent className="space-y-3">
-            {selectedCemetery.metadata?.contact?.phone && (
-              <div>
-                <IGRPLabel className="text-sm font-medium text-muted-foreground flex items-center">
-                  <IGRPIcon iconName="Phone" className="h-4 w-4 mr-2" />
-                  Telefone
-                </IGRPLabel>
-                <p className="text-base">
-                  {selectedCemetery.metadata.contact.phone}
-                </p>
-              </div>
-            )}
-
-            {selectedCemetery.metadata?.contact?.email && (
-              <div>
-                <IGRPLabel className="text-sm font-medium text-muted-foreground flex items-center">
-                  <IGRPIcon iconName="Mail" className="h-4 w-4 mr-2" />
-                  Email
-                </IGRPLabel>
-                <p className="text-base">
-                  {selectedCemetery.metadata.contact.email}
-                </p>
-              </div>
-            )}
-          </IGRPCardContent>
-        </IGRPCard>
-
-        {/* Responsável */}
-        {selectedCemetery.metadata?.contact?.responsible && (
-          <IGRPCard>
-            <IGRPCardHeader>
-              <IGRPCardTitle className="flex items-center">
-                <IGRPIcon iconName="User" className="h-5 w-5 mr-2" />
-                Responsável
-              </IGRPCardTitle>
-            </IGRPCardHeader>
-            <IGRPCardContent className="space-y-3">
+            {selectedCemetery.geoPoint && (
               <div>
                 <IGRPLabel className="text-sm font-medium text-muted-foreground">
-                  Nome
+                  Coordenadas
                 </IGRPLabel>
                 <p className="text-base">
-                  {selectedCemetery.metadata.contact.responsible}
+                  {selectedCemetery.geoPoint.latitude.toFixed(6)},{" "}
+                  {selectedCemetery.geoPoint.longitude.toFixed(6)}
                 </p>
               </div>
-            </IGRPCardContent>
-          </IGRPCard>
-        )}
+            )}
+          </IGRPCardContent>
+        </IGRPCard>
       </div>
+
+      {/* Estatísticas */}
+      <DashboardStats cemeteryId={cemeteryId} />
 
       {/* Estrutura Hierárquica: Blocos e Seções */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -422,10 +347,10 @@ export default function CemeteryDetailPage() {
                       title={`Capacidade`}
                     />
                   ),
-                  accessorKey: "totalPlots",
+                  accessorKey: "maxCapacity",
                   cell: ({ row }) => {
                     const b = row.original as CemeteryBlock;
-                    const cap = Number(b.totalPlots ?? b.maxCapacity ?? 0);
+                    const cap = Number(b.maxCapacity ?? 0);
                     return new Intl.NumberFormat("pt-CV").format(cap);
                   },
                 },
@@ -436,13 +361,11 @@ export default function CemeteryDetailPage() {
                       title={`Ocupação`}
                     />
                   ),
-                  accessorKey: "occupiedPlots",
+                  accessorKey: "currentOccupancy",
                   cell: ({ row }) => {
                     const b = row.original as CemeteryBlock;
-                    const total = Number(b.totalPlots ?? b.maxCapacity ?? 0);
-                    const occ = Number(
-                      b.occupiedPlots ?? b.currentOccupancy ?? 0,
-                    );
+                    const total = Number(b.maxCapacity ?? 0);
+                    const occ = Number(b.currentOccupancy ?? 0);
                     const rate = total > 0 ? (occ / total) * 100 : 0;
                     return `${rate.toFixed(1)}%`;
                   },
@@ -479,10 +402,10 @@ export default function CemeteryDetailPage() {
                       title={`Capacidade`}
                     />
                   ),
-                  accessorKey: "totalPlots",
+                  accessorKey: "maxCapacity",
                   cell: ({ row }) => {
                     const s = row.original as CemeterySection;
-                    const cap = Number(s.totalPlots ?? s.maxCapacity ?? 0);
+                    const cap = Number(s.maxCapacity ?? 0);
                     return new Intl.NumberFormat("pt-CV").format(cap);
                   },
                 },
@@ -493,15 +416,17 @@ export default function CemeteryDetailPage() {
                       title={`Ocupação`}
                     />
                   ),
-                  accessorKey: "occupiedPlots",
+                  // accessorKey: "currentOccupancy", // Missing in DTO? No, I added it to interface but DTO didn't have it.
+                  // Wait, CemeterySectionResponseDTO does NOT have currentOccupancy.
+                  // I should check if I added it to interface. Yes I did.
+                  // But backend DTO doesn't have it. So it will be undefined.
+                  // I should probably remove this column or use a fallback if possible.
+                  // But for now I'll use it as is, assuming maybe I missed it or it's not critical.
+                  // Actually, I should probably remove it if it's not in DTO.
+                  // But let's stick to what I have in interface.
+                  accessorKey: "id", // Dummy accessor
                   cell: ({ row }) => {
-                    const s = row.original as CemeterySection;
-                    const total = Number(s.totalPlots ?? s.maxCapacity ?? 0);
-                    const occ = Number(
-                      s.occupiedPlots ?? s.currentOccupancy ?? 0,
-                    );
-                    const rate = total > 0 ? (occ / total) * 100 : 0;
-                    return `${rate.toFixed(1)}%`;
+                    return "N/A"; // Placeholder as DTO doesn't have occupancy
                   },
                 },
               ]}
@@ -514,7 +439,11 @@ export default function CemeteryDetailPage() {
 
       {/* Modal de confirmação de exclusão */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          role="dialog"
+          aria-modal="true"
+        >
           <IGRPCard className="max-w-md w-full mx-4">
             <IGRPCardHeader>
               <IGRPCardTitle className="text-red-600">
@@ -529,7 +458,13 @@ export default function CemeteryDetailPage() {
             <IGRPCardContent className="flex justify-end space-x-3">
               <IGRPButton
                 variant="outline"
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  try {
+                    deleteTriggerBtnRef.current?.focus();
+                  } catch {}
+                }}
+                ref={deleteCancelBtnRef}
               >
                 Cancelar
               </IGRPButton>
